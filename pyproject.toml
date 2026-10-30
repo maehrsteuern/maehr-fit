@@ -1,0 +1,32 @@
+# pyproject.toml – MAEHR FIT am Rechner (desktop/mf_dienst.py) und Python-Tests.
+# Kernaussage: Der Dienst braucht nur Python ab 3.10. Alles Weitere ist freiwillig und wird beim Start erkannt:
+#   krypto  → verschlüsselte Übertragung und .mfx-Dateien (AES-GCM)
+#   tray    → Symbol in der Taskleiste
+#   qr      → QR-Code im Terminal und in der Sync-Ansicht
+# Einrichten: python3 -m pip install ".[alle]"   (installiert nur die Erweiterungen; gestartet wird desktop/mf_dienst.py)
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "maehr-fit-dienst"
+version = "0.1.0"
+description = "MAEHR FIT am Rechner: App zeigen, Messwerte vom Handy und aus dem Eingangsordner sammeln. Daten bleiben im Heimnetz."
+requires-python = ">=3.10"
+dependencies = []
+
+[project.optional-dependencies]
+krypto = ["cryptography>=42"]
+tray = ["pystray>=0.19", "Pillow>=10"]
+qr = ["qrcode>=7.4"]
+zeitzonen = ["tzdata>=2024.1"]   # nur Windows: IANA-Zeitzonen wie Europe/Berlin
+alle = ["cryptography>=42", "pystray>=0.19", "Pillow>=10", "qrcode>=7.4", "tzdata>=2024.1; platform_system == 'Windows'"]
+test = ["pytest>=8"]
+
+[tool.setuptools]
+packages = []
+py-modules = []
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
+addopts = "-q"

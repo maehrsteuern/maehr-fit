@@ -1,0 +1,1289 @@
+{
+ "hinweis": "Erzeugt von tests/node/whoop_erwartet_erzeugen.mjs aus daten/csv_import.js – nicht von Hand ändern.",
+ "import": {
+  "paket": {
+   "herzschlag": [],
+   "hrv": [
+    {
+     "t": 1792817880000,
+     "rmssdMs": 52,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792790040000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792904700000,
+     "rmssdMs": 44.5,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792878000000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792993200000,
+     "rmssdMs": 63.1,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792965300000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793079600000,
+     "rmssdMs": 58,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793053200000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793165700000,
+     "rmssdMs": 38.2,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793138700000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793310600000,
+     "rmssdMs": 51.4,
+     "zeitGeschaetzt": true,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793310600000:hrv",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "ruhepuls": [
+    {
+     "t": 1792817880000,
+     "bpm": 53,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792790040000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792904700000,
+     "bpm": 55,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792878000000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792993200000,
+     "bpm": 50,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792965300000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793079600000,
+     "bpm": 51,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793053200000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793165700000,
+     "bpm": 58,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793138700000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793253000000,
+     "bpm": 52,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793225400000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 7
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793310600000,
+     "bpm": 53,
+     "zeitGeschaetzt": true,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793310600000:ruhepuls",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "atemfrequenz": [
+    {
+     "t": 1792817880000,
+     "proMin": 14.7,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792790040000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792904700000,
+     "proMin": 15.1,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792878000000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792993200000,
+     "proMin": 14.4,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792965300000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793079600000,
+     "proMin": 14.6,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793053200000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793165700000,
+     "proMin": 15.6,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793138700000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793253000000,
+     "proMin": 14.9,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793225400000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 7
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793108100000,
+     "proMin": 15,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793106600000:atem",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "spo2": [
+    {
+     "t": 1792817880000,
+     "prozent": 96.1,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792790040000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792904700000,
+     "prozent": 95.8,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792878000000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792993200000,
+     "prozent": 96.6,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792965300000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793079600000,
+     "prozent": 96.3,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793053200000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793165700000,
+     "prozent": 95.2,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793138700000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793310600000,
+     "prozent": 96,
+     "zeitGeschaetzt": true,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793310600000:spo2",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "hauttemp": [
+    {
+     "t": 1792817880000,
+     "deltaC": -0.08,
+     "absolutC": 33.42,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792790040000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792904700000,
+     "deltaC": 0.11,
+     "absolutC": 33.61,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792878000000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "t": 1792993200000,
+     "deltaC": -0.12,
+     "absolutC": 33.38,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792965300000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793079600000,
+     "deltaC": 0,
+     "absolutC": 33.5,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793053200000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793165700000,
+     "deltaC": 0.45,
+     "absolutC": 33.95,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793138700000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793253000000,
+     "deltaC": -0.03,
+     "absolutC": 33.47,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793225400000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 7
+     },
+     "zoneMin": 60
+    },
+    {
+     "t": 1793310600000,
+     "deltaC": 0.05,
+     "absolutC": 33.55,
+     "basisC": 33.5,
+     "deltaBasis": "median_import",
+     "zeitGeschaetzt": true,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793310600000:hauttemp",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "schlaf": [
+    {
+     "von": 1792790040000,
+     "bis": 1792817880000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 3120000,
+      "leichtMs": 12060000,
+      "tiefMs": 5880000,
+      "remMs": 6780000
+     },
+     "schlafMs": 24720000,
+     "imBettMs": 27840000,
+     "bedarfMs": 28200000,
+     "schuldMs": 1860000,
+     "effizienzProzent": 89,
+     "konstanzProzent": 77,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 88
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792790040000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "von": 1792878000000,
+     "bis": 1792904700000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 3900000,
+      "leichtMs": 11400000,
+      "tiefMs": 4860000,
+      "remMs": 6540000
+     },
+     "schlafMs": 22800000,
+     "imBettMs": 26700000,
+     "bedarfMs": 28800000,
+     "schuldMs": 3120000,
+     "effizienzProzent": 85,
+     "konstanzProzent": 71,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 79
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792878000000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "von": 1792965300000,
+     "bis": 1792993200000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 2040000,
+      "leichtMs": 11880000,
+      "tiefMs": 6720000,
+      "remMs": 7260000
+     },
+     "schlafMs": 25860000,
+     "imBettMs": 27900000,
+     "bedarfMs": 27300000,
+     "schuldMs": 720000,
+     "effizienzProzent": 93,
+     "konstanzProzent": 82,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 95
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1792965300000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793053200000,
+     "bis": 1793079600000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 2100000,
+      "leichtMs": 11280000,
+      "tiefMs": 6240000,
+      "remMs": 6780000
+     },
+     "schlafMs": 24300000,
+     "imBettMs": 26400000,
+     "bedarfMs": 27600000,
+     "schuldMs": 1200000,
+     "effizienzProzent": 92,
+     "konstanzProzent": 80,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 90
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793053200000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793138700000,
+     "bis": 1793165700000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 6000000,
+      "leichtMs": 10200000,
+      "tiefMs": 4200000,
+      "remMs": 6600000
+     },
+     "schlafMs": 21000000,
+     "imBettMs": 27000000,
+     "bedarfMs": 29400000,
+     "schuldMs": 3600000,
+     "effizienzProzent": 78,
+     "konstanzProzent": 65,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 71
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793138700000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793225400000,
+     "bis": 1793253000000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 3720000,
+      "leichtMs": 11400000,
+      "tiefMs": 5760000,
+      "remMs": 6720000
+     },
+     "schlafMs": 23880000,
+     "imBettMs": 27600000,
+     "bedarfMs": 28200000,
+     "schuldMs": 2100000,
+     "effizienzProzent": 87,
+     "konstanzProzent": 74,
+     "nickerchen": false,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": 86
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793225400000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 7
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793106600000,
+     "bis": 1793108100000,
+     "phasen": [],
+     "phasenSummen": {
+      "wachMs": 240000,
+      "leichtMs": 900000,
+      "tiefMs": 240000,
+      "remMs": 120000
+     },
+     "schlafMs": 1260000,
+     "imBettMs": 1500000,
+     "bedarfMs": null,
+     "schuldMs": null,
+     "effizienzProzent": 84,
+     "konstanzProzent": null,
+     "nickerchen": true,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "schlafLeistung": null
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:schlaf:1793106600000",
+      "datei": "whoop_sleeps.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ],
+   "training": [
+    {
+     "von": 1792857720000,
+     "bis": 1792860480000,
+     "art": "laufen",
+     "name": "Running",
+     "herzschlaege": [],
+     "zonenProzent": [
+      8,
+      22,
+      41,
+      24,
+      5
+     ],
+     "maxPuls": 171,
+     "mittelPuls": 148,
+     "energieKcal": 540,
+     "distanzM": 8120,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "belastung": 12.4
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:training:1792857720000",
+      "datei": "whoop_workouts.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "von": 1792996200000,
+     "bis": 1792999500000,
+     "art": "gewichtheben",
+     "name": "Weightlifting",
+     "herzschlaege": [],
+     "zonenProzent": [
+      30,
+      40,
+      22,
+      8,
+      0
+     ],
+     "maxPuls": 149,
+     "mittelPuls": 118,
+     "energieKcal": 380,
+     "distanzM": null,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "belastung": 8.7
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:training:1792996200000",
+      "datei": "whoop_workouts.csv",
+      "zeile": 3
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793098800000,
+     "bis": 1793100600000,
+     "art": "yoga",
+     "name": "Yoga",
+     "herzschlaege": [],
+     "zonenProzent": [
+      70,
+      30,
+      0,
+      0,
+      0
+     ],
+     "maxPuls": 104,
+     "mittelPuls": 88,
+     "energieKcal": 120,
+     "distanzM": null,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "belastung": 3.1
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:training:1793098800000",
+      "datei": "whoop_workouts.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793203800000,
+     "bis": 1793209200000,
+     "art": "radfahren",
+     "name": "Cycling",
+     "herzschlaege": [],
+     "zonenProzent": [
+      5,
+      15,
+      35,
+      30,
+      15
+     ],
+     "maxPuls": 181,
+     "mittelPuls": 152,
+     "energieKcal": 1020,
+     "distanzM": 41200,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "belastung": 15.9
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:training:1793203800000",
+      "datei": "whoop_workouts.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "von": 1793289600000,
+     "bis": 1793292300000,
+     "art": "laufen",
+     "name": "Running",
+     "herzschlaege": [],
+     "zonenProzent": [
+      6,
+      20,
+      44,
+      25,
+      5
+     ],
+     "maxPuls": 166,
+     "mittelPuls": 147,
+     "energieKcal": 560,
+     "distanzM": 8400,
+     "fremdwerte": {
+      "anbieter": "whoop",
+      "belastung": 13.2
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:training:1793289600000",
+      "datei": "whoop_workouts.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    }
+   ],
+   "tagebuch": [
+    {
+     "tag": "2026-10-27",
+     "eintraege": {
+      "have_any_alcoholic_drinks": false,
+      "read_non_screened_device_while_in_bed": true,
+      "consume_caffeine": true
+     },
+     "fragen": {
+      "have_any_alcoholic_drinks": "Have any alcoholic drinks?",
+      "read_non_screened_device_while_in_bed": "Read (non-screened device) while in bed?",
+      "consume_caffeine": "Consume caffeine?"
+     },
+     "notizen": {
+      "read_non_screened_device_while_in_bed": "Roman, 20 Seiten",
+      "consume_caffeine": "Espresso \"doppio\", 15 Uhr"
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:tagebuch:2026-10-27",
+      "datei": "whoop_journal_entries.csv",
+      "zeile": 2
+     },
+     "zeilen": [
+      2,
+      3,
+      4
+     ]
+    },
+    {
+     "tag": "2026-10-28",
+     "eintraege": {
+      "have_any_alcoholic_drinks": true,
+      "read_non_screened_device_while_in_bed": false,
+      "consume_caffeine": true
+     },
+     "fragen": {
+      "have_any_alcoholic_drinks": "Have any alcoholic drinks?",
+      "read_non_screened_device_while_in_bed": "Read (non-screened device) while in bed?",
+      "consume_caffeine": "Consume caffeine?"
+     },
+     "notizen": {
+      "have_any_alcoholic_drinks": "Feier bei Freunden,\nzwei Gläser Wein"
+     },
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:tagebuch:2026-10-28",
+      "datei": "whoop_journal_entries.csv",
+      "zeile": 5
+     },
+     "zeilen": [
+      5,
+      7,
+      8
+     ]
+    },
+    {
+     "tag": "2026-10-29",
+     "eintraege": {
+      "have_any_alcoholic_drinks": false,
+      "consume_caffeine": false
+     },
+     "fragen": {
+      "have_any_alcoholic_drinks": "Have any alcoholic drinks?",
+      "consume_caffeine": "Consume caffeine?"
+     },
+     "notizen": {},
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:tagebuch:2026-10-29",
+      "datei": "whoop_journal_entries.csv",
+      "zeile": 9
+     },
+     "zeilen": [
+      9,
+      10
+     ]
+    }
+   ],
+   "fremdwerte": [
+    {
+     "tag": "2026-10-24",
+     "t": 1792817880000,
+     "anbieter": "whoop",
+     "erholung": 67,
+     "belastung": 11.3,
+     "schlafLeistung": 88,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792790040000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 2
+     },
+     "zoneMin": 120
+    },
+    {
+     "tag": "2026-10-25",
+     "t": 1792904700000,
+     "anbieter": "whoop",
+     "erholung": 54,
+     "belastung": 8.9,
+     "schlafLeistung": 79,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792878000000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 3
+     },
+     "zoneMin": 120
+    },
+    {
+     "tag": "2026-10-26",
+     "t": 1792993200000,
+     "anbieter": "whoop",
+     "erholung": 81,
+     "belastung": 14.8,
+     "schlafLeistung": 95,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1792965300000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 4
+     },
+     "zoneMin": 60
+    },
+    {
+     "tag": "2026-10-27",
+     "t": 1793079600000,
+     "anbieter": "whoop",
+     "erholung": 72,
+     "belastung": 12.1,
+     "schlafLeistung": 90,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793053200000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 5
+     },
+     "zoneMin": 60
+    },
+    {
+     "tag": "2026-10-28",
+     "t": 1793165700000,
+     "anbieter": "whoop",
+     "erholung": 33,
+     "belastung": 16.4,
+     "schlafLeistung": 71,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793138700000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 6
+     },
+     "zoneMin": 60
+    },
+    {
+     "tag": "2026-10-29",
+     "t": 1793253000000,
+     "anbieter": "whoop",
+     "erholung": 61,
+     "belastung": 13,
+     "schlafLeistung": 86,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793225400000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 7
+     },
+     "zoneMin": 60
+    },
+    {
+     "tag": "2026-10-29",
+     "t": 1793310600000,
+     "anbieter": "whoop",
+     "erholung": 58,
+     "belastung": 2.1,
+     "schlafLeistung": null,
+     "zeitGeschaetzt": true,
+     "quelle": {
+      "art": "csv",
+      "id": "whoop:zyklus:1793310600000:fremdwerte",
+      "datei": "whoop_physiological_cycles.csv",
+      "zeile": 8
+     },
+     "zoneMin": 60
+    }
+   ]
+  },
+  "hinweise": [
+   {
+    "datei": "whoop_physiological_cycles.csv",
+    "zeile": 8,
+    "text": "Aufwachzeit fehlt – Zyklusbeginn als Messzeit genutzt."
+   }
+  ],
+  "dateien": [
+   {
+    "name": "whoop_physiological_cycles.csv",
+    "art": "zyklen",
+    "zeilen": 7
+   },
+   {
+    "name": "whoop_sleeps.csv",
+    "art": "schlaf",
+    "zeilen": 7
+   },
+   {
+    "name": "whoop_workouts.csv",
+    "art": "training",
+    "zeilen": 5
+   },
+   {
+    "name": "whoop_journal_entries.csv",
+    "art": "tagebuch",
+    "zeilen": 8
+   }
+  ],
+  "tage": {
+   "herzschlag": [],
+   "hrv": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29"
+   ],
+   "ruhepuls": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-29"
+   ],
+   "atemfrequenz": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-27"
+   ],
+   "spo2": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29"
+   ],
+   "hauttemp": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-29"
+   ],
+   "schlaf": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-27"
+   ],
+   "training": [
+    "2026-10-24",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29"
+   ],
+   "tagebuch": [
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29"
+   ],
+   "fremdwerte": [
+    "2026-10-24",
+    "2026-10-25",
+    "2026-10-26",
+    "2026-10-27",
+    "2026-10-28",
+    "2026-10-29",
+    "2026-10-29"
+   ]
+  }
+ },
+ "zeiten": [
+  [
+   "2026-10-12 23:14:05",
+   "UTC+02:00",
+   1791839645000
+  ],
+  [
+   "2026-10-12T23:14:05Z",
+   null,
+   1791846845000
+  ],
+  [
+   "2026-10-12T23:14:05.5+01:30",
+   null,
+   1791841445500
+  ],
+  [
+   "2026-10-12",
+   "UTC",
+   1791763200000
+  ],
+  [
+   "12.10.2026 23:14",
+   "+0100",
+   1791843240000
+  ],
+  [
+   "10/12/2026 11:14:05 PM",
+   "GMT-5",
+   1791864845000
+  ],
+  [
+   "10/12/2026 12:00 AM",
+   "Z",
+   1791763200000
+  ],
+  [
+   "2026-03-29 02:30:00",
+   "Europe/Berlin",
+   1774747800000
+  ],
+  [
+   "2026-10-25 02:30:00",
+   "Europe/Berlin",
+   1792891800000
+  ],
+  [
+   "2026-02-31 10:00",
+   "UTC",
+   1772532000000
+  ],
+  [
+   "1793350800",
+   null,
+   1793350800000
+  ],
+  [
+   "1793350800123",
+   null,
+   1793350800123
+  ],
+  [
+   "2026-13-01",
+   "UTC",
+   null
+  ],
+  [
+   "unsinn",
+   "UTC",
+   null
+  ]
+ ],
+ "zahlen": [
+  [
+   "45.3",
+   45.3
+  ],
+  [
+   "45,3",
+   45.3
+  ],
+  [
+   "87 %",
+   87
+  ],
+  [
+   "87%",
+   87
+  ],
+  [
+   "",
+   null
+  ],
+  [
+   "n/a",
+   null
+  ],
+  [
+   "NA",
+   null
+  ],
+  [
+   "-",
+   null
+  ],
+  [
+   "1e3",
+   1000
+  ],
+  [
+   ".5",
+   0.5
+  ],
+  [
+   "5.",
+   5
+  ],
+  [
+   "+5",
+   5
+  ],
+  [
+   "0x1A",
+   26
+  ],
+  [
+   "1_000",
+   null
+  ],
+  [
+   "1.234,5",
+   null
+  ],
+  [
+   "Infinity",
+   null
+  ],
+  [
+   "  12  ",
+   12
+  ]
+ ],
+ "versaetze": [
+  [
+   "Europe/Berlin",
+   1793350800000,
+   60
+  ],
+  [
+   "America/New_York",
+   1780000000000,
+   -240
+  ],
+  [
+   "UTC+05:30",
+   0,
+   330
+  ],
+  [
+   "Mars/Olymp",
+   0,
+   null
+  ]
+ ],
+ "csv": [
+  [
+   "a,b,c\r\n1,\"x \"\"y\"\"\",3\n\n\"mehr\nzeilig\",,\r\"ende\"",
+   {
+    "kopf": [
+     "a",
+     "b",
+     "c"
+    ],
+    "zeilen": [
+     {
+      "zeile": 2,
+      "werte": [
+       "1",
+       "x \"y\"",
+       "3"
+      ]
+     },
+     {
+      "zeile": 4,
+      "werte": [
+       "mehr\nzeilig",
+       "",
+       ""
+      ]
+     },
+     {
+      "zeile": 6,
+      "werte": [
+       "ende"
+      ]
+     }
+    ],
+    "trenner": ","
+   }
+  ],
+  [
+   "x;y\n1;2",
+   {
+    "kopf": [
+     "x",
+     "y"
+    ],
+    "zeilen": [
+     {
+      "zeile": 2,
+      "werte": [
+       "1",
+       "2"
+      ]
+     }
+    ],
+    "trenner": ";"
+   }
+  ],
+  [
+   "﻿k\tl\n1\t2",
+   {
+    "kopf": [
+     "k",
+     "l"
+    ],
+    "zeilen": [
+     {
+      "zeile": 2,
+      "werte": [
+       "1",
+       "2"
+      ]
+     }
+    ],
+    "trenner": "\t"
+   }
+  ]
+ ]
+}

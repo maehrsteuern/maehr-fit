@@ -1,0 +1,55 @@
+{
+ "hinweis": "Erzeugt von tests/python/erzeuge_fixture_sync.py – nicht von Hand ändern. Erfundene Werte (Musterperson).",
+ "signatur": {
+  "schluessel_b64url": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyA",
+  "geraet": "g0123456789ab",
+  "methode": "POST",
+  "pfad": "/api/sync",
+  "zeit": "1793350800000",
+  "koerper": "{\"messungen\":[{\"art\":\"ruhepuls\",\"tag\":\"2026-10-30\",\"daten\":{\"t\":1793340000000,\"bpm\":52,\"zoneMin\":60,\"quelle\":{\"art\":\"demo\",\"id\":\"muster:ruhepuls:1\"}}}]}",
+  "koerper_sha256": "d7e78af924d5e7e6fcbeae607ffd484956009a246608e2f568fd808bdae58a36",
+  "kanonisch": "POST\n/api/sync\n1793350800000\nd7e78af924d5e7e6fcbeae607ffd484956009a246608e2f568fd808bdae58a36",
+  "signatur": "2a24b4baf24735d0364d2eb7e936b06425480324784341bcbd09a1d5bbda38af",
+  "signatur_leer_get": "0bf826d706619df12a2715d6009498aa3d6ed2cdd6f5835330bccecbe58adfa8"
+ },
+ "hmac_rfc4231_fall2": {
+  "schluessel": "Jefe",
+  "nachricht": "what do ya want for nothing?",
+  "hmac": "5bdcc146bf60754e6a042426089575c75a003f089d2739839dec58b964ec3843"
+ },
+ "kopplung": {
+  "text": "MF-KOPPLUNG:eyJ2IjoxLCJob3N0IjoiMTkyLjE2OC4xNzguMjAiLCJwb3J0Ijo4NzY1LCJnZXJhZXRfaWQiOiJnMDEyMzQ1Njc4OWFiIiwic2NobHVlc3NlbCI6IkFRSURCQVVHQndnSkNnc01EUTRQRUJFU0V4UVZGaGNZR1JvYkhCMGVIeUEiLCJhYmxhdWYiOjE3OTMzNTE0MDAwMDAsIm5hbWUiOiJIYW5keSJ9",
+  "ablauf": 1793351400000,
+  "fingerabdruck": "ae216c2e"
+ },
+ "aes_schluessel_hex": "3719d9db9e4e18f6f3d2dd1e0ac3b099d99fb620776d0a3df05cb508c654df88",
+ "sync_verschluesselt": {
+  "iv_b64url": "ZGVmZ2hpamtsbW5v",
+  "iv": "ZGVmZ2hpamtsbW5v",
+  "daten": "gAXqEt5P1qCogxecJFmn6aQlbxSqib-8UxaL8wAyLeNRqT20kJfKYHPjAwm_Oz-sCg65j_Ig5-VXDSHupxgnvrBj6byoyngrcmxN4TN3rRspi0A3v9m3BNdO2vrHzyMxEHN8YeU-Zc5FpFBMF6pHBzjPfcmeWTh4vpPh6QWFnD7GfrglXEdI0Y88eAwy2G0VOkfCHxyORLkvoI7obfD_UMTjoVzf9pho"
+ },
+ "mfx": {
+  "passwort": "Muster-Passwort-2026",
+  "iterationen": 1000,
+  "salz_b64url": "AAECAwQFBgcICQoLDA0ODw",
+  "iv_b64url": "yMnKy8zNzs_Q0dLT",
+  "inhalt": {
+   "format": "maehr-fit-export",
+   "version": 1,
+   "erstelltMs": 1793350800000,
+   "eintraege": {
+    "messung:hrv:2026-10-30": [
+     {
+      "t": 1793340000000,
+      "rmssdMs": 58,
+      "quelle": {
+       "art": "demo",
+       "id": "muster:hrv:1"
+      }
+     }
+    ]
+   }
+  },
+  "datei": "{\"format\": \"maehr-fit-mfx\", \"version\": 1, \"kdf\": {\"name\": \"PBKDF2\", \"hash\": \"SHA-256\", \"iterationen\": 1000, \"salz\": \"AAECAwQFBgcICQoLDA0ODw\"}, \"chiffre\": {\"name\": \"AES-GCM\", \"iv\": \"yMnKy8zNzs_Q0dLT\"}, \"daten\": \"Jt6uRlez1PpOYJYIyrEUjy9JecnsYfjP3oqagIgW0knrP7snykQlx6b42oZlLggmRjliPk4vu7vn-qF8ew42SY_lvd63eVpI9n1flFVIJsTY4EsrKDiyO6hbZ6Cw0NJLkOgvKL3XNR1moNz55v4b_plok5wwrfUAh1IYS75cL73dAVsNSyLgh_DVnklkNk12rc5m7mnfzopa9-Z17_Jd90VBm8npSKpua5_34A4yP-l1VFgFf-3025H9OWb9uschhSJY6U62ZJdqTQ\"}"
+ }
+}
