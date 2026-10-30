@@ -91,3 +91,71 @@ test("Grenzfälle", () => {
   assert.equal(belastungTag([], [], { maxPuls: 190, ruhepuls: 60 }).wert, 0);
   assert.equal(belastung({ herzschlaege: [{ t: 0, bpm: NaN }, null, { t: "x", bpm: 1 }], maxPuls: 190, ruhepuls: 60 }).wert, 0);
 });
+
+// Fall 5 (Handrechnung geschätzt aus Zonenanteilen, WHOOP-CSV ohne Pulswerte; formeln.json „belastung.zonen_aus_prozent“):
+//   Training 60 min = 3 600 000 ms, Anteile Zone 1–5 = 10 / 20 / 40 / 20 / 10 %.
+//   Zeit je Zone = Dauer × Anteil ÷ 100: 6 / 12 / 24 / 12 / 6 min (360 000 / 720 000 / 1 440 000 / 720 000 / 360 000 ms).
+//   Zonen-Minuten T = 6·1 + 12·2 + 24·3 + 12·4 + 6·5 = 6 + 24 + 72 + 48 + 30 = 180.
+//   Belastung = 21 · ln(1 + 180/25) ÷ ln(1 + 700/25) = 21 · ln 8,2 ÷ ln 29 = 21 · 2,104134 ÷ 3,367296 = 21 · 0,624874
+//   = 13,1224 → Zehntel 131 → 13,1.
+// Gegenprobe: dieselben Minuten je Zone als Pulsreihe (Max 190, Ruhe 60; ein Wert je Minute: 6× 130 (Z1), 12× 140 (Z2),
+//   24× 155 (Z3), 12× 170 (Z4), 6× 180 (Z5), Schlusswert 100 zählt 0) → ebenfalls 131 Zehntel, aber gemessen.
+const M = 60 * S;
+const qw = { art: "csv", id: "whoop:training:0", datei: "whoop_workouts.csv", zeile: 2 };
+const PROZENT = { von: 0, bis: 60 * M, art: "laufen", herzschlaege: [], zonenProzent: [10, 20, 40, 20, 10], quelle: qw };
+const PROBEN = [[6, 130], [12, 140], [24, 155], [12, 170], [6, 180]].flatMap(([n, bpm]) => Array(n).fill(bpm))
+  .concat([100]).map((bpm, i) => ({ t: i * M, bpm, quelle: q }));
+
+test("Handrechnung geschätzt aus Zonenanteilen: 60 min, 10/20/40/20/10 % → 13,1", () => {
+  const b = belastung({ ...PROZENT, maxPuls: 190, ruhepuls: 60 });
+  assert.deepEqual(b.zonen.map((z) => z.ms), [6 * M, 12 * M, 24 * M, 12 * M, 6 * M]);
+  assert.equal(b.zonenMinuten, 180);
+  assert.equal(b.wertZehntel, 131);
+  assert.equal(b.wert, 13.1);
+  assert.equal(b.geschaetzt, true);
+  assert.equal(b.grund, "zonen_aus_prozent");
+  assert.equal(b.formel.schluessel, "belastung.zonen_aus_prozent");
+  assert.equal(b.formel.pruefen, true);
+  assert.match(b.formel.text, /Dauer × Anteil k ÷ 100/);
+  assert.match(b.formel.fundstelle, /^eigene Festlegung MF/);
+  assert.deepEqual(b.quellen, [qw]);
+  assert.equal(b.ohneZoneMs, 0);
+});
+
+test("Gegenprobe: gleiche Zeit je Zone als Pulsreihe ergibt denselben Wert, gemessen", () => {
+  const g = belastung({ herzschlaege: PROBEN, maxPuls: 190, ruhepuls: 60 });
+  const p = belastung({ ...PROZENT, maxPuls: 190, ruhepuls: 60 });
+  assert.deepEqual(g.zonen.map((z) => z.ms), p.zonen.map((z) => z.ms));
+  assert.equal(g.wertZehntel, p.wertZehntel);
+  assert.equal(g.geschaetzt, false);
+  assert.equal(g.formel.schluessel, "belastung");
+  // Tag: geschätztes Training wie gemessenes, Kennzeichen am Training und am Tag
+  const tp = belastungTag([PROZENT], [], { maxPuls: 190, ruhepuls: 60 });
+  const tg = belastungTag([{ ...PROZENT, herzschlaege: PROBEN, zonenProzent: null }], [], { maxPuls: 190, ruhepuls: 60 });
+  assert.equal(tp.wertZehntel, 131);
+  assert.equal(tg.wertZehntel, 131);
+  assert.equal(tp.geschaetzt, true);
+  assert.equal(tp.trainings[0].geschaetzt, true);
+  assert.equal(tp.trainings[0].grund, "zonen_aus_prozent");
+  assert.equal(tg.geschaetzt, false);
+});
+
+test("Grenzfälle Zonenanteile", () => {
+  // Pulswerte gehen vor: mit Proben und Anteilen wird gemessen
+  const beides = belastung({ ...PROZENT, herzschlaege: PROBEN, zonenProzent: [100, 0, 0, 0, 0], maxPuls: 190, ruhepuls: 60 });
+  assert.equal(beides.geschaetzt, false);
+  assert.equal(beides.wertZehntel, 131);
+  // Anteile unter 100 %: Rest zählt unter Zone 1; leere Felder (null) zählen 0
+  const teil = belastung({ ...PROZENT, zonenProzent: [50, null, 0, 0, 0], maxPuls: 190, ruhepuls: 60 });
+  assert.deepEqual(teil.zonen.map((z) => z.ms), [30 * M, 0, 0, 0, 0]);
+  assert.equal(teil.ohneZoneMs, 30 * M);
+  assert.deepEqual(teil.zonen[1].quelle, []);
+  // keine Anteile, keine Dauer, nur Nullen → nicht geschätzt, 0
+  assert.equal(belastung({ ...PROZENT, zonenProzent: null, maxPuls: 190, ruhepuls: 60 }).wert, 0);
+  assert.equal(belastung({ ...PROZENT, bis: 0, maxPuls: 190, ruhepuls: 60 }).geschaetzt, false);
+  assert.equal(belastung({ ...PROZENT, zonenProzent: [0, 0, 0, 0, 0], maxPuls: 190, ruhepuls: 60 }).geschaetzt, false);
+  // ohne Max-/Ruhepuls bleibt es bei null (wie gemessen)
+  assert.equal(belastung({ ...PROZENT, maxPuls: null, ruhepuls: 60 }), null);
+  // Kommaanteile: ganze Millisekunden (46 min × 41,3 % = 1 139 880 ms)
+  assert.equal(belastung({ ...PROZENT, bis: 46 * M, zonenProzent: [0, 0, 41.3, 0, 0], maxPuls: 190, ruhepuls: 60 }).zonen[2].ms, 1139880);
+});

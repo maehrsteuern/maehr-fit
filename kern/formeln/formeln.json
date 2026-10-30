@@ -516,6 +516,13 @@
       "text": "Puls = Wert aus dem Merkmal 0x2A37 des Dienstes Heart Rate 0x180D (Bit 0 der Flags: 16 statt 8 Bit). RR-Abstand in ms = Rohwert × 1000 ÷ 1024, kaufmännisch gerundet.",
       "erklaerung": "So kommt der Puls live vom Band: Das Band sendet etwa einmal pro Sekunde den aktuellen Puls und, wenn es kann, die Abstände zwischen den letzten Herzschlägen.",
       "pruefen": false
+    },
+    "belastung.zonen_aus_prozent": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (Schätzung, wenn der Export nur Zonenanteile statt Pulswerte enthält, z. B. WHOOP-CSV „HR Zone 1–5 %“); Kurve und Gewichte wie „belastung“ (Edwards 1993, Banister 1991)",
+      "text": "Geschätzt: Für Trainings ohne einzelne Pulswerte gilt Zeit in Zone k = Dauer × Anteil k ÷ 100 (Anteile aus dem Export, ganze Millisekunden). Danach wie gemessen: Zonen-Minuten T = Σ Minuten in Zone k × k, Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle.",
+      "erklaerung": "Dein Export sagt nur, wie viel Prozent des Trainings du in jeder Zone warst. Daraus rechnen wir die Minuten je Zone und dann die Belastung wie sonst auch. Weil die Zonengrenzen des Anbieters etwas anders liegen können, ist das eine Schätzung.",
+      "pruefen": true
     }
   }
 }

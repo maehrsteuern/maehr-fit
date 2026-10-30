@@ -14,6 +14,12 @@
  *                                { feld, zeilen: [{ tag, mf, whoop, abstand, quelle }], n, nah, grenze, mittelAbstand, groesste, nurWhoop, formel, formelNah }
  *   formelVon(schluessel), pruefListe(), schlafBasisStandardMs()   – Formeln aus kern/formeln/formeln.json
  *
+ * Tagesbild.erholung.teile: nur Teile, die mitgerechnet wurden. Ausgelassene (kein Messwert, Basislinie zu klein) stehen in
+ *   erholung.ausgelassen [{ name, grund }] und als eine Zeile erholung.hinweis („Nicht berücksichtigt: HRV (kein Messwert)“) oder null.
+ * Tagesbild.belastung.geschaetzt: true, wenn ein Training ohne Pulswerte aus WHOOPs Zonenanteilen geschätzt wurde (grund "zonen_aus_prozent").
+ * Einstellungen: alter (→ Höchstpuls nach Tanaka, wenn maxPuls fehlt), maxPuls, ruhepuls (Rückfall, wenn weder Nachtmessung noch
+ *   Basislinie einen Ruhepuls liefert; für Zonen und Belastung), schlafBasisMs, sprache (für erholung.hinweis).
+ * kernText(schluessel, sprache, werte) – Beschriftungen aus kern/i18n.js (z. B. „einst.ruhepuls“).
  * Tagesbild.fremd: WHOOPs eigene Werte des Tages ({ erholung, belastung (Zehntel), schlafLeistung, quelle, formel }) oder null.
  *   Mehrere Zeilen am selben Tag: die mit gemessener Aufwachzeit zuerst, sonst die erste (daten/csv_import.js „zeitGeschaetzt“).
  */
@@ -28,6 +34,7 @@ export const KERN = "kern/";
 export const formelVon = (s) => K.formel(s);
 export const pruefListe = () => K.pruefListe();
 export const schlafBasisStandardMs = () => K.wert("schlaf.bedarf.basis");
+export const kernText = (schluessel, sprache, werte) => K.t(schluessel, sprache, werte);
 
 const HRV = () => K.wert("einheit.hrv"), ATEM = () => K.wert("einheit.atem");
 const geteilt = (x, d) => (x && Number.isFinite(x.wert) ? { wert: x.wert / d, n: x.n, quellen: x.quellen || [] } : null);
@@ -45,9 +52,18 @@ function basisAnzeige(b, teiler = 1) {
   return { mittel: b.mittel / teiler, streuung: b.streuung === null ? null : b.streuung / teiler, n: b.n, formel: b.formel, quellen: b.quellen || [] };
 }
 
-const leereBelastung = () => ({ wert: 0, zonen: [], formel: null, quellen: [] });
-// gemessen: mindestens eine Zone mit Zeit – ohne Herzschlag-Proben (WHOOP-CSV liefert nur Zonenanteile) bleibt die Belastung 0 und ungemessen
-const belastungAnzeige = (b) => (b ? { wert: b.wertZehntel, zonen: b.zonen || [], formel: b.formel, quellen: b.quellen || [], gemessen: (b.zonen || []).some((z) => z.ms > 0) } : leereBelastung());
+const leereBelastung = () => ({ wert: 0, zonen: [], formel: null, quellen: [], gemessen: false, geschaetzt: false, grund: null });
+// gemessen: mindestens eine Zone mit Zeit (aus Pulswerten oder – geschaetzt – aus WHOOPs Zonenanteilen, kern/belastung.js)
+const belastungAnzeige = (b) => (b ? { wert: b.wertZehntel, zonen: b.zonen || [], formel: b.formel, quellen: b.quellen || [], gemessen: (b.zonen || []).some((z) => z.ms > 0),
+  geschaetzt: !!b.geschaetzt, grund: b.grund || null } : leereBelastung());
+
+/** Ausgelassene Erholungsteile als eine Zeile: „Nicht berücksichtigt: HRV (kein Messwert), Atemfrequenz (…)“; keine → null. */
+export function ausgelassenZeile(teile = [], sprache = "de") {
+  const aus = teile.filter((x) => x && x.ausgelassen);
+  if (!aus.length) return null;
+  const liste = aus.map((x) => `${K.t("teil." + x.name, sprache)} (${K.t("grund." + (x.grund || "kein_messwert"), sprache)})`).join(", ");
+  return K.t("erholung.nicht_beruecksichtigt", sprache, { liste });
+}
 
 /** WHOOP-Fremdwerte je Tag; Belastung in Zehnteln (WHOOP 11,3 → 113), Erholung und Schlafleistung wie geliefert. */
 function fremdNachTag(liste = []) {
@@ -72,7 +88,9 @@ export function berechne(daten = {}, einst = {}, eigenesTagebuch = {}) {
   const tbNachTag = new Map((daten.tagebuch || []).map((x) => [x.tag, x]));
   for (const [tag, e] of Object.entries(eigenesTagebuch)) tbNachTag.set(tag, { tag, eintraege: { ...(tbNachTag.get(tag)?.eintraege || {}), ...e.eintraege }, quelle: e.quelle });
   const buendel = { ...daten, tagebuch: [...tbNachTag.values()] };
-  const e = { ...einst, alter: Number(einst.alter) || undefined, maxPuls: Number(einst.maxPuls) || undefined, schlafBasisMs: Number(einst.schlafBasisMs) || undefined };
+  const zahlOder = (x) => (Number.isFinite(Number(x)) && Number(x) > 0 ? Math.round(Number(x)) : undefined);
+  const e = { ...einst, alter: zahlOder(einst.alter), maxPuls: zahlOder(einst.maxPuls), ruhepuls: zahlOder(einst.ruhepuls), schlafBasisMs: Number(einst.schlafBasisMs) || undefined };
+  const sprache = einst.sprache || "de";
   const kernTage = K.alleTage(buendel, e);
   const trainings = [...(daten.training || [])].sort((a, b) => a.von - b.von);
   const tage = new Map(), liste = [];
@@ -89,7 +107,9 @@ export function berechne(daten = {}, einst = {}, eigenesTagebuch = {}) {
       hrv: geteilt(kt.messwerte.hrv, HRV()), ruhepuls: geteilt(kt.messwerte.ruhepuls, 1), atem: geteilt(kt.messwerte.atem, ATEM()),
       basis: { hrv: basisAnzeige(kt.basis.hrv, HRV()), ruhepuls: basisAnzeige(kt.basis.ruhepuls), atem: basisAnzeige(kt.basis.atem, ATEM()),
         belastung: basisAnzeige(K.basislinie(belastungen.slice(-K.wert("basis.fenster.lang")), { bis: kt.tag })) },
-      erholung: { wert: kt.erholung.wert, stufe: kt.erholung.stufe, teile: kt.erholung.teile.filter((x) => Number.isFinite(x.beitrag)).map(teilAnzeige), formel: kt.erholung.formel, quellen: kt.erholung.quellen || [] },
+      erholung: { wert: kt.erholung.wert, stufe: kt.erholung.stufe, teile: kt.erholung.teile.filter((x) => !x.ausgelassen && Number.isFinite(x.beitrag)).map(teilAnzeige),
+        ausgelassen: kt.erholung.teile.filter((x) => x.ausgelassen).map((x) => ({ name: x.name, grund: x.grund || null })),
+        hinweis: ausgelassenZeile(kt.erholung.teile, sprache), formel: kt.erholung.formel, quellen: kt.erholung.quellen || [] },
       belastung: bel,
       trainings: (kt.belastung?.trainings || []).map((x, i) => {
         const r = trainings.find((t) => t.von === x.von) || { von: x.von, bis: x.bis, art: x.art, herzschlaege: [], quelle: (x.quellen || [])[0] };

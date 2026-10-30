@@ -5,6 +5,10 @@
  * Zonen zählen mehr (Zone 5 fünffach, Edwards 1993). Die Summe wird auf die Skala 0 bis 21 gebracht, und zwar so,
  * dass doppelte Anstrengung weniger als doppelt so viele Punkte bringt (logarithmische Kurve, eigene Festlegung).
  *
+ * Ohne einzelne Pulswerte (WHOOP-CSV: nur Anteile je Zone und Dauer) wird die Zeit je Zone aus Dauer × Anteil geschätzt und
+ * genauso weitergerechnet; das Ergebnis trägt dann geschaetzt: true, grund "zonen_aus_prozent" (formeln.json
+ * "belastung.zonen_aus_prozent").
+ *
  * Ganzzahlig: Zeiten in ms, Zonenvergleich als ganzzahlige Ungleichung, Ergebnis in ganzen Zehnteln.
  * Kein DOM, kein Netz, kein Speicher.
  */
@@ -70,6 +74,41 @@ export function zeitInZonen(herzschlaege, maxPuls, ruhepuls) {
   return { zonen, ohneZoneMs };
 }
 
+/**
+ * Zeit je Zone aus Anteilen (WHOOP-CSV „HR Zone 1–5 %“): ms Zone k = rund(Dauer × Anteil k ÷ 100); der Rest der Dauer zählt
+ * unter Zone 1. Quelle jeder Zone mit Zeit ist die Trainingszeile.
+ * @param {number[]} zonenProzent Anteile Zone 1–5 in Prozent (null/leer = 0)
+ * @param {number} dauerMs
+ * @param {object} [quelle]
+ * @returns {{zonen:Array<{zone:number, ms:number, quelle:object[]}>, ohneZoneMs:number}}
+ */
+export function zeitAusProzent(zonenProzent, dauerMs, quelle) {
+  const zonen = wert("belastung.zonen").map((_, i) => {
+    const p = Number(zonenProzent?.[i]);
+    const ms = Number.isFinite(p) && p > 0 && dauerMs > 0 ? rund((dauerMs * p) / 100) : 0;
+    return { zone: i + 1, ms, quelle: ms > 0 && quelle ? [quelle] : [] };
+  });
+  const summe = zonen.reduce((a, z) => a + z.ms, 0);
+  return { zonen, ohneZoneMs: Math.max(0, (dauerMs > 0 ? dauerMs : 0) - summe) };
+}
+
+/** Hat das Training brauchbare Pulswerte (mindestens zwei, dann gibt es eine Dauer)? */
+const hatProben = (hs) => sortiert(hs).length >= 2;
+/** Anteile je Zone vorhanden und Dauer positiv? */
+const hatProzent = (x) => Array.isArray(x?.zonenProzent) && x.zonenProzent.some((p) => Number(p) > 0) && Number.isFinite(x.von) && Number.isFinite(x.bis) && x.bis > x.von;
+
+/**
+ * Zeit je Zone eines Trainings: aus den Pulswerten, sonst aus den Zonenanteilen (geschätzt).
+ * @returns {{zonen:Array, ohneZoneMs:number, geschaetzt:boolean}}
+ */
+function zeitTraining(x, maxPuls, ruhepuls) {
+  if (!hatProben(x.herzschlaege) && hatProzent(x)) return { ...zeitAusProzent(x.zonenProzent, x.bis - x.von, x.quelle), geschaetzt: true };
+  return { ...zeitInZonen(x.herzschlaege, maxPuls, ruhepuls), geschaetzt: false };
+}
+
+/** Kennzeichen für geschätzte Ergebnisse; die Formel erklärt den Weg (ersetzt "belastung", der Kurventeil ist derselbe). */
+const SCHAETZUNG = () => ({ geschaetzt: true, grund: "zonen_aus_prozent", formel: formel("belastung.zonen_aus_prozent"), formelGemessen: formel("belastung") });
+
 /** Zonen-Millisekunden gewichtet: Σ ms × Gewicht (ganzzahlig). */
 export function trimpMs(zonen) {
   const g = wert("belastung.gewichte");
@@ -103,20 +142,21 @@ function ergebnis(zonen, ohneZoneMs, extra = {}) {
 const pulsOk = (maxPuls, ruhepuls) => Number.isFinite(maxPuls) && Number.isFinite(ruhepuls) && maxPuls > ruhepuls;
 
 /**
- * Belastung einer Pulsreihe (z. B. eines Trainings).
- * @param {{herzschlaege:Array, maxPuls:number, ruhepuls:number}} arg
+ * Belastung einer Pulsreihe (z. B. eines Trainings). Ohne Pulswerte, aber mit zonenProzent und von/bis: geschätzt.
+ * @param {{herzschlaege:Array, maxPuls:number, ruhepuls:number, zonenProzent?:number[], von?:number, bis?:number, quelle?:object}} arg
  * @returns {object|null} null, wenn Max-/Ruhepuls fehlen
  */
-export function belastung({ herzschlaege, maxPuls, ruhepuls } = {}) {
+export function belastung({ herzschlaege, maxPuls, ruhepuls, zonenProzent, von, bis, quelle } = {}) {
   if (!pulsOk(maxPuls, ruhepuls)) return null;
-  const { zonen, ohneZoneMs } = zeitInZonen(herzschlaege, maxPuls, ruhepuls);
-  return ergebnis(zonen, ohneZoneMs, { maxPuls, ruhepuls, grenzen: zonenGrenzen(maxPuls, ruhepuls) });
+  const { zonen, ohneZoneMs, geschaetzt } = zeitTraining({ herzschlaege, zonenProzent, von, bis, quelle }, maxPuls, ruhepuls);
+  return ergebnis(zonen, ohneZoneMs, { maxPuls, ruhepuls, grenzen: zonenGrenzen(maxPuls, ruhepuls), geschaetzt: false, ...(geschaetzt ? SCHAETZUNG() : {}) });
 }
 
 /**
  * Belastung eines Tages: Zonenzeiten aller Trainings plus Alltag (Alltag ohne Trainingszeiten), dann einmal die
- * Kurve. Die Tagesbelastung ist daher nicht die Summe der Trainingswerte.
- * @param {Array<{von:number,bis:number,art?:string,herzschlaege:Array,quelle?:object}>} trainings
+ * Kurve. Die Tagesbelastung ist daher nicht die Summe der Trainingswerte. Trainings ohne Pulswerte mit zonenProzent
+ * zählen geschätzt (zeitAusProzent); dann tragen sie und der Tag geschaetzt: true.
+ * @param {Array<{von:number,bis:number,art?:string,herzschlaege:Array,zonenProzent?:number[],quelle?:object}>} trainings
  * @param {Array} alltag Herzschlag[] außerhalb der Trainings
  * @param {{maxPuls:number, ruhepuls:number}} puls
  * @returns {object|null}
@@ -125,8 +165,8 @@ export function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } 
   if (!pulsOk(maxPuls, ruhepuls)) return null;
   const tr = (trainings || []).filter(Boolean);
   const imTraining = (t) => tr.some((x) => t >= x.von && t <= x.bis);
-  const teile = tr.map((x) => ({ ...zeitInZonen(x.herzschlaege, maxPuls, ruhepuls), training: x }));
-  teile.push({ ...zeitInZonen((alltag || []).filter((h) => h && !imTraining(h.t)), maxPuls, ruhepuls), training: null });
+  const teile = tr.map((x) => ({ ...zeitTraining(x, maxPuls, ruhepuls), training: x }));
+  teile.push({ ...zeitInZonen((alltag || []).filter((h) => h && !imTraining(h.t)), maxPuls, ruhepuls), geschaetzt: false, training: null });
   const zonen = wert("belastung.zonen").map((_, i) => ({
     zone: i + 1,
     ms: teile.reduce((a, p) => a + p.zonen[i].ms, 0),
@@ -136,9 +176,11 @@ export function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } 
   const einzel = teile.filter((p) => p.training).map((p) => ergebnis(p.zonen, p.ohneZoneMs, {
     art: p.training.art ?? null, von: p.training.von, bis: p.training.bis,
     quellen: vereinige(p.training.quelle, ...p.zonen.map((z) => z.quelle)),
+    geschaetzt: false, ...(p.geschaetzt ? SCHAETZUNG() : {}),
   }));
   return ergebnis(zonen, ohneZoneMs, {
     maxPuls, ruhepuls, grenzen: zonenGrenzen(maxPuls, ruhepuls), trainings: einzel,
+    geschaetzt: false, ...(teile.some((p) => p.geschaetzt) ? SCHAETZUNG() : {}),
     alltagZonenMinuten: rund(trimpMs(teile.at(-1).zonen) / MS_MINUTE, 1),
     quellen: vereinige(...tr.map((x) => x.quelle), ...zonen.map((z) => z.quelle)),
   });

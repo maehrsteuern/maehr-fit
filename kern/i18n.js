@@ -104,6 +104,11 @@ const W = {
     "Your recovery the next morning differed by {differenz} points on average. This shows a correlation, not proof."],
   // Allgemein
   "hinweis.kein_rat": ["Messwerte und Tendenzen, keine medizinische Beratung.", "Measurements and tendencies, not medical advice."],
+  // Beleg Erholung: ausgelassene Teile in einer Zeile (shell/kern_echt.js)
+  "erholung.nicht_beruecksichtigt": ["Nicht berücksichtigt: {liste}", "Not included: {liste}"],
+  // Einstellungen: Ruhepuls als Rückfall (shell/apps/daten.js)
+  "einst.ruhepuls": ["Ruhepuls (Schläge/min, optional)", "Resting heart rate (beats/min, optional)"],
+  "einst.ruhepuls.hilfe": ["nur nötig, wenn keine Nachtmessung vorliegt, z. B. nur Live-Puls", "only needed without night measurements, e.g. live heart rate only"],
 };
 
 /**

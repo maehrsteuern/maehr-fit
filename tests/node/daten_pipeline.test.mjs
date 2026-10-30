@@ -10,6 +10,10 @@
 //   + 3 Tagebuchtage + 7 Fremdwerte = 55.
 //   Fremdwerte: 7 Zeilen, aber 2 am 29.10. (Zeile 7 mit Aufwachzeit, Zeile 8 ohne → zeitGeschaetzt); die Shell nimmt Zeile 7
 //   (Erholung 61), der Vergleich hat also 6 Tage.
+//   Belastung ohne Pulswerte, geschätzt aus WHOOPs Zonenanteilen (formeln.json „belastung.zonen_aus_prozent“), Training 24.10.
+//   (whoop_workouts.csv Zeile 2): 46 min, 8/22/41/24/5 % → 3,68 / 10,12 / 18,86 / 11,04 / 2,3 min;
+//   T = 3,68 + 20,24 + 56,58 + 44,16 + 11,5 = 136,16; 21 · ln(1 + 136,16/25) ÷ ln 29 = 21 · 1,86352 ÷ 3,367296 = 11,62 → 116 Zehntel
+//   (WHOOP 11,3). Am 25.10. gibt es kein Training → nur WHOOP; Vergleich Belastung: 5 Paare, 1 nur WHOOP.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -98,11 +102,13 @@ test("Vergleich: WHOOP-Werte in Zehnteln, Abstand = MF − WHOOP, doppelter Tag 
   const summe = beide.reduce((s, z) => s + Math.abs(z.abstand), 0);
   assert.equal(v.mittelAbstand, Math.round(summe / beide.length));
   assert.equal(v.nah, beide.filter((z) => Math.abs(z.abstand) <= 100).length);
-  // Belastung: WHOOP 11,3 → 113 Zehntel; MF ohne Herzschlag-Proben ungemessen → kein Abstand
+  // Belastung: WHOOP 11,3 → 113 Zehntel; MF geschätzt aus Zonenanteilen 11,6 → 116, Abstand +3
   const b = vergleich(erg, "belastung");
   assert.equal(b.zeilen[0].whoop, 113);
-  assert.equal(b.n, 0);
-  assert.equal(b.nurWhoop, 6);
+  assert.equal(b.zeilen[0].mf, 116);
+  assert.equal(b.zeilen[0].abstand, 3);
+  assert.equal(b.n, 5);
+  assert.equal(b.nurWhoop, 1);
   // Schlafleistung: WHOOP 88 % → 880 Zehntel
   assert.equal(vergleich(erg, "schlaf").zeilen[0].whoop, 880);
 });
@@ -113,4 +119,22 @@ test("exportieren() enthält jede Art der Ablage, auch fremdwerte", async () => 
   const arten = new Set(Object.keys(x.eintraege).map((k) => k.split(":")[1]));
   for (const a of ["hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp", "schlaf", "training", "tagebuch", "fremdwerte"]) assert.ok(arten.has(a), a);
   assert.equal(x.eintraege["messung:fremdwerte:2026-10-29"].length, 2);
+});
+
+test("Belastung aus WHOOP-Zonenanteilen: > 0, geschätzt, Formel mit Fundstelle, Quelle = Trainingszeile", async () => {
+  const { erg } = await wieShell();
+  const mitTraining = erg.liste.filter((b) => b.trainings.length);
+  assert.equal(mitTraining.length, 5);
+  for (const b of mitTraining) {
+    assert.ok(b.belastung.wert > 0, b.tag);
+    assert.equal(b.belastung.gemessen, true, b.tag);
+    assert.equal(b.belastung.geschaetzt, true, b.tag);
+    assert.equal(b.belastung.grund, "zonen_aus_prozent");
+    assert.equal(b.belastung.formel.schluessel, "belastung.zonen_aus_prozent");
+    assert.equal(b.trainings[0].belastung.geschaetzt, true);
+  }
+  const b24 = erg.tage.get("2026-10-24");
+  assert.equal(b24.belastung.wert, 116);
+  assert.deepEqual([b24.belastung.quellen[0].datei, b24.belastung.quellen[0].zeile], ["whoop_workouts.csv", 2]);
+  assert.equal(erg.tage.get("2026-10-25").belastung.wert, 0, "kein Training am 25.10.");
 });

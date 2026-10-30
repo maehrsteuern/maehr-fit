@@ -83,13 +83,18 @@ test("Vergleich: Kernsatz nennt nah von n Tagen, WHOOP-Zahl führt zu Datei und 
   assert.ok(m.formel.text.startsWith("Abstand = Wert von MAEHR FIT − Wert von WHOOP"));
 });
 
-test("Vergleich Belastung: MF ohne Herzschläge → Hinweis statt Diagramm, Übersicht zeigt 0 Tage", () => {
+test("Vergleich Belastung: MF geschätzt aus WHOOPs Zonenanteilen → 5 Tage mit beiden Werten, Diagramm", () => {
+  // Fixture ohne Herzschläge: MF schätzt die Belastung aus den Zonenanteilen (formeln.json „belastung.zonen_aus_prozent“);
+  // 25.10. ohne Training → nur WHOOP. Nah (≤ 2,0 Punkte = 20 Zehntel): 24.10. (+3), 28.10. (−4), 29.10. (−14) → 3 von 5.
   setzeSprache("de");
   const c = ctx(["vergleich"], { feld: "belastung" });
   const html = vgl.ansicht(c);
-  assert.match(html, /data-vgl-fehlt/);
-  assert.equal(zaehle(html, /class="vz-svg/g), 0);
-  assert.match(/<p class="mf-kern">([\s\S]*?)<\/p>/.exec(html)[1], /noch keinen Tag/);
+  assert.ok(zaehle(html, /class="vz-svg/g) >= 1);
+  assert.match(/<p class="mf-kern">([\s\S]*?)<\/p>/.exec(html)[1], /An .*>3<\/button> von .*>5<\/button> Tagen/);
+  const v = vergleich(ERG, "belastung");
+  assert.equal(v.n, 5);
+  assert.equal(v.nah, v.zeilen.filter((z) => z.abstand !== null && Math.abs(z.abstand) <= v.grenze).length);
+  pruefeRuhe(html, c);
 });
 
 test("Vergleich ohne WHOOP-Werte (Demodaten): ein Satz und ein Knopf zu den Daten", () => {

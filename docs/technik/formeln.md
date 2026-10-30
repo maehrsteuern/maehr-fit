@@ -180,3 +180,19 @@ Die vollständige Liste liefert `pruefListe()` aus `kern/formeln.js`. Gruppen:
 - Belastung: 10-%-Zonenstufen auf die Herzfrequenzreserve, Skala 21, Kurve (25 / 700), Lückenregel 60 s.
 - Schlaf: +1 min je Belastungspunkt, 25 % Schuldanteil, 7-Nächte-Schuldfenster, Regelmäßigkeit 120 min.
 - Allgemein: 30-Tage-Fenster, Mindest-n 4, Hauptschlaf ab 3 h, Phasenlängen des Seufzers, Tagebuch-Mindest-n 5, Trendband 1 Streuung.
+
+---
+
+## Nachtrag: Belastung aus Zonenanteilen (`belastung.zonen_aus_prozent`, 30.10.2026)
+
+**Kernaussage.** Der WHOOP-Export enthält keine einzelnen Pulswerte, nur wie viel Prozent eines Trainings in jeder Zone lag.
+MF rechnet daraus die Minuten je Zone und dann die Belastung genauso wie bei gemessenem Puls. Das Ergebnis ist als „geschätzt“
+markiert, weil die Zonengrenzen des Anbieters etwas anders liegen können.
+
+**Rechnung.** Zeit in Zone k = rund(Dauer × Anteil k ÷ 100) ms; Rest der Dauer zählt unter Zone 1. Danach Zonen-Minuten und Kurve
+wie `belastung` (Abschnitt Belastung). Pulswerte gehen vor: Hat ein Training mindestens zwei Pulswerte, wird gemessen.
+Ergebnis: `geschaetzt: true`, `grund: "zonen_aus_prozent"`, `formel` = dieser Eintrag, `formelGemessen` = `belastung`.
+
+**Beispiel.** 60 min, 10/20/40/20/10 % → 6/12/24/12/6 min → T = 180 → 21 · ln 8,2 ÷ ln 29 = 13,1 (`tests/node/kern_belastung.test.mjs`).
+
+**Quellen.** Eigene Festlegung MF (`"pruefen": true`); Gewichte Edwards (1993), Trainingsimpuls Banister (1991).
