@@ -16,9 +16,18 @@
 // damit die Reihenfolge des Ladens (Capacitor vor oder nach der App) egal ist.
 
 import * as hc from "./healthconnect.js";
+import { installiereBruecke } from "./bruecke_capacitor.js";
 import { importiereWhoop } from "./csv_import.js";
 import { leseZip } from "./zip.js";
 import { ARTEN, speichereMessungen, tagVon } from "./ablage.js";
+
+/**
+ * Health-Connect-Brücke suchen; fehlt sie, aus dem Capacitor-Plugin "HealthConnect" einrichten (nur in der Android-App).
+ * Wird bei jedem Aufruf neu versucht, damit die Reihenfolge des Ladens egal ist. Im Browser (kein Capacitor) → null.
+ */
+export function sucheBruecke(ziel = globalThis) {
+  return hc.findeBruecke(ziel) || installiereBruecke(ziel);
+}
 
 export const EXPORT_FORMAT = "maehr-fit-export";
 const PRAEFIXE = ["messung:", hc.SYNC_PRAEFIX];
@@ -64,7 +73,7 @@ export function zeitraumVon(paket) {
  * @param {{ speicher: {lies,schreib,liste,loesche?}, bruecke?: object|(() => object|null), jetzt?: () => number,
  *           zone?: number|string }} p  zone: Zeitzone für CSV ohne Zeitzonenspalte (sonst Gerätezeitzone)
  */
-export function erzeugeDaten({ speicher, bruecke = () => hc.findeBruecke(globalThis), jetzt = () => Date.now(), zone } = {}) {
+export function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis), jetzt = () => Date.now(), zone } = {}) {
   if (!speicher) throw new Error("erzeugeDaten: speicher fehlt (Schnittstelle kern/speicher.js).");
   const holeBruecke = typeof bruecke === "function" ? bruecke : () => bruecke;
 
@@ -143,7 +152,7 @@ export function installiere(ziel = globalThis, optionen = {}) {
   ziel.MF = ziel.MF || {};
   const speicher = optionen.speicher || ziel.MF.speicher;
   ziel.MF.daten = erzeugeDaten({
-    speicher, bruecke: () => hc.findeBruecke(ziel), zone: optionen.zone, ...(optionen.jetzt ? { jetzt: optionen.jetzt } : {}),
+    speicher, bruecke: () => sucheBruecke(ziel), zone: optionen.zone, ...(optionen.jetzt ? { jetzt: optionen.jetzt } : {}),
   });
   return ziel.MF.daten;
 }

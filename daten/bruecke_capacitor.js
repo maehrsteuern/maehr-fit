@@ -2,7 +2,11 @@
 // Das Plugin "HealthConnect" (android/plugins/healthconnect/, Kotlin) ist nur in der Android-App vorhanden.
 // Im Browser bleibt `MF.native.healthConnect` leer; die App zeigt dann "Nur in der Android-App".
 
-/** Plugin-Objekt von Capacitor holen, oder null (Browser, Tests). */
+/**
+ * Plugin-Objekt von Capacitor holen, oder null (Browser, Tests).
+ * Ohne gebündeltes @capacitor/core legt die native Brücke (native-bridge.js, Capacitor 6) selbst `Capacitor.Plugins.HealthConnect`
+ * an (Methoden → `Capacitor.nativePromise`); `registerPlugin` gibt es nur mit @capacitor/core und ist hier der Ausweg.
+ */
 function plugin(ziel) {
   const cap = ziel && ziel.Capacitor;
   if (!cap) return null;
@@ -27,7 +31,7 @@ export function installiereBruecke(ziel = globalThis) {
     verfuegbar: () => p.verfuegbar(),
     berechtigungen: (arten) => p.berechtigungen({ arten }),
     lesen: async (art, vonMs, bisMs) => {
-      const r = await p.lesen({ art, vonMs, bisMs });
+      const r = await p.lesen({ art, vonMs: Math.round(vonMs), bisMs: Math.round(bisMs) });
       return (r && r.datensaetze) || [];
     },
     einstellungen: () => p.einstellungen(),

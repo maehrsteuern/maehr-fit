@@ -4900,6 +4900,54 @@ async function herzschlaegeFuer(bruecke, sitzungen) {
 return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
 })();
 
+// ===== daten/bruecke_capacitor.js
+const __m_daten_bruecke_capacitor_js = (() => {
+// Brücke Capacitor-Plugin → `window.MF.native.healthConnect`.
+// Das Plugin "HealthConnect" (android/plugins/healthconnect/, Kotlin) ist nur in der Android-App vorhanden.
+// Im Browser bleibt `MF.native.healthConnect` leer; die App zeigt dann "Nur in der Android-App".
+
+/**
+ * Plugin-Objekt von Capacitor holen, oder null (Browser, Tests).
+ * Ohne gebündeltes @capacitor/core legt die native Brücke (native-bridge.js, Capacitor 6) selbst `Capacitor.Plugins.HealthConnect`
+ * an (Methoden → `Capacitor.nativePromise`); `registerPlugin` gibt es nur mit @capacitor/core und ist hier der Ausweg.
+ */
+function plugin(ziel) {
+  const cap = ziel && ziel.Capacitor;
+  if (!cap) return null;
+  if (typeof cap.isNativePlatform === "function" && !cap.isNativePlatform()) return null;
+  if (cap.Plugins && cap.Plugins.HealthConnect) return cap.Plugins.HealthConnect;
+  if (typeof cap.registerPlugin === "function") return cap.registerPlugin("HealthConnect");
+  return null;
+}
+
+/**
+ * Brücke einrichten. Methoden:
+ *   verfuegbar()                 → { verfuegbar, status, hauttemp, verlauf }
+ *   berechtigungen(arten)        → { erteilt: string[] }   (öffnet den Health-Connect-Dialog, wenn nötig)
+ *   lesen(art, vonMs, bisMs)     → Datensätze im Brückenformat (docs/technik/healthconnect.md)
+ *   einstellungen()              → öffnet die Health-Connect-Einstellungen
+ * @returns {object|null} die Brücke oder null, wenn kein Plugin da ist
+ */
+function installiereBruecke(ziel = globalThis) {
+  const p = plugin(ziel);
+  if (!p) return null;
+  const bruecke = {
+    verfuegbar: () => p.verfuegbar(),
+    berechtigungen: (arten) => p.berechtigungen({ arten }),
+    lesen: async (art, vonMs, bisMs) => {
+      const r = await p.lesen({ art, vonMs: Math.round(vonMs), bisMs: Math.round(bisMs) });
+      return (r && r.datensaetze) || [];
+    },
+    einstellungen: () => p.einstellungen(),
+  };
+  ziel.MF = ziel.MF || {};
+  ziel.MF.native = ziel.MF.native || {};
+  ziel.MF.native.healthConnect = bruecke;
+  return bruecke;
+}
+return { installiereBruecke };
+})();
+
 // ===== daten/csv_import.js
 const __m_daten_csv_import_js = (() => {
 // Import des WHOOP-Datenexports (CSV-Dateien aus dem ZIP) → normierte Messwerte.
@@ -5416,9 +5464,18 @@ const __m_daten_verbinden_js = (() => {
 // damit die Reihenfolge des Ladens (Capacitor vor oder nach der App) egal ist.
 
 const hc = __m_daten_healthconnect_js;
+const { installiereBruecke } = __m_daten_bruecke_capacitor_js;
 const { importiereWhoop } = __m_daten_csv_import_js;
 const { leseZip } = __m_daten_zip_js;
 const { ARTEN, speichereMessungen, tagVon } = __m_daten_ablage_js;
+
+/**
+ * Health-Connect-Brücke suchen; fehlt sie, aus dem Capacitor-Plugin "HealthConnect" einrichten (nur in der Android-App).
+ * Wird bei jedem Aufruf neu versucht, damit die Reihenfolge des Ladens egal ist. Im Browser (kein Capacitor) → null.
+ */
+function sucheBruecke(ziel = globalThis) {
+  return hc.findeBruecke(ziel) || installiereBruecke(ziel);
+}
 
 const EXPORT_FORMAT = "maehr-fit-export";
 const PRAEFIXE = ["messung:", hc.SYNC_PRAEFIX];
@@ -5464,7 +5521,7 @@ function zeitraumVon(paket) {
  * @param {{ speicher: {lies,schreib,liste,loesche?}, bruecke?: object|(() => object|null), jetzt?: () => number,
  *           zone?: number|string }} p  zone: Zeitzone für CSV ohne Zeitzonenspalte (sonst Gerätezeitzone)
  */
-function erzeugeDaten({ speicher, bruecke = () => hc.findeBruecke(globalThis), jetzt = () => Date.now(), zone } = {}) {
+function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis), jetzt = () => Date.now(), zone } = {}) {
   if (!speicher) throw new Error("erzeugeDaten: speicher fehlt (Schnittstelle kern/speicher.js).");
   const holeBruecke = typeof bruecke === "function" ? bruecke : () => bruecke;
 
@@ -5543,11 +5600,11 @@ function installiere(ziel = globalThis, optionen = {}) {
   ziel.MF = ziel.MF || {};
   const speicher = optionen.speicher || ziel.MF.speicher;
   ziel.MF.daten = erzeugeDaten({
-    speicher, bruecke: () => hc.findeBruecke(ziel), zone: optionen.zone, ...(optionen.jetzt ? { jetzt: optionen.jetzt } : {}),
+    speicher, bruecke: () => sucheBruecke(ziel), zone: optionen.zone, ...(optionen.jetzt ? { jetzt: optionen.jetzt } : {}),
   });
   return ziel.MF.daten;
 }
-return { EXPORT_FORMAT, zeitraumVon, erzeugeDaten, installiere };
+return { sucheBruecke, EXPORT_FORMAT, zeitraumVon, erzeugeDaten, installiere };
 })();
 
 // ===== shell/apps/beleg.js
