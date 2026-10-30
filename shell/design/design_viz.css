@@ -2,7 +2,7 @@
    und design_ruhig.css (Kleid „Ruhe“). Farben nur über Tokens aus design.css (dort Verweise auf marke.css), Texte nie in der
    Serienfarbe, sondern in --tinte / --grau-5. */
 
-/* ---------- Ring (Heldenzahl): Spur Haarlinie, Bogen in der Farbe der Stufe, Zahl Fraunces 300 */
+/* ---------- Ring (Heldenzahl): Spur Haarlinie, Bogen in der Farbe der Stufe, Zahl Barlow Condensed 600 */
 .rg { --rg-d: var(--rg-groesse, 240px); position: relative; width: min(100%, var(--rg-d)); aspect-ratio: 1 / 1; margin: 0 auto; }
 .rg-bild { display: block; width: 100%; height: 100%; overflow: visible; }
 .rg-spur { stroke: var(--grau-3); }
@@ -13,7 +13,7 @@
 .rg-leise .rg-bogen { stroke: var(--grau-4); }
 .rg-mitte { position: absolute; inset: 14%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
 .rg .rg-zahl { background: none; border: 0; padding: 2px 8px; margin: 0; border-radius: var(--radius-pille); cursor: pointer; white-space: nowrap; max-width: 100%;
-  font-family: var(--schrift-titel); font-weight: 300; letter-spacing: -0.02em; line-height: 1; color: var(--tinte);
+  font-family: var(--schrift-titel); font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: var(--tinte);
   font-size: min(var(--t-held), calc(var(--rg-d) * 1.1 / var(--rg-zeichen, 3))); }
 .rg .rg-zahl:hover .rg-ziffern { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; text-decoration-color: var(--grau-4); }
 .rg .rg-zahl:focus-visible { outline: 2px solid var(--marke); outline-offset: 4px; }

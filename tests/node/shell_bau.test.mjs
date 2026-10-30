@@ -21,5 +21,5 @@ test("MF.html: ein Modul-Skript, keine Importe, keine Netzadressen, Stylesheets 
   assert.doesNotMatch(html, /<link rel="stylesheet"/);
   assert.doesNotMatch(html, /src="(?!data:)[^"]+"/);
   assert.doesNotMatch(html, /https?:\/\//);
-  assert.match(html, /font-family: 'Fraunces'/);
+  assert.match(html, /font-family: 'Barlow Condensed'/);
 });

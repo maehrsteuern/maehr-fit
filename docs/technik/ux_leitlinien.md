@@ -42,7 +42,7 @@ Torte, zwei Y-Achsen, Zahlen an jedem Punkt.
 
 ## Typografie
 
-Fraunces (Titel, große Zahlen, Gewicht 300/400) und Inter (Sätze, 400/500), eingebettet aus MBS (`shell/vendor/schriften.css`,
+Barlow Condensed (Titel, große Zahlen, Gewicht 500–700, Großbuchstaben für Überschriften) und Barlow (Sätze, 400–600), eingebettet (`shell/vendor/schriften.css`,
 SIL OFL 1.1). Skala: `--t-1` 12 px (Beschriftung, versal, `.08em`) · `--t-2` 13 · `--t-3` 15 (Grundschrift) · `--t-4` 16 ·
 `--t-5` 17 (Kernaussage) · `--t-6` 22 · `--t-anzeige` 32/40 (Kachelzahl) · `--t-held` 72/96 (Ring). Nichts unter 12 px.
 

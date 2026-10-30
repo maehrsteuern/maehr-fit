@@ -7,7 +7,7 @@
    --------------------------------------------------------------------------------------------
    Regeln:  Grün heißt weiter (Knopf, aktiver Reiter, Ring, Fokus) und „gut erholt“ (immer mit Wort, nie nur Farbe).
             Bernstein heißt „mittel“ bzw. bitte hinsehen, Rot heißt „wenig erholt“ oder Fehler – je mit Wort oder Zeichen.
-            Fraunces für Titel und große Zahlen, Inter für Sätze.
+            Barlow Condensed für Titel und große Zahlen, Barlow für Sätze (sportlich, Entscheidung Loris 30.10.2026).
    Benennung: --m-… gilt hell und dunkel gleich, --m-h-… hell, --m-d-… dunkel. Die Verbraucher wählen in ihren drei Blöcken
             (hell, @media dunkel, [data-theme="dark"]) den passenden Satz.
    MF-Ergänzungen: --m-*-fehler-weich, --m-*-vz-… (Diagramme, Zonen, Schlafphasen) und --m-*-erholung-gruen/gelb/rot
@@ -41,6 +41,6 @@
   /* Abdunkeln hinter dem Belegfenster */
   --m-h-abdunkeln: rgba(11, 17, 14, .32); --m-d-abdunkeln: rgba(0, 0, 0, .55);
   /* Schriftpaar */
-  --m-schrift-titel: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --m-schrift-text: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --m-schrift-titel: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", system-ui, sans-serif;
+  --m-schrift-text: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }

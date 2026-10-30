@@ -9,7 +9,7 @@
   transform: scale(var(--at-skala, .55)); opacity: var(--at-deckkraft, .9); will-change: transform; }
 .at-mitte { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
 .at-phase { font-family: var(--schrift-titel); font-weight: 400; font-size: 28px; line-height: 1.2; color: var(--tinte); }
-.at-zahl { font-family: var(--schrift-titel); font-weight: 300; font-size: 56px; line-height: 1; color: var(--tinte); font-variant-numeric: tabular-nums; }
+.at-zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: 56px; line-height: 1; color: var(--tinte); font-variant-numeric: tabular-nums; }
 .at-runde { font-size: var(--t-2); color: var(--grau-5); }
 .at-balken { display: none; width: 100%; max-width: 320px; }
 .at-buehne[data-zustand="bereit"] .at-kreis, .at-buehne[data-zustand="fertig"] .at-kreis { opacity: .5; }
