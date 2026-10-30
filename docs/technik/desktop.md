@@ -104,7 +104,7 @@ Richte auf diesem Rechner den MAEHR-FIT-Dienst ein und prüfe ihn. Sprich Deutsc
 
 1. Stelle fest, ob dies ein Mac oder ein Windows-PC ist, und ob Python ≥ 3.10 installiert ist (`python3 --version` bzw. `py --version`).
    Fehlt es: führe mich durch die Installation von python.org (Windows: Haken „Add python.exe to PATH“).
-2. Hole oder aktualisiere das Repo maehrsteuern/maehr-fit in meinen Benutzerordner (Ordner `maehr-fit`), Zweig `main`.
+2. Hole oder aktualisiere das Repo maehrsteuern/maehr-fit in meinen Benutzerordner (Ordner `maehr-fit`), Zweig `ccr-1cfdd73f-uziuf7` (bis es einen `main` gibt).
    Ändere nichts am Repo und committe nichts.
 3. Installiere die Erweiterungen nur für meinen Benutzer: `python3 -m pip install --user cryptography pystray Pillow qrcode`
    (Windows: `py -m pip install cryptography pystray Pillow qrcode tzdata`).
