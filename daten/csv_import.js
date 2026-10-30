@@ -8,7 +8,8 @@
 //
 // Spaltennamen werden über den Namen gesucht (nicht über die Position), tolerant gegenüber Groß-/Kleinschreibung,
 // Leer- und Sonderzeichen ("Recovery score %" = "recovery score (%)"). Fehlende Spalten ergeben null.
-// Die Spaltennamen stammen aus Nutzerberichten und eigener Kenntnis, nicht aus einer WHOOP-Dokumentation
+// Deutscher Export (Kopfzeilen vom Nutzer, 30.10.2026): jeweils als weitere Angabe hinter den englischen Namen.
+// Die englischen Spaltennamen stammen aus Nutzerberichten und eigener Kenntnis, nicht aus einer WHOOP-Dokumentation
 // (docs/technik/daten.md, Abschnitt "Was bestätigt ist").
 //
 // WHOOPs eigene Werte bleiben als `fremdwerte` erhalten, damit die App "WHOOP sagte X, MF rechnet Y" zeigen kann.
@@ -97,52 +98,58 @@ export function normName(n) {
 // ---------------------------------------------------------------------------------------------------
 
 export const SPALTEN = {
-  zyklusStart: ["Cycle start time", "Cycle start"],
-  zyklusEnde: ["Cycle end time", "Cycle end"],
-  zone: ["Cycle timezone", "Timezone", "Time zone"],
-  erholung: ["Recovery score %", "Recovery score", "Recovery"],
-  ruhepuls: ["Resting heart rate (bpm)", "Resting heart rate", "RHR"],
-  hrv: ["Heart rate variability (ms)", "Heart rate variability", "HRV (ms)", "HRV"],
-  hauttemp: ["Skin temp (celsius)", "Skin temperature (celsius)", "Skin temp"],
-  spo2: ["Blood oxygen %", "Blood oxygen", "SpO2 %", "SpO2"],
-  tagesbelastung: ["Day Strain", "Strain"],
-  einschlafen: ["Sleep onset", "Sleep start time"],
-  aufwachen: ["Wake onset", "Sleep end time"],
-  schlafLeistung: ["Sleep performance %", "Sleep performance"],
-  atem: ["Respiratory rate (rpm)", "Respiratory rate"],
-  schlafMin: ["Asleep duration (min)"],
-  imBettMin: ["In bed duration (min)"],
-  leichtMin: ["Light sleep duration (min)"],
-  tiefMin: ["Deep (SWS) duration (min)", "Deep sleep duration (min)", "SWS duration (min)"],
-  remMin: ["REM duration (min)", "REM sleep duration (min)"],
-  wachMin: ["Awake duration (min)"],
-  bedarfMin: ["Sleep need (min)"],
-  schuldMin: ["Sleep debt (min)"],
-  effizienz: ["Sleep efficiency %", "Sleep efficiency"],
-  konstanz: ["Sleep consistency %", "Sleep consistency"],
-  nickerchen: ["Nap"],
-  trainingStart: ["Workout start time", "Workout start"],
-  trainingEnde: ["Workout end time", "Workout end"],
-  dauerMin: ["Duration (min)"],
-  aktivitaet: ["Activity name", "Activity", "Sport"],
-  trainingsbelastung: ["Activity Strain", "Workout strain"],
-  energie: ["Energy burned (cal)", "Energy burned (kcal)", "Calories"],
-  maxPuls: ["Max HR (bpm)", "Max heart rate (bpm)"],
-  mittelPuls: ["Average HR (bpm)", "Average heart rate (bpm)"],
-  zone1: ["HR Zone 1 %"], zone2: ["HR Zone 2 %"], zone3: ["HR Zone 3 %"], zone4: ["HR Zone 4 %"], zone5: ["HR Zone 5 %"],
+  zyklusStart: ["Cycle start time", "Cycle start", "Startzeit des Zyklus"],
+  zyklusEnde: ["Cycle end time", "Cycle end", "Endzeit des Zyklus"],
+  zone: ["Cycle timezone", "Timezone", "Time zone", "Zeitzone des Zyklus"],
+  erholung: ["Recovery score %", "Recovery score", "Recovery", "Erholungswert %"],
+  ruhepuls: ["Resting heart rate (bpm)", "Resting heart rate", "RHR", "Ruheherzfrequenz (Schläge pro Minute)"],
+  hrv: ["Heart rate variability (ms)", "Heart rate variability", "HRV (ms)", "HRV", "Herzfrequenzvariabilität (ms)"],
+  hauttemp: ["Skin temp (celsius)", "Skin temperature (celsius)", "Skin temp", "Hauttemperatur (Celsius)"],
+  spo2: ["Blood oxygen %", "Blood oxygen", "SpO2 %", "SpO2", "Blutsauerstoff %"],
+  tagesbelastung: ["Day Strain", "Strain", "Tagesbelastung"],
+  einschlafen: ["Sleep onset", "Sleep start time", "Beginn des Schlafs"],
+  aufwachen: ["Wake onset", "Sleep end time", "Beginn des Aufwachens"],
+  schlafLeistung: ["Sleep performance %", "Sleep performance", "Schlafleistung %"],
+  atem: ["Respiratory rate (rpm)", "Respiratory rate", "Atemfrequenz (Atemzüge/Min.)"],
+  schlafMin: ["Asleep duration (min)", "Schlafdauer (Min.)"],
+  imBettMin: ["In bed duration (min)", "Dauer im Bett (Min.)"],
+  leichtMin: ["Light sleep duration (min)", "Dauer des Leichtschlafs (Min.)"],
+  tiefMin: ["Deep (SWS) duration (min)", "Deep sleep duration (min)", "SWS duration (min)", "Dauer des Tiefschlafs (Min.)"],
+  remMin: ["REM duration (min)", "REM sleep duration (min)", "Dauer des REM-Schlafs (Min.)"],
+  wachMin: ["Awake duration (min)", "Dauer des Aufwachens (Min.)"],
+  bedarfMin: ["Sleep need (min)", "Schlafbedarf (Min.)"],
+  schuldMin: ["Sleep debt (min)", "Schlafdefizit (Min.)"],
+  effizienz: ["Sleep efficiency %", "Sleep efficiency", "Schlafeffizienz %"],
+  konstanz: ["Sleep consistency %", "Sleep consistency", "Schlafbeständigkeit %"],
+  nickerchen: ["Nap", "Nickerchen"],
+  trainingStart: ["Workout start time", "Workout start", "Startzeit des Trainings"],
+  trainingEnde: ["Workout end time", "Workout end", "Endzeit des Trainings"],
+  dauerMin: ["Duration (min)", "Dauer (Min.)"],
+  aktivitaet: ["Activity name", "Activity", "Sport", "Name der Aktivität"],
+  trainingsbelastung: ["Activity Strain", "Workout strain", "Aktivitätsbelastung"],
+  energie: ["Energy burned (cal)", "Energy burned (kcal)", "Calories", "Verbrannte Energie (cal)"],
+  maxPuls: ["Max HR (bpm)", "Max heart rate (bpm)", "Max HF (Schläge pro Minute)"],
+  mittelPuls: ["Average HR (bpm)", "Average heart rate (bpm)", "Durchschnittliche HF (Schläge pro Minute)"],
+  zone1: ["HR Zone 1 %", "HF-Zone 1 %"], zone2: ["HR Zone 2 %", "HF-Zone 2 %"], zone3: ["HR Zone 3 %", "HF-Zone 3 %"], zone4: ["HR Zone 4 %", "HF-Zone 4 %"], zone5: ["HR Zone 5 %", "HF-Zone 5 %"],
   distanz: ["Distance (meters)", "Distance (m)"],
-  frage: ["Question text", "Question"],
-  antwort: ["Answered yes", "Answer"],
-  notiz: ["Notes", "Note"],
+  frage: ["Question text", "Question", "Fragetext"],
+  antwort: ["Answered yes", "Answer", "Beantwortet mit Ja"],
+  notiz: ["Notes", "Note", "Anmerkungen"],
 };
 
-/** Dateiart erkennen: zuerst am Namen, sonst an typischen Spalten. */
+/**
+ * Dateiart erkennen: zuerst am Namen, sonst an typischen Spalten.
+ * Englischer Export: physiological_cycles, sleeps, workouts, journal_entries. Deutscher Export (Befund 30.10.2026, Dateinamen
+ * vom Nutzer): physiologische_zyklen, Schlaf, Trainings, logbuch_eintraege – ohne Rücksicht auf Groß-/Kleinschreibung, Ordner
+ * und Endung. „schlaf“ und „training(s)“ gelten nur als ganzer Dateiname, damit fremde Dateien nicht versehentlich passen.
+ */
 export function erkenneDatei(name, kopf = []) {
   const n = String(name || "").toLowerCase();
-  if (n.includes("physiological_cycles") || n.includes("physiological-cycles")) return "zyklen";
-  if (n.includes("sleeps")) return "schlaf";
-  if (n.includes("workouts")) return "training";
-  if (n.includes("journal_entries") || n.includes("journal")) return "tagebuch";
+  const stamm = n.split(/[\\/]/).pop().replace(/\.[a-z0-9]+$/, "");
+  if (n.includes("physiological_cycles") || n.includes("physiological-cycles") || stamm.includes("physiologische_zyklen") || stamm.includes("physiologische-zyklen")) return "zyklen";
+  if (n.includes("sleeps") || stamm === "schlaf") return "schlaf";
+  if (n.includes("workouts") || stamm === "trainings" || stamm === "training") return "training";
+  if (n.includes("journal_entries") || n.includes("journal") || stamm.includes("logbuch")) return "tagebuch";
   const k = new Set(kopf.map(normName));
   const hat = (feld) => SPALTEN[feld].some((x) => k.has(normName(x)));
   if (hat("frage") && hat("antwort")) return "tagebuch";
@@ -166,7 +173,7 @@ function spaltenIndex(kopf) {
 // Werte lesen
 // ---------------------------------------------------------------------------------------------------
 
-/** Zahl aus Text: "45.3", "45,3", "87 %", "" → null. */
+/** Zahl aus Text: "45.3", "45,3" (Dezimalkomma, auch deutsche Dateien mit ";"), "87 %", "" → null. Tausenderpunkte werden nicht gelesen. */
 export function leseZahl(text) {
   if (text === null || text === undefined) return null;
   let s = String(text).trim().replace(/%$/, "").trim();
@@ -241,6 +248,19 @@ function quelleCsv(datei, zeile, id) {
 function mitZone(d, zoneMin) {
   if (zoneMin !== undefined) d.zoneMin = zoneMin;
   return d;
+}
+
+/** Spalten, ohne die eine Datei keine Zeile ergibt (Feldnamen aus SPALTEN). */
+const ERFORDERLICH = { zyklen: ["zyklusStart"], schlaf: ["einschlafen", "aufwachen"], training: ["trainingStart"], tagebuch: ["zyklusStart", "frage"] };
+
+/** Hinweis mit der Kopfzeile einer Datei (nur Spaltennamen, nie Werte) – damit man sie abfotografieren und die Zuordnung ergänzen kann. */
+export function kopfHinweis(datei, kopf, text) {
+  return { datei, zeile: 1, text, kopf: [...kopf] };
+}
+
+function fehlendeSpalten(art, kopf) {
+  const index = spaltenIndex(kopf);
+  return (ERFORDERLICH[art] || []).filter((f) => index[f] === undefined);
 }
 
 function zyklen(datei, csv, optionen, paket, hinweise) {
@@ -385,7 +405,7 @@ function tagebuch(datei, csv, optionen, paket, hinweise) {
     const ja = leseJaNein(z.text("antwort"));
     if (ja !== null) e.eintraege[k] = ja;
     else {
-      const n = leseZahl(z.text("antwort"));
+      const n = z.zahl("antwort");
       if (n !== null) e.eintraege[k] = n;
     }
     e.fragen[k] = frage;
@@ -413,7 +433,14 @@ export function importiereWhoop(dateien, optionen = {}) {
     const art = erkenneDatei(name, csv.kopf);
     uebersicht.push({ name, art, zeilen: csv.zeilen.length });
     if (!art) {
-      hinweise.push({ datei: name, zeile: 1, text: "Datei nicht erkannt – nicht importiert." });
+      hinweise.push(kopfHinweis(name, csv.kopf, "Datei nicht erkannt – nicht importiert."));
+      continue;
+    }
+    // Erkannt, aber Spaltennamen passen nicht (z. B. andere Sprache): Zeilen nicht raten, Kopfzeile melden
+    const fehlt = fehlendeSpalten(art, csv.kopf);
+    if (fehlt.length) {
+      hinweise.push(kopfHinweis(name, csv.kopf, `Pflichtspalten nicht gefunden (${fehlt.map((f) => SPALTEN[f][0]).join(", ")}) – Datei nicht importiert.`));
+      uebersicht[uebersicht.length - 1].fehlt = fehlt;
       continue;
     }
     if (art === "zyklen") zyklen(name, csv, optionen, paket, hinweise);

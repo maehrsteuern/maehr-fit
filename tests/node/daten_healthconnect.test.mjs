@@ -259,23 +259,30 @@ test("Capacitor-Brücke: Plugin-Aufrufe werden auf MF.native.healthConnect abgeb
   assert.equal(installiereBruecke({ Capacitor: { isNativePlatform: () => false } }), null);
 });
 
-test("Abgleich: liest in Tagesfenstern und setzt nach einem Abbruch am letzten guten Fenster an", async () => {
+test("Abgleich: liest in Tagesfenstern; dauerhaft gescheiterte Fenster werden Lücke, Stand bleibt vor der Lücke", async () => {
   const sp = mapSpeicher();
   const b = fixtureBruecke();
-  let zaehler = 0;
+  const tag = VORGABEN.fensterMs;
+  const beginn = JETZT - VORGABEN.ersterZeitraumMs;
+  // ab dem dritten Tag liefert Health Connect nur noch Fehler (wie die Zeitüberschreitung vom 30.10.2026)
   const wackelig = {
     ...b,
     lesen: async (art, von, bis) => {
-      if (art === "RestingHeartRate" && ++zaehler === 3) throw new Error("Verbindung zu Health Connect unterbrochen");
+      if (art === "RestingHeartRate" && von >= beginn + 2 * tag) throw new Error("Verbindung zu Health Connect unterbrochen");
       return b.lesen(art, von, bis);
     },
   };
-  const r = await synchronisieren({ bruecke: wackelig, speicher: sp, jetzt: JETZT, arten: ["RestingHeartRate"] });
-  const tag = VORGABEN.fensterMs;
-  // Fenster 1 und 2 gelungen, Fenster 3 abgebrochen → Stand = Beginn + 2 Tage
-  assert.equal(r.arten.RestingHeartRate.bisMs, JETZT - VORGABEN.ersterZeitraumMs + 2 * tag);
+  const r = await synchronisieren({ bruecke: wackelig, speicher: sp, jetzt: JETZT, arten: ["RestingHeartRate"], vorgaben: { warte: async () => {} } });
+  // Fenster 1 und 2 gelungen, Fenster 3 gescheitert (halbiert, wiederholt, Lücke) → Stand = Beginn + 2 Tage
+  assert.equal(r.arten.RestingHeartRate.bisMs, beginn + 2 * tag);
   assert.match(r.arten.RestingHeartRate.fehler, /unterbrochen/);
-  assert.equal((await sp.lies(SYNC_PRAEFIX + "RestingHeartRate")).bisMs, JETZT - VORGABEN.ersterZeitraumMs + 2 * tag);
+  assert.match(r.arten.RestingHeartRate.fehler, /3 Lücken hintereinander/);
+  assert.equal((await sp.lies(SYNC_PRAEFIX + "RestingHeartRate")).bisMs, beginn + 2 * tag);
+  // nichts verschluckt: die Fehler stehen auch oben im Ergebnis
+  assert.equal(r.fehler.length, 1);
+  assert.match(r.fehler[0], /^RestingHeartRate: .*unterbrochen/);
+  assert.ok(r.luecken.length >= 3); // drei Tagesfenster, je in 3-Stunden-Stücke zerlegt
+  assert.equal(r.luecken[0].vonMs, beginn + 2 * tag);
   // 30 Tage = 30 Fenster je Art beim ersten Lauf
   b.aufrufe.length = 0;
   await synchronisieren({ bruecke: b, speicher: mapSpeicher(), jetzt: JETZT, arten: ["OxygenSaturation"] });

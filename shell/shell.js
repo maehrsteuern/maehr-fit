@@ -100,7 +100,17 @@ async function eigeneDatenUebernehmen(ergebnis) {
 }
 
 const aktionen = {
-  async hcVerbinden() { return eigeneDatenUebernehmen(await window.MF.daten.healthConnect.verbinden()); },
+  /** fortschritt({ art, nr, von, gelesen }) kommt vor jedem Lesefenster (daten/healthconnect.js); Rückgabe wie bei csvEinlesen. */
+  async hcVerbinden(fortschritt) {
+    const r = await window.MF.daten.healthConnect.verbinden(undefined, { fortschritt });
+    const n = await eigeneDatenUebernehmen(r);
+    const leer = (k) => !(Z.messwerte?.[k]?.length > 0);
+    return {
+      n, arten: r.zaehlung || {}, zeitraum: r.zeitraum || null, fehler: r.fehler || [], luecken: r.luecken || [],
+      gespeichert: Z.erg.erster ? { von: Z.erg.erster, bis: Z.erg.letzter } : null,   // alles, was jetzt auf dem Gerät liegt
+      ohneHrvRuhepuls: leer("hrv") && leer("ruhepuls"),
+    };
+  },
   async csvEinlesen(dateien) {
     // Dateien vorab als { name, bytes } übergeben: Blob.bytes() ist in neuen Browsern eine Methode, die daten/verbinden.js
     // sonst als Inhalt läse (Befund 30.10.2026, an die Datenschicht gemeldet).

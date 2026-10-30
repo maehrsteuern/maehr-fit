@@ -294,6 +294,8 @@ a.mf-zeile:active, button.mf-zeile:active { background: var(--flaeche-3); }
 .mf-schalter input:checked::after { transform: translateX(20px); background: var(--auf-akzent); }
 .mf-schalter input:focus-visible { outline: var(--fokus); outline-offset: 3px; }
 .mf-status { min-height: 20px; font-size: var(--t-2); color: var(--grau-5); }
+.mf-details { margin: var(--r3) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; font-size: var(--t-2); color: var(--grau-5); }
+.mf-details:empty { display: none; }
 .mf-abschnitt > .mf-status:empty, .mf-sicht > .mf-status:empty { min-height: 0; margin-top: calc(-1 * var(--r3)); }
 .mf-wahl { display: flex; flex-wrap: wrap; gap: var(--r2); }
 .mf-wahl button { min-height: 44px; padding: 0 var(--r4); border: 1px solid var(--grau-4); border-radius: var(--radius-pille); background: var(--flaeche-1); color: var(--tinte); font-size: var(--t-3); }

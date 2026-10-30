@@ -1,7 +1,10 @@
 // Verbindungsstück der Datenschicht: stellt `window.MF.daten` bereit.
 //
 //   MF.daten.healthConnect.verfuegbar()        → { verfuegbar, grund }
-//   MF.daten.healthConnect.verbinden(arten?)   → Rechte anfragen + abgleichen: { …Messpaket, erteilt, fehlend, neu, ersetzt, arten }
+//   MF.daten.healthConnect.verbinden(arten?, { fortschritt? }) → Rechte anfragen + abgleichen:
+//     { …Messpaket, erteilt, fehlend, neu, ersetzt, arten (Bericht je Health-Connect-Art), zaehlung (gelesen je MF-Art),
+//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken }
+//     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
 //   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, zeitraum, hinweise, dateien }
@@ -89,13 +92,13 @@ export function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis
     healthConnect: {
       verfuegbar: () => hc.verfuegbar(holeBruecke()),
       /** Leserechte anfragen und, wenn mindestens eine Art freigegeben ist, gleich abgleichen. */
-      async verbinden(arten = hc.RECORD_TYPEN) {
+      async verbinden(arten = hc.RECORD_TYPEN, optionen = {}) {
         if (!holeBruecke()) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
         const rechte = await hc.berechtigungen(holeBruecke(), arten);
         if (!rechte.erteilt.length) {
           throw new Error("Health Connect: keine Leseberechtigung erteilt.");
         }
-        const sync = await abgleichen({ arten: rechte.erteilt });
+        const sync = await abgleichen({ arten: rechte.erteilt, fortschritt: optionen.fortschritt });
         return { ...sync, erteilt: rechte.erteilt, fehlend: rechte.fehlend };
       },
       /** Leserechte nur anfragen, ohne abzugleichen. */
@@ -110,7 +113,12 @@ export function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis
       const texte = (await Promise.all(liste.map(zuTexten))).flat();
       const { paket, hinweise, dateien: uebersicht } = importiereWhoop(texte, { zone });
       if (!uebersicht.some((d) => d.art)) {
-        throw new Error("Keine WHOOP-Datei erkannt (erwartet: physiological_cycles, sleeps, workouts, journal_entries).");
+        // Nur Dateiname und Kopfzeile (Spaltennamen, nie Werte) melden, damit der Nutzer sie abfotografieren kann
+        const kopfzeilen = hinweise.filter((h) => Array.isArray(h.kopf));
+        const fehler = new Error("Keine WHOOP-Datei erkannt (erwartet: physiological_cycles, sleeps, workouts, journal_entries – deutsch: physiologische_zyklen, Schlaf, Trainings, logbuch_eintraege).");
+        fehler.hinweise = hinweise;
+        fehler.kopfzeilen = kopfzeilen;
+        throw fehler;
       }
       const abgelegt = await speichereMessungen(speicher, paket);
       const arten = Object.fromEntries(ARTEN.map((a) => [a, paket[a].length]).filter(([, n]) => n > 0));

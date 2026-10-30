@@ -145,10 +145,14 @@ class HealthConnectPlugin : Plugin() {
         }
         val liste = gewuenschteArten(call)
         val rechte = rechteFuer(liste)
+        // Nur die Datenrechte entscheiden, ob der Dialog nötig ist: Das Verlaufsrecht (ältere Daten) ist freiwillig. Fehlte es
+        // und zählte mit, würde bei jedem Tippen auf „Verbinden“ wieder der Dialog starten (Health Connect blendet ihn nach
+        // zwei Ablehnungen nicht mehr ein), und die Anfrage könnte ohne Antwort bleiben (Verdacht, am Handy zu prüfen).
+        val datenRechte = liste.mapNotNull { arten[it] }.map { HealthPermission.getReadPermission(it) }.toSet()
         bereich.launch {
             try {
                 val erteilt = client().permissionController.getGrantedPermissions()
-                if (erteilt.containsAll(rechte)) {
+                if (erteilt.containsAll(datenRechte)) {
                     call.resolve(erteilteArten(liste, erteilt))
                 } else {
                     val intent = vertrag.createIntent(context, rechte)

@@ -473,6 +473,8 @@ a.mf-zeile:active, button.mf-zeile:active { background: var(--flaeche-3); }
 .mf-schalter input:checked::after { transform: translateX(20px); background: var(--auf-akzent); }
 .mf-schalter input:focus-visible { outline: var(--fokus); outline-offset: 3px; }
 .mf-status { min-height: 20px; font-size: var(--t-2); color: var(--grau-5); }
+.mf-details { margin: var(--r3) 0 0; white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; font-size: var(--t-2); color: var(--grau-5); }
+.mf-details:empty { display: none; }
 .mf-abschnitt > .mf-status:empty, .mf-sicht > .mf-status:empty { min-height: 0; margin-top: calc(-1 * var(--r3)); }
 .mf-wahl { display: flex; flex-wrap: wrap; gap: var(--r2); }
 .mf-wahl button { min-height: 44px; padding: 0 var(--r4); border: 1px solid var(--grau-4); border-radius: var(--radius-pille); background: var(--flaeche-1); color: var(--tinte); font-size: var(--t-3); }
@@ -1186,6 +1188,14 @@ const TEXTE = {
   // Daten: Zusammenfassung nach dem Einlesen, Einstellungen (Phase 2)
   csv_ok_arten: ["{n} Messwerte eingelesen: {liste}", "{n} measurements imported: {liste}"],
   csv_zeitraum: ["Zeitraum: {von} bis {bis}", "Period: {von} to {bis}"],
+  hc_laeuft: ["Lese Daten aus Health Connect … das kann bei der ersten Verbindung mehrere Minuten dauern. Bitte die App offen lassen.", "Reading data from Health Connect … the first connection can take several minutes. Please keep the app open."],
+  hc_fortschritt: ["Lese {art}: Abschnitt {nr} von {von} · bisher {n} Messwerte", "Reading {art}: part {nr} of {von} · {n} measurements so far"],
+  csv_laeuft: ["Lese „{datei}“ …", "Reading “{datei}” …"],
+  hc_ok_arten: ["Verbunden: {n} Messwerte gelesen: {liste}", "Connected: {n} measurements read: {liste}"],
+  hc_luecken: ["Nicht alles gelesen: {liste}. Tippe noch einmal auf „Verbinden“, dann wird nachgelesen.", "Not everything was read: {liste}. Tap “Connect” again to read the rest."],
+  hc_gesamt: ["Auf dem Gerät gespeichert: {von} bis {bis}", "Stored on this device: {von} to {bis}"],
+  hc_ohne_hrv: ["Health Connect lieferte keine HRV und keinen Ruhepuls. Ohne beides lässt sich die Erholung nicht berechnen; dafür den WHOOP-Export (CSV) einlesen. Die Belastung braucht einen Ruhepuls: trage ihn in den Einstellungen ein.", "Health Connect delivered no HRV and no resting heart rate. Without them recovery cannot be calculated; import the WHOOP export (CSV) for that. Strain needs a resting heart rate: enter it in Settings."],
+  csv_kopf_titel: ["Spaltennamen der Datei „{datei}“ (nur die Kopfzeile, keine Werte):", "Column names of the file “{datei}” (header row only, no values):"],
   csv_hinweise: ["Zeilen mit Hinweis (z. B. ohne Aufwachzeit): {n}", "Lines with a note (e.g. no wake-up time): {n}"],
   datenart_herzschlag: ["Herzschlag", "heart rate"], datenart_hrv: ["HRV", "HRV"], datenart_ruhepuls: ["Ruhepuls", "resting heart rate"], datenart_atemfrequenz: ["Atemfrequenz", "respiratory rate"],
   datenart_spo2: ["Sauerstoffsättigung", "blood oxygen"], datenart_hauttemp: ["Hauttemperatur", "skin temperature"], datenart_schlaf: ["Schlaf", "sleep"], datenart_training: ["Trainings", "workouts"],
@@ -4586,7 +4596,7 @@ const __m_daten_healthconnect_js = (() => {
 // Health Connect wird nur gelesen. Es gibt keine Netzverbindung.
 
 const { zeitMs } = __m_daten_zeit_js;
-const { leeresPaket, paketeVereinen, speichereMessungen } = __m_daten_ablage_js;
+const { ARTEN, leeresPaket, paketeVereinen, speichereMessungen, tagVon } = __m_daten_ablage_js;
 
 /** Gelesene Health-Connect-Datenarten, in Abgleich-Reihenfolge (Training zuletzt, braucht Herzschlag). */
 const RECORD_TYPEN = [
@@ -4646,12 +4656,36 @@ const TRAININGSARTEN = {
  * - ueberlappungMs: Jeder weitere Abgleich beginnt so viel früher als der letzte endete, weil WHOOP
  *   Daten verzögert nach Health Connect schreibt. Doppelte fängt der Abgleich über quelle.id ab.
  * - fensterMs: Größe eines Lesefensters. Ein Tag Herzschlag im Sekundentakt sind rund 86 400 Werte.
+ * - kleinsterFensterMs: Scheitert ein Fenster, wird es halbiert, bis höchstens diese Größe erreicht ist (Befund 30.10.2026:
+ *   Ein einzelnes gescheitertes Tagesfenster brach früher die ganze Art ab, die App zeigte nur Tage bis dorthin).
+ * - wiederholungen / wartenMs: Versuche und Pause (ms) für ein kleinstes Fenster, bevor es als Lücke gilt.
+ * - luckenSerieMax: So viele Lücken hintereinander, dann gibt der Abgleich diese Art für diesen Lauf auf.
+ * - lesenZeitgrenzeMs / rechteZeitgrenzeMs: Antwortet die Brücke so lange nicht, wird der Aufruf mit einer Meldung beendet,
+ *   statt endlos zu hängen (Lesen bzw. Rechte-Dialog).
  */
 const VORGABEN = {
   ersterZeitraumMs: 30 * 24 * 3600 * 1000,
   ueberlappungMs: 48 * 3600 * 1000,
   fensterMs: 24 * 3600 * 1000,
+  kleinsterFensterMs: 3 * 3600 * 1000,
+  wiederholungen: 1,
+  wartenMs: 1500,
+  luckenSerieMax: 3,
+  lesenZeitgrenzeMs: 120 * 1000,
+  rechteZeitgrenzeMs: 180 * 1000,
 };
+
+/** Fehlercodes des Kotlin-Plugins, bei denen Wiederholen oder Halbieren nichts hilft. */
+const ENDGUELTIG = new Set(["keine_berechtigung", "nicht_unterstuetzt", "nicht_verfuegbar", "ungueltig"]);
+const endgueltig = (fehler) => !!fehler && (ENDGUELTIG.has(fehler.code) || /berechtigung|permission|SecurityException/i.test(String(fehler.message || "")));
+
+/** Promise mit Zeitgrenze: antwortet es nicht in `ms`, kommt ein Fehler mit `text`. */
+function mitZeitgrenze(promise, ms, text) {
+  if (!Number.isFinite(ms) || ms <= 0) return promise;
+  let uhr;
+  const grenze = new Promise((_, nein) => { uhr = setTimeout(() => nein(Object.assign(new Error(text), { code: "zeitgrenze" })), ms); });
+  return Promise.race([promise, grenze]).finally(() => clearTimeout(uhr));
+}
 
 const SYNC_PRAEFIX = "sync:healthconnect:";
 
@@ -4834,50 +4868,117 @@ async function verfuegbar(bruecke) {
 }
 
 /** Leserechte anfragen → { erteilt: string[], fehlend: string[] }. */
-async function berechtigungen(bruecke, arten = RECORD_TYPEN) {
+async function berechtigungen(bruecke, arten = RECORD_TYPEN, zeitgrenzeMs = VORGABEN.rechteZeitgrenzeMs) {
   if (!bruecke) return { erteilt: [], fehlend: [...arten] };
-  const r = (await bruecke.berechtigungen(arten)) || {};
+  const r = (await mitZeitgrenze(Promise.resolve(bruecke.berechtigungen(arten)), zeitgrenzeMs,
+    "Health Connect hat auf die Rechte-Abfrage nicht geantwortet. Öffne Health Connect → App-Berechtigungen → MAEHR FIT und gib die Lese-Rechte frei; dann erneut „Verbinden“.")) || {};
   const erteilt = Array.isArray(r.erteilt) ? r.erteilt : [];
   return { erteilt, fehlend: arten.filter((a) => !erteilt.includes(a)) };
 }
 
+const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehler);
+
 /**
  * Inkrementeller Abgleich: je Datenart ab dem letzten Stand (minus Überlappung) bis jetzt lesen, in Tagesfenstern
  * (damit die Brücke nie zu große Antworten liefern muss), zuordnen, ablegen und nach jedem Fenster den Stand merken
- * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }). Bricht ein Fenster ab, setzt der nächste Lauf
- * dort wieder an. `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze. Fehlt ein Recht, wird diese Art übersprungen und gemeldet; die anderen laufen weiter.
- * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object}} p
+ * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }).
+ *
+ * Scheitert ein Fenster (Zeitüberschreitung, zu große Antwort, Quote von Health Connect), wird es halbiert und noch einmal
+ * versucht; ein kleinstes Fenster, das auch nach Wiederholung scheitert, wird als Lücke gemeldet und übersprungen.
+ * Der Stand bleibt dann am Beginn der ersten Lücke, der nächste Lauf liest sie wieder. Drei Lücken hintereinander (oder ein
+ * endgültiger Fehler wie fehlendes Recht) beenden diese Art für diesen Lauf; die anderen Arten laufen weiter.
+ * Nichts wird verschluckt: `arten[typ].fehler` und `arten[typ].luecken` nennen jeden Fehler, oben stehen `fehler` (Texte),
+ * `zaehlung` (gelesene Datensätze je MF-Art), `zeitraum` (erster/letzter Kalendertag) und `luecken`.
+ * `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze.
+ * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object,
+ *   fortschritt?:(info:{typ:string, art:string, nr:number, von:number, gelesen:number, phase:string})=>void}} p
  */
-async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = RECORD_TYPEN, vorgaben = {} }) {
+async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = RECORD_TYPEN, vorgaben = {}, fortschritt }) {
   if (!bruecke) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
   const v = { ...VORGABEN, ...vorgaben };
-  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket() };
+  const warte = v.warte || ((ms) => new Promise((ok) => setTimeout(ok, ms)));
+  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [] };
+  const meldung = (info) => { try { fortschritt?.(info); } catch { /* Anzeige darf den Abgleich nie stören */ } };
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
     const stand = await speicher.lies(SYNC_PRAEFIX + typ);
     const von = stand && typeof stand.bisMs === "number" ? stand.bisMs - v.ueberlappungMs : jetzt - v.ersterZeitraumMs;
-    const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0 };
+    const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0, luecken: [] };
     ergebnis.arten[typ] = bericht;
+    const mfArt = ART_ZU_PAKET[typ];
+    const nrGesamt = Math.max(1, Math.ceil((jetzt - von) / v.fensterMs));
+    let ersteLuecke = null, serie = 0, nr = 0;
+
+    /** Ein Fenster lesen; true = gelesen und abgelegt, false = Lücke. Wirft nur bei endgültigem Fehler oder Ablagefehler. */
+    const fenster = async (a, e) => {
+      let roh = null, letzterFehler = null;
+      for (let versuch = 0; versuch <= v.wiederholungen && roh === null; versuch++) {
+        try {
+          roh = (await mitZeitgrenze(Promise.resolve(bruecke.lesen(typ, a, e)), v.lesenZeitgrenzeMs,
+            `Health Connect hat beim Lesen von ${typ} nicht geantwortet (Zeitgrenze ${Math.round(v.lesenZeitgrenzeMs / 1000)} s).`)) || [];
+        } catch (fehler) {
+          letzterFehler = fehler;
+          if (endgueltig(fehler)) throw fehler;
+          if (e - a > v.kleinsterFensterMs) {
+            // Fenster halbieren: kleinere Antworten, und die Lücke bleibt so klein wie möglich
+            const mitte = a + Math.floor((e - a) / 2);
+            const links = await fenster(a, mitte);
+            const rechts = await fenster(mitte, e);
+            return links && rechts;
+          }
+          if (versuch < v.wiederholungen) await warte(v.wartenMs);
+        }
+      }
+      if (roh === null) {
+        bericht.luecken.push({ vonMs: a, bisMs: e, fehler: text(letzterFehler) });
+        ergebnis.luecken.push({ typ, vonMs: a, bisMs: e, fehler: text(letzterFehler) });
+        if (ersteLuecke === null) ersteLuecke = a;
+        bericht.fehler = bericht.fehler || text(letzterFehler);
+        return false;
+      }
+      const paket = zuordnen(typ, roh, typ === "ExerciseSession" ? await herzschlaegeFuer(bruecke, roh) : {});
+      for (const art of ARTEN) for (const d of paket[art]) {
+        const tag = tagVon(art, d);
+        if (!tag) continue;
+        if (bericht.vonTag === undefined || tag < bericht.vonTag) bericht.vonTag = tag;
+        if (bericht.bisTag === undefined || tag > bericht.bisTag) bericht.bisTag = tag;
+      }
+      const abgelegt = await speichereMessungen(speicher, paket);
+      bericht.gelesen += roh.length;
+      bericht.neu += abgelegt.neu;
+      bericht.ersetzt += abgelegt.ersetzt;
+      ergebnis.paket = paketeVereinen(ergebnis.paket, abgelegt.neuPaket);
+      return true;
+    };
+
     for (let a = von; a < jetzt; ) {
       const e = Math.min(a + v.fensterMs, jetzt);
+      nr += 1;
+      meldung({ typ, art: mfArt, nr, von: nrGesamt, gelesen: bericht.neu + bericht.ersetzt, phase: "lesen" });
       try {
-        const roh = (await bruecke.lesen(typ, a, e)) || [];
-        const paket = zuordnen(typ, roh, typ === "ExerciseSession" ? await herzschlaegeFuer(bruecke, roh) : {});
-        const abgelegt = await speichereMessungen(speicher, paket);
-        bericht.bisMs = e;
-        bericht.gelesen += roh.length;
-        bericht.neu += abgelegt.neu;
-        bericht.ersetzt += abgelegt.ersetzt;
-        ergebnis.paket = paketeVereinen(ergebnis.paket, abgelegt.neuPaket);
-        await speicher.schreib(SYNC_PRAEFIX + typ, { bisMs: e, zeitpunktMs: jetzt, anzahl: bericht.gelesen });
+        const gut = await fenster(a, e);
+        serie = gut ? 0 : serie + 1;
+        // Stand: bis zum Ende dieses Fensters, aber nie hinter die erste Lücke (die liest der nächste Lauf noch einmal)
+        bericht.bisMs = ersteLuecke ?? e;
+        await speicher.schreib(SYNC_PRAEFIX + typ, { bisMs: bericht.bisMs, zeitpunktMs: jetzt, anzahl: bericht.gelesen });
+        if (serie >= v.luckenSerieMax) { bericht.fehler = `${bericht.fehler || "Lesefehler"} (abgebrochen nach ${serie} Lücken hintereinander)`; break; }
       } catch (fehler) {
-        bericht.fehler = String(fehler && fehler.message ? fehler.message : fehler);
+        bericht.fehler = text(fehler);
         break;
       }
       a = e;
     }
     ergebnis.neu += bericht.neu;
     ergebnis.ersetzt += bericht.ersetzt;
+    if (bericht.neu + bericht.ersetzt > 0) ergebnis.zaehlung[mfArt] = (ergebnis.zaehlung[mfArt] || 0) + bericht.neu + bericht.ersetzt;
+    if (bericht.vonTag !== undefined) {
+      if (!ergebnis.zeitraum) ergebnis.zeitraum = { von: bericht.vonTag, bis: bericht.bisTag };
+      else {
+        if (bericht.vonTag < ergebnis.zeitraum.von) ergebnis.zeitraum.von = bericht.vonTag;
+        if (bericht.bisTag > ergebnis.zeitraum.bis) ergebnis.zeitraum.bis = bericht.bisTag;
+      }
+    }
+    if (bericht.fehler) ergebnis.fehler.push(`${typ}: ${bericht.fehler}`);
   }
   return ergebnis;
 }
@@ -4897,7 +4998,7 @@ async function herzschlaegeFuer(bruecke, sitzungen) {
   }
   return { herzschlaege };
 }
-return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
+return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, mitZeitgrenze, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
 })();
 
 // ===== daten/bruecke_capacitor.js
@@ -4960,7 +5061,8 @@ const __m_daten_csv_import_js = (() => {
 //
 // Spaltennamen werden über den Namen gesucht (nicht über die Position), tolerant gegenüber Groß-/Kleinschreibung,
 // Leer- und Sonderzeichen ("Recovery score %" = "recovery score (%)"). Fehlende Spalten ergeben null.
-// Die Spaltennamen stammen aus Nutzerberichten und eigener Kenntnis, nicht aus einer WHOOP-Dokumentation
+// Deutscher Export (Kopfzeilen vom Nutzer, 30.10.2026): jeweils als weitere Angabe hinter den englischen Namen.
+// Die englischen Spaltennamen stammen aus Nutzerberichten und eigener Kenntnis, nicht aus einer WHOOP-Dokumentation
 // (docs/technik/daten.md, Abschnitt "Was bestätigt ist").
 //
 // WHOOPs eigene Werte bleiben als `fremdwerte` erhalten, damit die App "WHOOP sagte X, MF rechnet Y" zeigen kann.
@@ -5049,52 +5151,58 @@ function normName(n) {
 // ---------------------------------------------------------------------------------------------------
 
 const SPALTEN = {
-  zyklusStart: ["Cycle start time", "Cycle start"],
-  zyklusEnde: ["Cycle end time", "Cycle end"],
-  zone: ["Cycle timezone", "Timezone", "Time zone"],
-  erholung: ["Recovery score %", "Recovery score", "Recovery"],
-  ruhepuls: ["Resting heart rate (bpm)", "Resting heart rate", "RHR"],
-  hrv: ["Heart rate variability (ms)", "Heart rate variability", "HRV (ms)", "HRV"],
-  hauttemp: ["Skin temp (celsius)", "Skin temperature (celsius)", "Skin temp"],
-  spo2: ["Blood oxygen %", "Blood oxygen", "SpO2 %", "SpO2"],
-  tagesbelastung: ["Day Strain", "Strain"],
-  einschlafen: ["Sleep onset", "Sleep start time"],
-  aufwachen: ["Wake onset", "Sleep end time"],
-  schlafLeistung: ["Sleep performance %", "Sleep performance"],
-  atem: ["Respiratory rate (rpm)", "Respiratory rate"],
-  schlafMin: ["Asleep duration (min)"],
-  imBettMin: ["In bed duration (min)"],
-  leichtMin: ["Light sleep duration (min)"],
-  tiefMin: ["Deep (SWS) duration (min)", "Deep sleep duration (min)", "SWS duration (min)"],
-  remMin: ["REM duration (min)", "REM sleep duration (min)"],
-  wachMin: ["Awake duration (min)"],
-  bedarfMin: ["Sleep need (min)"],
-  schuldMin: ["Sleep debt (min)"],
-  effizienz: ["Sleep efficiency %", "Sleep efficiency"],
-  konstanz: ["Sleep consistency %", "Sleep consistency"],
-  nickerchen: ["Nap"],
-  trainingStart: ["Workout start time", "Workout start"],
-  trainingEnde: ["Workout end time", "Workout end"],
-  dauerMin: ["Duration (min)"],
-  aktivitaet: ["Activity name", "Activity", "Sport"],
-  trainingsbelastung: ["Activity Strain", "Workout strain"],
-  energie: ["Energy burned (cal)", "Energy burned (kcal)", "Calories"],
-  maxPuls: ["Max HR (bpm)", "Max heart rate (bpm)"],
-  mittelPuls: ["Average HR (bpm)", "Average heart rate (bpm)"],
-  zone1: ["HR Zone 1 %"], zone2: ["HR Zone 2 %"], zone3: ["HR Zone 3 %"], zone4: ["HR Zone 4 %"], zone5: ["HR Zone 5 %"],
+  zyklusStart: ["Cycle start time", "Cycle start", "Startzeit des Zyklus"],
+  zyklusEnde: ["Cycle end time", "Cycle end", "Endzeit des Zyklus"],
+  zone: ["Cycle timezone", "Timezone", "Time zone", "Zeitzone des Zyklus"],
+  erholung: ["Recovery score %", "Recovery score", "Recovery", "Erholungswert %"],
+  ruhepuls: ["Resting heart rate (bpm)", "Resting heart rate", "RHR", "Ruheherzfrequenz (Schläge pro Minute)"],
+  hrv: ["Heart rate variability (ms)", "Heart rate variability", "HRV (ms)", "HRV", "Herzfrequenzvariabilität (ms)"],
+  hauttemp: ["Skin temp (celsius)", "Skin temperature (celsius)", "Skin temp", "Hauttemperatur (Celsius)"],
+  spo2: ["Blood oxygen %", "Blood oxygen", "SpO2 %", "SpO2", "Blutsauerstoff %"],
+  tagesbelastung: ["Day Strain", "Strain", "Tagesbelastung"],
+  einschlafen: ["Sleep onset", "Sleep start time", "Beginn des Schlafs"],
+  aufwachen: ["Wake onset", "Sleep end time", "Beginn des Aufwachens"],
+  schlafLeistung: ["Sleep performance %", "Sleep performance", "Schlafleistung %"],
+  atem: ["Respiratory rate (rpm)", "Respiratory rate", "Atemfrequenz (Atemzüge/Min.)"],
+  schlafMin: ["Asleep duration (min)", "Schlafdauer (Min.)"],
+  imBettMin: ["In bed duration (min)", "Dauer im Bett (Min.)"],
+  leichtMin: ["Light sleep duration (min)", "Dauer des Leichtschlafs (Min.)"],
+  tiefMin: ["Deep (SWS) duration (min)", "Deep sleep duration (min)", "SWS duration (min)", "Dauer des Tiefschlafs (Min.)"],
+  remMin: ["REM duration (min)", "REM sleep duration (min)", "Dauer des REM-Schlafs (Min.)"],
+  wachMin: ["Awake duration (min)", "Dauer des Aufwachens (Min.)"],
+  bedarfMin: ["Sleep need (min)", "Schlafbedarf (Min.)"],
+  schuldMin: ["Sleep debt (min)", "Schlafdefizit (Min.)"],
+  effizienz: ["Sleep efficiency %", "Sleep efficiency", "Schlafeffizienz %"],
+  konstanz: ["Sleep consistency %", "Sleep consistency", "Schlafbeständigkeit %"],
+  nickerchen: ["Nap", "Nickerchen"],
+  trainingStart: ["Workout start time", "Workout start", "Startzeit des Trainings"],
+  trainingEnde: ["Workout end time", "Workout end", "Endzeit des Trainings"],
+  dauerMin: ["Duration (min)", "Dauer (Min.)"],
+  aktivitaet: ["Activity name", "Activity", "Sport", "Name der Aktivität"],
+  trainingsbelastung: ["Activity Strain", "Workout strain", "Aktivitätsbelastung"],
+  energie: ["Energy burned (cal)", "Energy burned (kcal)", "Calories", "Verbrannte Energie (cal)"],
+  maxPuls: ["Max HR (bpm)", "Max heart rate (bpm)", "Max HF (Schläge pro Minute)"],
+  mittelPuls: ["Average HR (bpm)", "Average heart rate (bpm)", "Durchschnittliche HF (Schläge pro Minute)"],
+  zone1: ["HR Zone 1 %", "HF-Zone 1 %"], zone2: ["HR Zone 2 %", "HF-Zone 2 %"], zone3: ["HR Zone 3 %", "HF-Zone 3 %"], zone4: ["HR Zone 4 %", "HF-Zone 4 %"], zone5: ["HR Zone 5 %", "HF-Zone 5 %"],
   distanz: ["Distance (meters)", "Distance (m)"],
-  frage: ["Question text", "Question"],
-  antwort: ["Answered yes", "Answer"],
-  notiz: ["Notes", "Note"],
+  frage: ["Question text", "Question", "Fragetext"],
+  antwort: ["Answered yes", "Answer", "Beantwortet mit Ja"],
+  notiz: ["Notes", "Note", "Anmerkungen"],
 };
 
-/** Dateiart erkennen: zuerst am Namen, sonst an typischen Spalten. */
+/**
+ * Dateiart erkennen: zuerst am Namen, sonst an typischen Spalten.
+ * Englischer Export: physiological_cycles, sleeps, workouts, journal_entries. Deutscher Export (Befund 30.10.2026, Dateinamen
+ * vom Nutzer): physiologische_zyklen, Schlaf, Trainings, logbuch_eintraege – ohne Rücksicht auf Groß-/Kleinschreibung, Ordner
+ * und Endung. „schlaf“ und „training(s)“ gelten nur als ganzer Dateiname, damit fremde Dateien nicht versehentlich passen.
+ */
 function erkenneDatei(name, kopf = []) {
   const n = String(name || "").toLowerCase();
-  if (n.includes("physiological_cycles") || n.includes("physiological-cycles")) return "zyklen";
-  if (n.includes("sleeps")) return "schlaf";
-  if (n.includes("workouts")) return "training";
-  if (n.includes("journal_entries") || n.includes("journal")) return "tagebuch";
+  const stamm = n.split(/[\\/]/).pop().replace(/\.[a-z0-9]+$/, "");
+  if (n.includes("physiological_cycles") || n.includes("physiological-cycles") || stamm.includes("physiologische_zyklen") || stamm.includes("physiologische-zyklen")) return "zyklen";
+  if (n.includes("sleeps") || stamm === "schlaf") return "schlaf";
+  if (n.includes("workouts") || stamm === "trainings" || stamm === "training") return "training";
+  if (n.includes("journal_entries") || n.includes("journal") || stamm.includes("logbuch")) return "tagebuch";
   const k = new Set(kopf.map(normName));
   const hat = (feld) => SPALTEN[feld].some((x) => k.has(normName(x)));
   if (hat("frage") && hat("antwort")) return "tagebuch";
@@ -5118,7 +5226,7 @@ function spaltenIndex(kopf) {
 // Werte lesen
 // ---------------------------------------------------------------------------------------------------
 
-/** Zahl aus Text: "45.3", "45,3", "87 %", "" → null. */
+/** Zahl aus Text: "45.3", "45,3" (Dezimalkomma, auch deutsche Dateien mit ";"), "87 %", "" → null. Tausenderpunkte werden nicht gelesen. */
 function leseZahl(text) {
   if (text === null || text === undefined) return null;
   let s = String(text).trim().replace(/%$/, "").trim();
@@ -5193,6 +5301,19 @@ function quelleCsv(datei, zeile, id) {
 function mitZone(d, zoneMin) {
   if (zoneMin !== undefined) d.zoneMin = zoneMin;
   return d;
+}
+
+/** Spalten, ohne die eine Datei keine Zeile ergibt (Feldnamen aus SPALTEN). */
+const ERFORDERLICH = { zyklen: ["zyklusStart"], schlaf: ["einschlafen", "aufwachen"], training: ["trainingStart"], tagebuch: ["zyklusStart", "frage"] };
+
+/** Hinweis mit der Kopfzeile einer Datei (nur Spaltennamen, nie Werte) – damit man sie abfotografieren und die Zuordnung ergänzen kann. */
+function kopfHinweis(datei, kopf, text) {
+  return { datei, zeile: 1, text, kopf: [...kopf] };
+}
+
+function fehlendeSpalten(art, kopf) {
+  const index = spaltenIndex(kopf);
+  return (ERFORDERLICH[art] || []).filter((f) => index[f] === undefined);
 }
 
 function zyklen(datei, csv, optionen, paket, hinweise) {
@@ -5337,7 +5458,7 @@ function tagebuch(datei, csv, optionen, paket, hinweise) {
     const ja = leseJaNein(z.text("antwort"));
     if (ja !== null) e.eintraege[k] = ja;
     else {
-      const n = leseZahl(z.text("antwort"));
+      const n = z.zahl("antwort");
       if (n !== null) e.eintraege[k] = n;
     }
     e.fragen[k] = frage;
@@ -5365,7 +5486,14 @@ function importiereWhoop(dateien, optionen = {}) {
     const art = erkenneDatei(name, csv.kopf);
     uebersicht.push({ name, art, zeilen: csv.zeilen.length });
     if (!art) {
-      hinweise.push({ datei: name, zeile: 1, text: "Datei nicht erkannt – nicht importiert." });
+      hinweise.push(kopfHinweis(name, csv.kopf, "Datei nicht erkannt – nicht importiert."));
+      continue;
+    }
+    // Erkannt, aber Spaltennamen passen nicht (z. B. andere Sprache): Zeilen nicht raten, Kopfzeile melden
+    const fehlt = fehlendeSpalten(art, csv.kopf);
+    if (fehlt.length) {
+      hinweise.push(kopfHinweis(name, csv.kopf, `Pflichtspalten nicht gefunden (${fehlt.map((f) => SPALTEN[f][0]).join(", ")}) – Datei nicht importiert.`));
+      uebersicht[uebersicht.length - 1].fehlt = fehlt;
       continue;
     }
     if (art === "zyklen") zyklen(name, csv, optionen, paket, hinweise);
@@ -5375,7 +5503,7 @@ function importiereWhoop(dateien, optionen = {}) {
   }
   return { paket, hinweise, dateien: uebersicht };
 }
-return { parseCsv, normName, SPALTEN, erkenneDatei, leseZahl, leseJaNein, frageSchluessel, importiereWhoop };
+return { parseCsv, normName, SPALTEN, erkenneDatei, leseZahl, leseJaNein, frageSchluessel, kopfHinweis, importiereWhoop };
 })();
 
 // ===== daten/zip.js
@@ -5449,7 +5577,10 @@ const __m_daten_verbinden_js = (() => {
 // Verbindungsstück der Datenschicht: stellt `window.MF.daten` bereit.
 //
 //   MF.daten.healthConnect.verfuegbar()        → { verfuegbar, grund }
-//   MF.daten.healthConnect.verbinden(arten?)   → Rechte anfragen + abgleichen: { …Messpaket, erteilt, fehlend, neu, ersetzt, arten }
+//   MF.daten.healthConnect.verbinden(arten?, { fortschritt? }) → Rechte anfragen + abgleichen:
+//     { …Messpaket, erteilt, fehlend, neu, ersetzt, arten (Bericht je Health-Connect-Art), zaehlung (gelesen je MF-Art),
+//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken }
+//     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
 //   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, zeitraum, hinweise, dateien }
@@ -5537,13 +5668,13 @@ function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis), jetz
     healthConnect: {
       verfuegbar: () => hc.verfuegbar(holeBruecke()),
       /** Leserechte anfragen und, wenn mindestens eine Art freigegeben ist, gleich abgleichen. */
-      async verbinden(arten = hc.RECORD_TYPEN) {
+      async verbinden(arten = hc.RECORD_TYPEN, optionen = {}) {
         if (!holeBruecke()) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
         const rechte = await hc.berechtigungen(holeBruecke(), arten);
         if (!rechte.erteilt.length) {
           throw new Error("Health Connect: keine Leseberechtigung erteilt.");
         }
-        const sync = await abgleichen({ arten: rechte.erteilt });
+        const sync = await abgleichen({ arten: rechte.erteilt, fortschritt: optionen.fortschritt });
         return { ...sync, erteilt: rechte.erteilt, fehlend: rechte.fehlend };
       },
       /** Leserechte nur anfragen, ohne abzugleichen. */
@@ -5558,7 +5689,12 @@ function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis), jetz
       const texte = (await Promise.all(liste.map(zuTexten))).flat();
       const { paket, hinweise, dateien: uebersicht } = importiereWhoop(texte, { zone });
       if (!uebersicht.some((d) => d.art)) {
-        throw new Error("Keine WHOOP-Datei erkannt (erwartet: physiological_cycles, sleeps, workouts, journal_entries).");
+        // Nur Dateiname und Kopfzeile (Spaltennamen, nie Werte) melden, damit der Nutzer sie abfotografieren kann
+        const kopfzeilen = hinweise.filter((h) => Array.isArray(h.kopf));
+        const fehler = new Error("Keine WHOOP-Datei erkannt (erwartet: physiological_cycles, sleeps, workouts, journal_entries – deutsch: physiologische_zyklen, Schlaf, Trainings, logbuch_eintraege).");
+        fehler.hinweise = hinweise;
+        fehler.kopfzeilen = kopfzeilen;
+        throw fehler;
       }
       const abgelegt = await speichereMessungen(speicher, paket);
       const arten = Object.fromEntries(ARTEN.map((a) => [a, paket[a].length]).filter(([, n]) => n > 0));
@@ -6883,7 +7019,7 @@ const __m_shell_apps_daten_js = (() => {
  * wählst Sprache, Darstellung und Vibration; gespeichert wird sofort.
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
- * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -6909,7 +7045,38 @@ function importText(r, dateien = []) {
   return saetze.join(" · ");
 }
 
-const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p></section>`;
+/** Anzahl je Art als Text: „60.000 Herzschlag, 20 Schlaf, …“ (nur Arten > 0, Reihenfolge wie in der Ablage). */
+function artenListe(arten = {}) {
+  return ARTEN.filter((a) => arten[a] > 0).map((a) => `${zahl(arten[a])} ${TEXTE["datenart_" + a] ? t("datenart_" + a) : a}`).join(", ");
+}
+
+/**
+ * Health Connect nach dem Verbinden: { text, details[] }. Text = Zahl, Arten und Zeitraum (keine Messwerte);
+ * details = Lücken und Fehler (wurde alles gelesen?), was auf dem Gerät liegt und der Hinweis, wenn HRV und Ruhepuls fehlen.
+ */
+function hcText(r) {
+  if (Number.isFinite(r)) return { text: t("hc_ok", { n: zahl(r) }), details: [] };
+  const summe = Object.values(r?.arten || {}).reduce((s, n) => s + (Number(n) || 0), 0);
+  const sa = [t("hc_ok_arten", { n: zahl(summe || r?.n || 0), liste: artenListe(r?.arten) || "–" })];
+  if (r?.zeitraum?.von) sa.push(t("csv_zeitraum", { von: tagLang(r.zeitraum.von), bis: tagLang(r.zeitraum.bis) }));
+  const details = [];
+  if (r?.fehler?.length) details.push(t("hc_luecken", { liste: r.fehler.join("; ") }));
+  if (r?.gespeichert?.von) details.push(t("hc_gesamt", { von: tagLang(r.gespeichert.von), bis: tagLang(r.gespeichert.bis) }));
+  if (r?.ohneHrvRuhepuls) details.push(t("hc_ohne_hrv"));
+  return { text: sa.join(" · "), details };
+}
+
+/** Kopfzeilen (nur Spaltennamen) aus den Hinweisen des CSV-Imports, zum Abfotografieren: eine Zeile Titel, eine Zeile Spalten. */
+function kopfDetails(hinweise = []) {
+  const aus = [];
+  for (const h of hinweise) {
+    if (!Array.isArray(h?.kopf)) continue;
+    aus.push(`${h.datei}: ${h.text}`, t("csv_kopf_titel", { datei: h.datei }), h.kopf.length ? h.kopf.join(" | ") : "–");
+  }
+  return aus;
+}
+
+const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p><div class="mf-details" data-details="${id}"></div></section>`;
 
 function daten(ctx) {
   const hc = ctx.hcVerfuegbar
@@ -6969,11 +7136,22 @@ function ansicht(ctx) {
 function binde(wurzel, ctx) {
   const A = ctx.aktionen || {};
   const status = (id, text) => { const el = document.querySelector(`[data-status="${id}"]`); if (el) el.textContent = text; };   // nach dem Einlesen ist die Ansicht neu gezeichnet
+  const details = (id, zeilen) => { const el = document.querySelector(`[data-details="${id}"]`); if (el) el.textContent = (zeilen || []).join("\n"); };
   const fehlerText = (e) => String(e?.message || e);
+  let hcLaeuft = false;   // ein zweiter Tipp während des Lesens startet keinen zweiten Abgleich
   wurzel.addEventListener("click", async (ev) => {
     const k = ev.target.closest("button[data-aktion]"); if (!k) return;
     const a = k.dataset.aktion;
-    if (a === "hc") { try { const n = await A.hcVerbinden(); status("hc", t("hc_ok", { n: zahl(n) })); } catch (e) { status("hc", t("hc_fehler", { text: fehlerText(e) })); } }
+    if (a === "hc") {
+      if (hcLaeuft) return;
+      hcLaeuft = true; k.disabled = true;
+      // Sofort sichtbar: das Lesen dauert beim ersten Mal Minuten (Befund 30.10.2026: „passiert nichts“)
+      status("hc", t("hc_laeuft")); details("hc", []);
+      const fortschritt = (i) => status("hc", t("hc_fortschritt", { art: TEXTE["datenart_" + i.art] ? t("datenart_" + i.art) : i.typ, nr: zahl(i.nr), von: zahl(i.von), n: zahl(i.gelesen) }));
+      try { const r = await A.hcVerbinden(fortschritt); const z = hcText(r); status("hc", z.text); details("hc", z.details); }
+      catch (e) { status("hc", t("hc_fehler", { text: fehlerText(e) })); }
+      finally { hcLaeuft = false; k.disabled = false; }
+    }
     if (a === "export") { try { const n = await A.exportieren(); status("export", t("export_ok", { n: zahl(n) })); } catch (e) { status("export", fehlerText(e)); } }
     if (a === "loeschen-frage" || a === "loeschen-nein") {
       const frage = a === "loeschen-frage";
@@ -6985,7 +7163,9 @@ function binde(wurzel, ctx) {
   wurzel.querySelector('input[data-aktion="csv"]')?.addEventListener("change", async (ev) => {
     const dateien = ev.target.files; if (!dateien?.length) return;
     const namen = [...dateien].map((d) => d.name);
-    try { const r = await A.csvEinlesen(dateien); status("csv", importText(r, namen)); } catch (e) { status("csv", t("csv_fehler", { text: fehlerText(e) })); }
+    status("csv", t("csv_laeuft", { datei: namen.join(", ") })); details("csv", []);
+    try { const r = await A.csvEinlesen(dateien); status("csv", importText(r, namen)); details("csv", kopfDetails(r?.hinweise)); }
+    catch (e) { status("csv", t("csv_fehler", { text: fehlerText(e) })); details("csv", kopfDetails(e?.hinweise)); }
   });
   const form = wurzel.querySelector("form[data-einstellungen]");
   const speichern = async (teil) => { try { await A.einstellungenSetzen(teil); status("einst", t("einst_gespeichert")); } catch (e) { status("einst", fehlerText(e)); } };
@@ -7008,7 +7188,7 @@ function binde(wurzel, ctx) {
   wurzel.querySelector("[data-einst-haptik]")?.addEventListener("change", (ev) => speichern({ haptik: ev.target.checked }));
   return () => {};
 }
-return { importText, ansicht, binde };
+return { importText, hcText, kopfDetails, ansicht, binde };
 })();
 
 // ===== shell/apps/vergleich.js
@@ -8155,7 +8335,17 @@ async function eigeneDatenUebernehmen(ergebnis) {
 }
 
 const aktionen = {
-  async hcVerbinden() { return eigeneDatenUebernehmen(await window.MF.daten.healthConnect.verbinden()); },
+  /** fortschritt({ art, nr, von, gelesen }) kommt vor jedem Lesefenster (daten/healthconnect.js); Rückgabe wie bei csvEinlesen. */
+  async hcVerbinden(fortschritt) {
+    const r = await window.MF.daten.healthConnect.verbinden(undefined, { fortschritt });
+    const n = await eigeneDatenUebernehmen(r);
+    const leer = (k) => !(Z.messwerte?.[k]?.length > 0);
+    return {
+      n, arten: r.zaehlung || {}, zeitraum: r.zeitraum || null, fehler: r.fehler || [], luecken: r.luecken || [],
+      gespeichert: Z.erg.erster ? { von: Z.erg.erster, bis: Z.erg.letzter } : null,   // alles, was jetzt auf dem Gerät liegt
+      ohneHrvRuhepuls: leer("hrv") && leer("ruhepuls"),
+    };
+  },
   async csvEinlesen(dateien) {
     // Dateien vorab als { name, bytes } übergeben: Blob.bytes() ist in neuen Browsern eine Methode, die daten/verbinden.js
     // sonst als Inhalt läse (Befund 30.10.2026, an die Datenschicht gemeldet).

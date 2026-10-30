@@ -5,7 +5,7 @@
  * wählst Sprache, Darstellung und Vibration; gespeichert wird sofort.
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
- * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -31,7 +31,38 @@ export function importText(r, dateien = []) {
   return saetze.join(" · ");
 }
 
-const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p></section>`;
+/** Anzahl je Art als Text: „60.000 Herzschlag, 20 Schlaf, …“ (nur Arten > 0, Reihenfolge wie in der Ablage). */
+function artenListe(arten = {}) {
+  return ARTEN.filter((a) => arten[a] > 0).map((a) => `${zahl(arten[a])} ${TEXTE["datenart_" + a] ? t("datenart_" + a) : a}`).join(", ");
+}
+
+/**
+ * Health Connect nach dem Verbinden: { text, details[] }. Text = Zahl, Arten und Zeitraum (keine Messwerte);
+ * details = Lücken und Fehler (wurde alles gelesen?), was auf dem Gerät liegt und der Hinweis, wenn HRV und Ruhepuls fehlen.
+ */
+export function hcText(r) {
+  if (Number.isFinite(r)) return { text: t("hc_ok", { n: zahl(r) }), details: [] };
+  const summe = Object.values(r?.arten || {}).reduce((s, n) => s + (Number(n) || 0), 0);
+  const sa = [t("hc_ok_arten", { n: zahl(summe || r?.n || 0), liste: artenListe(r?.arten) || "–" })];
+  if (r?.zeitraum?.von) sa.push(t("csv_zeitraum", { von: tagLang(r.zeitraum.von), bis: tagLang(r.zeitraum.bis) }));
+  const details = [];
+  if (r?.fehler?.length) details.push(t("hc_luecken", { liste: r.fehler.join("; ") }));
+  if (r?.gespeichert?.von) details.push(t("hc_gesamt", { von: tagLang(r.gespeichert.von), bis: tagLang(r.gespeichert.bis) }));
+  if (r?.ohneHrvRuhepuls) details.push(t("hc_ohne_hrv"));
+  return { text: sa.join(" · "), details };
+}
+
+/** Kopfzeilen (nur Spaltennamen) aus den Hinweisen des CSV-Imports, zum Abfotografieren: eine Zeile Titel, eine Zeile Spalten. */
+export function kopfDetails(hinweise = []) {
+  const aus = [];
+  for (const h of hinweise) {
+    if (!Array.isArray(h?.kopf)) continue;
+    aus.push(`${h.datei}: ${h.text}`, t("csv_kopf_titel", { datei: h.datei }), h.kopf.length ? h.kopf.join(" | ") : "–");
+  }
+  return aus;
+}
+
+const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p><div class="mf-details" data-details="${id}"></div></section>`;
 
 function daten(ctx) {
   const hc = ctx.hcVerfuegbar
@@ -91,11 +122,22 @@ export function ansicht(ctx) {
 export function binde(wurzel, ctx) {
   const A = ctx.aktionen || {};
   const status = (id, text) => { const el = document.querySelector(`[data-status="${id}"]`); if (el) el.textContent = text; };   // nach dem Einlesen ist die Ansicht neu gezeichnet
+  const details = (id, zeilen) => { const el = document.querySelector(`[data-details="${id}"]`); if (el) el.textContent = (zeilen || []).join("\n"); };
   const fehlerText = (e) => String(e?.message || e);
+  let hcLaeuft = false;   // ein zweiter Tipp während des Lesens startet keinen zweiten Abgleich
   wurzel.addEventListener("click", async (ev) => {
     const k = ev.target.closest("button[data-aktion]"); if (!k) return;
     const a = k.dataset.aktion;
-    if (a === "hc") { try { const n = await A.hcVerbinden(); status("hc", t("hc_ok", { n: zahl(n) })); } catch (e) { status("hc", t("hc_fehler", { text: fehlerText(e) })); } }
+    if (a === "hc") {
+      if (hcLaeuft) return;
+      hcLaeuft = true; k.disabled = true;
+      // Sofort sichtbar: das Lesen dauert beim ersten Mal Minuten (Befund 30.10.2026: „passiert nichts“)
+      status("hc", t("hc_laeuft")); details("hc", []);
+      const fortschritt = (i) => status("hc", t("hc_fortschritt", { art: TEXTE["datenart_" + i.art] ? t("datenart_" + i.art) : i.typ, nr: zahl(i.nr), von: zahl(i.von), n: zahl(i.gelesen) }));
+      try { const r = await A.hcVerbinden(fortschritt); const z = hcText(r); status("hc", z.text); details("hc", z.details); }
+      catch (e) { status("hc", t("hc_fehler", { text: fehlerText(e) })); }
+      finally { hcLaeuft = false; k.disabled = false; }
+    }
     if (a === "export") { try { const n = await A.exportieren(); status("export", t("export_ok", { n: zahl(n) })); } catch (e) { status("export", fehlerText(e)); } }
     if (a === "loeschen-frage" || a === "loeschen-nein") {
       const frage = a === "loeschen-frage";
@@ -107,7 +149,9 @@ export function binde(wurzel, ctx) {
   wurzel.querySelector('input[data-aktion="csv"]')?.addEventListener("change", async (ev) => {
     const dateien = ev.target.files; if (!dateien?.length) return;
     const namen = [...dateien].map((d) => d.name);
-    try { const r = await A.csvEinlesen(dateien); status("csv", importText(r, namen)); } catch (e) { status("csv", t("csv_fehler", { text: fehlerText(e) })); }
+    status("csv", t("csv_laeuft", { datei: namen.join(", ") })); details("csv", []);
+    try { const r = await A.csvEinlesen(dateien); status("csv", importText(r, namen)); details("csv", kopfDetails(r?.hinweise)); }
+    catch (e) { status("csv", t("csv_fehler", { text: fehlerText(e) })); details("csv", kopfDetails(e?.hinweise)); }
   });
   const form = wurzel.querySelector("form[data-einstellungen]");
   const speichern = async (teil) => { try { await A.einstellungenSetzen(teil); status("einst", t("einst_gespeichert")); } catch (e) { status("einst", fehlerText(e)); } };

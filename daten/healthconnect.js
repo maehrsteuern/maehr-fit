@@ -10,7 +10,7 @@
 // Health Connect wird nur gelesen. Es gibt keine Netzverbindung.
 
 import { zeitMs } from "./zeit.js";
-import { leeresPaket, paketeVereinen, speichereMessungen } from "./ablage.js";
+import { ARTEN, leeresPaket, paketeVereinen, speichereMessungen, tagVon } from "./ablage.js";
 
 /** Gelesene Health-Connect-Datenarten, in Abgleich-Reihenfolge (Training zuletzt, braucht Herzschlag). */
 export const RECORD_TYPEN = [
@@ -70,12 +70,36 @@ export const TRAININGSARTEN = {
  * - ueberlappungMs: Jeder weitere Abgleich beginnt so viel früher als der letzte endete, weil WHOOP
  *   Daten verzögert nach Health Connect schreibt. Doppelte fängt der Abgleich über quelle.id ab.
  * - fensterMs: Größe eines Lesefensters. Ein Tag Herzschlag im Sekundentakt sind rund 86 400 Werte.
+ * - kleinsterFensterMs: Scheitert ein Fenster, wird es halbiert, bis höchstens diese Größe erreicht ist (Befund 30.10.2026:
+ *   Ein einzelnes gescheitertes Tagesfenster brach früher die ganze Art ab, die App zeigte nur Tage bis dorthin).
+ * - wiederholungen / wartenMs: Versuche und Pause (ms) für ein kleinstes Fenster, bevor es als Lücke gilt.
+ * - luckenSerieMax: So viele Lücken hintereinander, dann gibt der Abgleich diese Art für diesen Lauf auf.
+ * - lesenZeitgrenzeMs / rechteZeitgrenzeMs: Antwortet die Brücke so lange nicht, wird der Aufruf mit einer Meldung beendet,
+ *   statt endlos zu hängen (Lesen bzw. Rechte-Dialog).
  */
 export const VORGABEN = {
   ersterZeitraumMs: 30 * 24 * 3600 * 1000,
   ueberlappungMs: 48 * 3600 * 1000,
   fensterMs: 24 * 3600 * 1000,
+  kleinsterFensterMs: 3 * 3600 * 1000,
+  wiederholungen: 1,
+  wartenMs: 1500,
+  luckenSerieMax: 3,
+  lesenZeitgrenzeMs: 120 * 1000,
+  rechteZeitgrenzeMs: 180 * 1000,
 };
+
+/** Fehlercodes des Kotlin-Plugins, bei denen Wiederholen oder Halbieren nichts hilft. */
+const ENDGUELTIG = new Set(["keine_berechtigung", "nicht_unterstuetzt", "nicht_verfuegbar", "ungueltig"]);
+const endgueltig = (fehler) => !!fehler && (ENDGUELTIG.has(fehler.code) || /berechtigung|permission|SecurityException/i.test(String(fehler.message || "")));
+
+/** Promise mit Zeitgrenze: antwortet es nicht in `ms`, kommt ein Fehler mit `text`. */
+export function mitZeitgrenze(promise, ms, text) {
+  if (!Number.isFinite(ms) || ms <= 0) return promise;
+  let uhr;
+  const grenze = new Promise((_, nein) => { uhr = setTimeout(() => nein(Object.assign(new Error(text), { code: "zeitgrenze" })), ms); });
+  return Promise.race([promise, grenze]).finally(() => clearTimeout(uhr));
+}
 
 export const SYNC_PRAEFIX = "sync:healthconnect:";
 
@@ -258,50 +282,117 @@ export async function verfuegbar(bruecke) {
 }
 
 /** Leserechte anfragen → { erteilt: string[], fehlend: string[] }. */
-export async function berechtigungen(bruecke, arten = RECORD_TYPEN) {
+export async function berechtigungen(bruecke, arten = RECORD_TYPEN, zeitgrenzeMs = VORGABEN.rechteZeitgrenzeMs) {
   if (!bruecke) return { erteilt: [], fehlend: [...arten] };
-  const r = (await bruecke.berechtigungen(arten)) || {};
+  const r = (await mitZeitgrenze(Promise.resolve(bruecke.berechtigungen(arten)), zeitgrenzeMs,
+    "Health Connect hat auf die Rechte-Abfrage nicht geantwortet. Öffne Health Connect → App-Berechtigungen → MAEHR FIT und gib die Lese-Rechte frei; dann erneut „Verbinden“.")) || {};
   const erteilt = Array.isArray(r.erteilt) ? r.erteilt : [];
   return { erteilt, fehlend: arten.filter((a) => !erteilt.includes(a)) };
 }
 
+const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehler);
+
 /**
  * Inkrementeller Abgleich: je Datenart ab dem letzten Stand (minus Überlappung) bis jetzt lesen, in Tagesfenstern
  * (damit die Brücke nie zu große Antworten liefern muss), zuordnen, ablegen und nach jedem Fenster den Stand merken
- * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }). Bricht ein Fenster ab, setzt der nächste Lauf
- * dort wieder an. `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze. Fehlt ein Recht, wird diese Art übersprungen und gemeldet; die anderen laufen weiter.
- * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object}} p
+ * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }).
+ *
+ * Scheitert ein Fenster (Zeitüberschreitung, zu große Antwort, Quote von Health Connect), wird es halbiert und noch einmal
+ * versucht; ein kleinstes Fenster, das auch nach Wiederholung scheitert, wird als Lücke gemeldet und übersprungen.
+ * Der Stand bleibt dann am Beginn der ersten Lücke, der nächste Lauf liest sie wieder. Drei Lücken hintereinander (oder ein
+ * endgültiger Fehler wie fehlendes Recht) beenden diese Art für diesen Lauf; die anderen Arten laufen weiter.
+ * Nichts wird verschluckt: `arten[typ].fehler` und `arten[typ].luecken` nennen jeden Fehler, oben stehen `fehler` (Texte),
+ * `zaehlung` (gelesene Datensätze je MF-Art), `zeitraum` (erster/letzter Kalendertag) und `luecken`.
+ * `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze.
+ * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object,
+ *   fortschritt?:(info:{typ:string, art:string, nr:number, von:number, gelesen:number, phase:string})=>void}} p
  */
-export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = RECORD_TYPEN, vorgaben = {} }) {
+export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = RECORD_TYPEN, vorgaben = {}, fortschritt }) {
   if (!bruecke) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
   const v = { ...VORGABEN, ...vorgaben };
-  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket() };
+  const warte = v.warte || ((ms) => new Promise((ok) => setTimeout(ok, ms)));
+  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [] };
+  const meldung = (info) => { try { fortschritt?.(info); } catch { /* Anzeige darf den Abgleich nie stören */ } };
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
     const stand = await speicher.lies(SYNC_PRAEFIX + typ);
     const von = stand && typeof stand.bisMs === "number" ? stand.bisMs - v.ueberlappungMs : jetzt - v.ersterZeitraumMs;
-    const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0 };
+    const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0, luecken: [] };
     ergebnis.arten[typ] = bericht;
+    const mfArt = ART_ZU_PAKET[typ];
+    const nrGesamt = Math.max(1, Math.ceil((jetzt - von) / v.fensterMs));
+    let ersteLuecke = null, serie = 0, nr = 0;
+
+    /** Ein Fenster lesen; true = gelesen und abgelegt, false = Lücke. Wirft nur bei endgültigem Fehler oder Ablagefehler. */
+    const fenster = async (a, e) => {
+      let roh = null, letzterFehler = null;
+      for (let versuch = 0; versuch <= v.wiederholungen && roh === null; versuch++) {
+        try {
+          roh = (await mitZeitgrenze(Promise.resolve(bruecke.lesen(typ, a, e)), v.lesenZeitgrenzeMs,
+            `Health Connect hat beim Lesen von ${typ} nicht geantwortet (Zeitgrenze ${Math.round(v.lesenZeitgrenzeMs / 1000)} s).`)) || [];
+        } catch (fehler) {
+          letzterFehler = fehler;
+          if (endgueltig(fehler)) throw fehler;
+          if (e - a > v.kleinsterFensterMs) {
+            // Fenster halbieren: kleinere Antworten, und die Lücke bleibt so klein wie möglich
+            const mitte = a + Math.floor((e - a) / 2);
+            const links = await fenster(a, mitte);
+            const rechts = await fenster(mitte, e);
+            return links && rechts;
+          }
+          if (versuch < v.wiederholungen) await warte(v.wartenMs);
+        }
+      }
+      if (roh === null) {
+        bericht.luecken.push({ vonMs: a, bisMs: e, fehler: text(letzterFehler) });
+        ergebnis.luecken.push({ typ, vonMs: a, bisMs: e, fehler: text(letzterFehler) });
+        if (ersteLuecke === null) ersteLuecke = a;
+        bericht.fehler = bericht.fehler || text(letzterFehler);
+        return false;
+      }
+      const paket = zuordnen(typ, roh, typ === "ExerciseSession" ? await herzschlaegeFuer(bruecke, roh) : {});
+      for (const art of ARTEN) for (const d of paket[art]) {
+        const tag = tagVon(art, d);
+        if (!tag) continue;
+        if (bericht.vonTag === undefined || tag < bericht.vonTag) bericht.vonTag = tag;
+        if (bericht.bisTag === undefined || tag > bericht.bisTag) bericht.bisTag = tag;
+      }
+      const abgelegt = await speichereMessungen(speicher, paket);
+      bericht.gelesen += roh.length;
+      bericht.neu += abgelegt.neu;
+      bericht.ersetzt += abgelegt.ersetzt;
+      ergebnis.paket = paketeVereinen(ergebnis.paket, abgelegt.neuPaket);
+      return true;
+    };
+
     for (let a = von; a < jetzt; ) {
       const e = Math.min(a + v.fensterMs, jetzt);
+      nr += 1;
+      meldung({ typ, art: mfArt, nr, von: nrGesamt, gelesen: bericht.neu + bericht.ersetzt, phase: "lesen" });
       try {
-        const roh = (await bruecke.lesen(typ, a, e)) || [];
-        const paket = zuordnen(typ, roh, typ === "ExerciseSession" ? await herzschlaegeFuer(bruecke, roh) : {});
-        const abgelegt = await speichereMessungen(speicher, paket);
-        bericht.bisMs = e;
-        bericht.gelesen += roh.length;
-        bericht.neu += abgelegt.neu;
-        bericht.ersetzt += abgelegt.ersetzt;
-        ergebnis.paket = paketeVereinen(ergebnis.paket, abgelegt.neuPaket);
-        await speicher.schreib(SYNC_PRAEFIX + typ, { bisMs: e, zeitpunktMs: jetzt, anzahl: bericht.gelesen });
+        const gut = await fenster(a, e);
+        serie = gut ? 0 : serie + 1;
+        // Stand: bis zum Ende dieses Fensters, aber nie hinter die erste Lücke (die liest der nächste Lauf noch einmal)
+        bericht.bisMs = ersteLuecke ?? e;
+        await speicher.schreib(SYNC_PRAEFIX + typ, { bisMs: bericht.bisMs, zeitpunktMs: jetzt, anzahl: bericht.gelesen });
+        if (serie >= v.luckenSerieMax) { bericht.fehler = `${bericht.fehler || "Lesefehler"} (abgebrochen nach ${serie} Lücken hintereinander)`; break; }
       } catch (fehler) {
-        bericht.fehler = String(fehler && fehler.message ? fehler.message : fehler);
+        bericht.fehler = text(fehler);
         break;
       }
       a = e;
     }
     ergebnis.neu += bericht.neu;
     ergebnis.ersetzt += bericht.ersetzt;
+    if (bericht.neu + bericht.ersetzt > 0) ergebnis.zaehlung[mfArt] = (ergebnis.zaehlung[mfArt] || 0) + bericht.neu + bericht.ersetzt;
+    if (bericht.vonTag !== undefined) {
+      if (!ergebnis.zeitraum) ergebnis.zeitraum = { von: bericht.vonTag, bis: bericht.bisTag };
+      else {
+        if (bericht.vonTag < ergebnis.zeitraum.von) ergebnis.zeitraum.von = bericht.vonTag;
+        if (bericht.bisTag > ergebnis.zeitraum.bis) ergebnis.zeitraum.bis = bericht.bisTag;
+      }
+    }
+    if (bericht.fehler) ergebnis.fehler.push(`${typ}: ${bericht.fehler}`);
   }
   return ergebnis;
 }
