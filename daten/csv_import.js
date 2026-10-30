@@ -390,9 +390,10 @@ function tagebuch(datei, csv, optionen, paket, hinweise) {
       continue;
     }
     // Tag = Kalendertag der Zyklusmitte. Ein WHOOP-Zyklus läuft von Einschlafen (meist am Vorabend) bis zum
-    // nächsten Einschlafen; die Mitte liegt sicher im gemeinten Tag. Ohne Zyklusende: Tag des Zyklusbeginns.
+    // nächsten Einschlafen; die Mitte liegt sicher im gemeinten Tag. Ohne Zyklusende (der laufende Zyklus, Befund 31.10.2026): Mitte eines
+    // Zyklus von 24 Stunden, sonst fiele der Eintrag auf den Vorabend und überschriebe die Antworten des Vortags.
     const ende = z.zeit("zyklusEnde");
-    const bezug = ende !== null && ende > start ? start + Math.floor((ende - start) / 2) : start;
+    const bezug = ende !== null && ende > start ? start + Math.floor((ende - start) / 2) : start + 12 * 3600000;
     const tag = tagIso(bezug, z.zoneMin(bezug));
     if (!tage.has(tag)) {
       tage.set(tag, {

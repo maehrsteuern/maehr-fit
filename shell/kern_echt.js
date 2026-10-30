@@ -85,18 +85,19 @@ function teilAnzeige(x) {
 
 export function berechne(daten = {}, einst = {}, eigenesTagebuch = {}) {
   const fremd = fremdNachTag(daten.fremdwerte);
-  const tbNachTag = new Map((daten.tagebuch || []).map((x) => [x.tag, x]));
+  const tbNachTag = new Map((daten.tagebuch || []).map((x) => [x.tag, K.mitKatalog(x)]));  // WHOOP-Fragen zusätzlich unter den Katalogschlüsseln
   for (const [tag, e] of Object.entries(eigenesTagebuch)) tbNachTag.set(tag, { tag, eintraege: { ...(tbNachTag.get(tag)?.eintraege || {}), ...e.eintraege }, quelle: e.quelle });
-  const buendel = { ...daten, tagebuch: [...tbNachTag.values()] };
+  // Dieselbe Nacht / dasselbe Training aus Health Connect und CSV: ein Datensatz (kern/zusammenfuehren.js); die Ansicht liest dieselben Sätze wie der Kern
+  const buendel = K.zusammenfuehren({ ...daten, tagebuch: [...tbNachTag.values()] });
   const zahlOder = (x) => (Number.isFinite(Number(x)) && Number(x) > 0 ? Math.round(Number(x)) : undefined);
   const e = { ...einst, alter: zahlOder(einst.alter), maxPuls: zahlOder(einst.maxPuls), ruhepuls: zahlOder(einst.ruhepuls), schlafBasisMs: Number(einst.schlafBasisMs) || undefined };
   const sprache = einst.sprache || "de";
   const kernTage = K.alleTage(buendel, e);
-  const trainings = [...(daten.training || [])].sort((a, b) => a.von - b.von);
+  const trainings = [...(buendel.training || [])].sort((a, b) => a.von - b.von);
   const tage = new Map(), liste = [];
   const belastungen = [];
   for (const kt of kernTage) {
-    const roh = K.hauptschlaf(kt.tag, daten.schlaf || []);
+    const roh = K.hauptschlaf(kt.tag, buendel.schlaf || []);
     const sl = kt.schlaf;
     const bel = belastungAnzeige(kt.belastung);
     const bild = {

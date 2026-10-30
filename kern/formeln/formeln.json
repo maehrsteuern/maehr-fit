@@ -68,6 +68,18 @@
       "erklaerung": "Ein Tag beginnt mit dem Aufwachen aus dem Hauptschlaf. Was kürzer als drei Stunden ist, zählt als Nickerchen.",
       "pruefen": true
     },
+    "zeit.nachfenster_nach_aufwachen": {
+      "wert": 10800000, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF (Nachtwerte, die WHOOP erst nach dem Aufwachen meldet, zählen bis 3 Stunden danach zur Nacht)",
+      "erklaerung": "Meldet das Band einen Nachtwert erst kurz nach dem Aufwachen, zählt er bis zu drei Stunden danach noch zur Nacht.",
+      "pruefen": true
+    },
+    "zusammenfuehren.ueberlappung": {
+      "wert": 500, "einheit": "Promille",
+      "fundstelle": "eigene Festlegung MF (zwei Datensätze, die sich zur Hälfte des kürzeren überdecken, sind dieselbe Nacht bzw. dasselbe Training)",
+      "erklaerung": "Kommt eine Nacht oder ein Training aus zwei Quellen und beide überdecken sich mindestens zur Hälfte, zählt es nur einmal.",
+      "pruefen": true
+    },
     "zeit.tagesgrenzen": {
       "wert": null, "einheit": "formel",
       "fundstelle": "eigene Festlegung MF (Tag von Aufwachen bis Aufwachen; ohne Schlafdaten Mitternacht bis Mitternacht)",
@@ -115,10 +127,10 @@
     },
     "erholung": {
       "wert": null, "einheit": "formel",
-      "fundstelle": "eigene Festlegung MF; Bausteine: HRV (Task Force 1996; Shaffer & Ginsberg 2017), Ruhepuls und Atemfrequenz als Abweichung vom eigenen Normalbereich (Plews et al. 2012), z-Werte (Bortz & Schuster 2010)",
+      "fundstelle": "Eigene Festlegung MF (Aufbau und Gewichte). Grundlagen: HRV-Messung nach Task Force (1996) und Shaffer & Ginsberg (2017); HRV im Vergleich zum eigenen 7-Tage-Mittel nach Plews et al. (2012); Ruhepuls als Trainings- und Erholungsmerkmal nach Buchheit (2014, Front. Physiol. 5:73); Atemfrequenz als Abweichung vom eigenen Normalwert nach Miller et al. (2020, PLoS One 15:e0243693, von WHOOP mitfinanziert); z-Werte nach Bortz & Schuster (2010).",
       "text": "Erholung = {erholung.mitte} + {erholung.punkte_je_z} × (Anteil HRV × z HRV + Anteil Ruhepuls × (−z Ruhepuls) + Anteil Schlaf × z Schlaf) − Abzüge für auffällige Atemfrequenz, Hauttemperatur und Sauerstoffsättigung; begrenzt auf 0 bis 100. Gewichte HRV {erholung.gewicht.hrv|prozent}, Ruhepuls {erholung.gewicht.ruhepuls|prozent}, Schlaf {erholung.gewicht.schlaf|prozent}; fehlt ein Teil, werden die übrigen auf 100 % hochgerechnet.",
       "erklaerung": "Die Erholung vergleicht die letzte Nacht mit deinem Normalbereich. 50 heißt: ein für dich üblicher Tag. Höhere HRV, niedrigerer Ruhepuls und genug Schlaf heben den Wert; auffällige Atmung, Temperatur oder Sättigung senken ihn.",
-      "pruefen": true
+      "pruefen": false
     },
     "erholung.mitte": {
       "wert": 50, "einheit": "Punkte",

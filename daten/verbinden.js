@@ -3,7 +3,8 @@
 //   MF.daten.healthConnect.verfuegbar()        → { verfuegbar, grund }
 //   MF.daten.healthConnect.verbinden(arten?, { fortschritt? }) → Rechte anfragen + abgleichen:
 //     { …Messpaket, erteilt, fehlend, neu, ersetzt, arten (Bericht je Health-Connect-Art), zaehlung (gelesen je MF-Art),
-//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken }
+//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken,
+//       herkunft ({ hrv: { "com.whoop.android": 12 }, … } schreibende Apps je MF-Art), schlafPhasen ({ mit, ohne } Nächte mit/ohne echte Schlafstufen) }
 //     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }

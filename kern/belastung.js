@@ -162,8 +162,10 @@ export function belastung({ herzschlaege, maxPuls, ruhepuls, zonenProzent, von, 
  * @returns {object|null}
  */
 export function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } = {}) {
-  if (!pulsOk(maxPuls, ruhepuls)) return null;
   const tr = (trainings || []).filter(Boolean);
+  // Ohne Max-/Ruhepuls geht es nur, wenn alles aus Zonenanteilen kommt (WHOOP-CSV): dann braucht die Rechnung keine Pulsgrenzen.
+  const nurAnteile = tr.length > 0 && !(alltag || []).length && tr.every((x) => !hatProben(x.herzschlaege) && hatProzent(x));
+  if (!pulsOk(maxPuls, ruhepuls) && !nurAnteile) return null;
   const imTraining = (t) => tr.some((x) => t >= x.von && t <= x.bis);
   const teile = tr.map((x) => ({ ...zeitTraining(x, maxPuls, ruhepuls), training: x }));
   teile.push({ ...zeitInZonen((alltag || []).filter((h) => h && !imTraining(h.t)), maxPuls, ruhepuls), geschaetzt: false, training: null });
@@ -175,13 +177,13 @@ export function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } 
   const ohneZoneMs = teile.reduce((a, p) => a + p.ohneZoneMs, 0);
   const einzel = teile.filter((p) => p.training).map((p) => ergebnis(p.zonen, p.ohneZoneMs, {
     art: p.training.art ?? null, von: p.training.von, bis: p.training.bis,
-    quellen: vereinige(p.training.quelle, ...p.zonen.map((z) => z.quelle)),
+    quellen: vereinige(p.training.quelle, p.training.weitereQuellen, ...p.zonen.map((z) => z.quelle)),
     geschaetzt: false, ...(p.geschaetzt ? SCHAETZUNG() : {}),
   }));
   return ergebnis(zonen, ohneZoneMs, {
-    maxPuls, ruhepuls, grenzen: zonenGrenzen(maxPuls, ruhepuls), trainings: einzel,
+    maxPuls, ruhepuls, grenzen: pulsOk(maxPuls, ruhepuls) ? zonenGrenzen(maxPuls, ruhepuls) : null, trainings: einzel,
     geschaetzt: false, ...(teile.some((p) => p.geschaetzt) ? SCHAETZUNG() : {}),
     alltagZonenMinuten: rund(trimpMs(teile.at(-1).zonen) / MS_MINUTE, 1),
-    quellen: vereinige(...tr.map((x) => x.quelle), ...zonen.map((z) => z.quelle)),
+    quellen: vereinige(...tr.map((x) => x.quelle), ...tr.map((x) => x.weitereQuellen), ...zonen.map((z) => z.quelle)),
   });
 }

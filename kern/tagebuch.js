@@ -28,6 +28,54 @@ export const KATALOG = [
 ];
 export const SCHLUESSEL = KATALOG.map((k) => k.schluessel);
 
+/** Fragetext → Schlüssel: "Did you drink alcohol?" → "did_you_drink_alcohol" (gleiche Regel wie daten/csv_import.js frageSchluessel). */
+const textSchluessel = (text) => String(text ?? "").toLowerCase()
+  .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
+/**
+ * WHOOP-Fragetext → Schlüssel des Katalogs (KATALOG), wenn die Bedeutung eindeutig dieselbe ist; sonst null.
+ * Verneinte Fragen („Kein Alkohol …“, „No caffeine …“) werden nie zugeordnet (die Antwort hätte die umgekehrte Bedeutung).
+ * Nicht zugeordnet bleiben z. B. „Koffein konsumiert?“ (ohne Tageszeit; MF fragt nach Koffein am Nachmittag) und alle Fragen ohne
+ * Gegenstück; sie bleiben unter ihrem eigenen Schlüssel im Datensatz erhalten (docs/technik/datenfluss.md, Abschnitt Tagebuch).
+ */
+export function katalogSchluessel(fragetext) {
+  const k = textSchluessel(fragetext);
+  if (!k || /(^|_)(kein|keine|keinen|keiner|ohne|no|not|without|nicht)(_|$)/.test(k)) return null;
+  const ohneNichtBildschirm = k.replace(/non_?screened/g, "").replace(/(ohne|nicht)_bildschirm\w*/g, "");
+  const hat = (re, text = k) => re.test(text);
+  if (hat(/(^|_)(read|reading|lesen|gelesen)(_|$)/) && hat(/(bed|bett|sleep|schlaf)/) && !hat(/(screen|bildschirm|tablet|handy|phone)/, ohneNichtBildschirm)) return "lesen";
+  if (hat(/(screen|bildschirm|handy|phone|tablet|fernseh|(^|_)tv(_|$))/, ohneNichtBildschirm) && hat(/(bed|bett|schlaf|sleep)/)) return "bildschirm_spaet";
+  if (hat(/(alkohol|alcohol)/)) return "alkohol";
+  if (hat(/(koffein|caffeine|kaffee|coffee)/) && hat(/(spaet|late|nachmittag|afternoon|abend|evening|(^|_)after(_|$))/)) return "koffein_spaet";
+  if (hat(/(^|_)(eat|ate|eaten|essen|gegessen|mahlzeit|meal)(_|$)/) && hat(/(bedtime|schlafengehen|close_to_bed|before_bed|before_sleep|kurz_vor|(^|_)(late|spaet)(_|$))/)) return "spaete_mahlzeit";
+  if (hat(/medit/)) return "meditation";
+  if (hat(/(kaltdusche|cold_shower|cold_bath|cold_plunge|ice_bath|eisbad|kalt\w*_gedusch|kalt\w*_gebadet)/)) return "kaltdusche";
+  if (hat(/sauna/)) return "sauna";
+  if (hat(/(breathwork|breathing_exercise|atemuebung|atemtechnik)/)) return "atemuebung";
+  if (hat(/stress/)) return "stress";
+  if (hat(/(^|_)(sick|ill|krank|unwohl|unwell|erkaeltet)(_|$)/)) return "krank";
+  if (hat(/(travel|reise|gereist|unterwegs)/)) return "reisen";
+  return null;
+}
+
+/**
+ * Tagebuch-Datensatz des Imports (WHOOP-Fragen unter eigenen Schlüsseln, `fragen[schluessel]` = Fragetext) um die Katalogschlüssel
+ * ergänzen. Beim Lesen angewendet, damit auch schon eingelesene Daten zählen. Mehrere Fragen auf denselben Schlüssel: ein „Ja“ gilt.
+ * Ein schon vorhandener Eintrag unter dem Katalogschlüssel (vom Nutzer gesetzt) hat Vorrang.
+ * @returns {object} Kopie des Datensatzes (unverändert, wenn es nichts zuzuordnen gibt)
+ */
+export function mitKatalog(eintrag) {
+  if (!eintrag || !eintrag.fragen || !eintrag.eintraege) return eintrag;
+  const neu = {};
+  for (const [k, text] of Object.entries(eintrag.fragen)) {
+    const kat = katalogSchluessel(text);
+    const v = eintrag.eintraege[k];
+    if (!kat || typeof v !== "boolean" || kat === k || eintrag.eintraege[kat] !== undefined) continue;
+    neu[kat] = neu[kat] === true ? true : v;
+  }
+  return Object.keys(neu).length ? { ...eintrag, eintraege: { ...eintrag.eintraege, ...neu } } : eintrag;
+}
+
 /** Eintrag deuten: true / Zahl > 0 → "mit", false / 0 → "ohne", sonst null (nicht erfasst). */
 export function gruppe(v) {
   if (v === true || (typeof v === "number" && v > 0)) return "mit";

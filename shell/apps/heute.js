@@ -70,9 +70,12 @@ export function ansicht(ctx) {
   const ph = bild.schlafRoh ? phasenVon(s) : null;
   const ms = (x) => `${zahl(x)} ${t("einheit_ms")}`, bpm = (x) => `${zahl(x)} ${t("einheit_bpm")}`;
   const kacheln = [
-    kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
-      bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
-      vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } }),
+    // Ohne Pulswerte und ohne Training (Ruhetag im WHOOP-Export) steht ein Strich statt einer Null als Messwert
+    bel.gemessen
+      ? kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
+        bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
+        vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } })
+      : kennzahlKachel({ titel: t("kachel_belastung"), wert: "–", q: "" }),
     kennzahlKachel({ titel: t("kachel_schlaf"), wert: bild.schlafRoh ? dauerKurz(s.dauerMs) : "–", q: bild.schlafRoh ? `schlaf-dauer:${tag}` : "",
       bild: ph ? streifen({ segmente: ["tief", "rem", "leicht", "wach"].map((a) => ({ wert: ph[a] || 0, klasse: PHASEN_KLASSE[a], name: t("phase_" + a), text: dauer(ph[a] || 0) })) }).svg : "",
       vergleich: bild.schlafRoh ? (s.dauerMs < s.bedarfMs ? { richtung: "runter", text: t("vgl_bedarf_unter") } : { richtung: "gleich", text: t("vgl_bedarf_gedeckt") }) : null,

@@ -109,6 +109,7 @@ const aktionen = {
       n, arten: r.zaehlung || {}, zeitraum: r.zeitraum || null, fehler: r.fehler || [], luecken: r.luecken || [],
       gespeichert: Z.erg.erster ? { von: Z.erg.erster, bis: Z.erg.letzter } : null,   // alles, was jetzt auf dem Gerät liegt
       ohneHrvRuhepuls: leer("hrv") && leer("ruhepuls"),
+      herkunft: r.herkunft || null, schlafPhasen: r.schlafPhasen || null, // Diagnose: welche App schrieb was, Nächte mit/ohne Phasen (shell/apps/daten.js)
     };
   },
   async csvEinlesen(dateien) {

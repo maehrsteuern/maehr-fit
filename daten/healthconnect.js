@@ -208,9 +208,25 @@ export function schlafAus(roh) {
     phasen.sort((a, b) => a.von - b.von);
     const d = { von, bis, phasen, quelle: quelleHc(r, "SleepSession") };
     if (r.title) d.titel = String(r.title);
-    aus.push(mitZone(d, zoneVon(r, "startZoneOffsetSek")));
+    // Der Tag einer Nacht ist der Aufwachtag (ablage.js bezugszeit = bis): deshalb gilt der Versatz am Ende der Sitzung
+    // (bei Reisen über Zeitzonen unterscheidet er sich vom Versatz am Beginn); fehlt er, der vom Beginn.
+    aus.push(mitZone(d, zoneVon(r, "endZoneOffsetSek")));
   }
   return aus;
+}
+
+/** Hat die Nacht echte Schlafstufen (Leicht/Tief/REM/Wach)? Nur "SLEEPING" (unbestimmt) oder gar keine Stufen → nein. */
+export function hatSchlafphasen(schlaf) {
+  return Array.isArray(schlaf && schlaf.phasen) && schlaf.phasen.some((p) => !p.unbestimmt);
+}
+
+/**
+ * Quelle/App-Zeile für den Beleg: "Health Connect · com.whoop.android" (nur für Health-Connect-Quellen, sonst "").
+ * Die Shell hängt sie an die Quellenkarte (shell/apps/beleg.js), damit man sieht, welche App die Zahl nach Health Connect schrieb.
+ */
+export function quellenAnzeige(quelle) {
+  if (!quelle || quelle.art !== "healthconnect") return "";
+  return quelle.herkunft ? `Health Connect · ${quelle.herkunft}` : "Health Connect";
 }
 
 /** ExerciseSession → Training[]; Herzschläge im Zeitraum [von, bis] werden angehängt. */
@@ -303,6 +319,7 @@ const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehl
  * endgültiger Fehler wie fehlendes Recht) beenden diese Art für diesen Lauf; die anderen Arten laufen weiter.
  * Nichts wird verschluckt: `arten[typ].fehler` und `arten[typ].luecken` nennen jeden Fehler, oben stehen `fehler` (Texte),
  * `zaehlung` (gelesene Datensätze je MF-Art), `zeitraum` (erster/letzter Kalendertag) und `luecken`.
+ * `herkunft` nennt je MF-Art die schreibenden Apps (Paketname) mit Anzahl, `schlafPhasen` die Nächte mit/ohne echte Schlafstufen.
  * `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze.
  * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object,
  *   fortschritt?:(info:{typ:string, art:string, nr:number, von:number, gelesen:number, phase:string})=>void}} p
@@ -311,7 +328,11 @@ export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), a
   if (!bruecke) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
   const v = { ...VORGABEN, ...vorgaben };
   const warte = v.warte || ((ms) => new Promise((ok) => setTimeout(ok, ms)));
-  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [] };
+  const ergebnis = {
+    arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [],
+    herkunft: {}, // gelesene Datensätze je MF-Art und App: { hrv: { "com.whoop.android": 12 } } (je quelle.id einmal gezählt)
+    schlafPhasen: { mit: 0, ohne: 0 }, // gelesene Nächte mit/ohne echte Schlafstufen (leer → Schlafansicht zeigt 0 Minuten je Phase)
+  };
   const meldung = (info) => { try { fortschritt?.(info); } catch { /* Anzeige darf den Abgleich nie stören */ } };
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
@@ -322,6 +343,19 @@ export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), a
     const mfArt = ART_ZU_PAKET[typ];
     const nrGesamt = Math.max(1, Math.ceil((jetzt - von) / v.fensterMs));
     let ersteLuecke = null, serie = 0, nr = 0;
+    const gezaehlt = new Set();
+    /** Herkunft (App) und Schlafstufen der gelesenen Datensätze vermerken; Überlappung der Fenster zählt nicht doppelt. */
+    const vermerke = (paket) => {
+      for (const d of paket[mfArt]) {
+        const id = d.quelle && d.quelle.id;
+        if (gezaehlt.has(id)) continue;
+        gezaehlt.add(id);
+        const app = (d.quelle && d.quelle.herkunft) || "unbekannt";
+        const h = (ergebnis.herkunft[mfArt] = ergebnis.herkunft[mfArt] || {});
+        h[app] = (h[app] || 0) + 1;
+        if (mfArt === "schlaf") ergebnis.schlafPhasen[hatSchlafphasen(d) ? "mit" : "ohne"] += 1;
+      }
+    };
 
     /** Ein Fenster lesen; true = gelesen und abgelegt, false = Lücke. Wirft nur bei endgültigem Fehler oder Ablagefehler. */
     const fenster = async (a, e) => {
@@ -357,6 +391,7 @@ export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), a
         if (bericht.vonTag === undefined || tag < bericht.vonTag) bericht.vonTag = tag;
         if (bericht.bisTag === undefined || tag > bericht.bisTag) bericht.bisTag = tag;
       }
+      vermerke(paket);
       const abgelegt = await speichereMessungen(speicher, paket);
       bericht.gelesen += roh.length;
       bericht.neu += abgelegt.neu;

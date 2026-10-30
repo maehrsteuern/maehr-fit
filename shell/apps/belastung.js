@@ -19,7 +19,14 @@ const liveLink = () => `<div class="mf-knopfreihe"><a class="mf-knopf" href="#/l
 /** Chip „geschätzt aus Zonenanteilen“, wenn der Kern die Belastung aus WHOOPs Zonenanteilen geschätzt hat (kern/belastung.js). */
 const geschaetztChip = (b) => (b?.geschaetzt ? `<span class="mf-marke-chip" data-geschaetzt>${esc(t("belastung_geschaetzt"))}</span>` : "");
 const ZONEN_KLASSE = ["vz-k0", "vz-k1", "vz-k2", "vz-k3", "vz-k4"];
-const artName = (art) => t("art_" + (["laufen", "rad", "kraft", "gehen"].includes(art) ? art : "sonst"));
+// Kürzel aus Health Connect und WHOOP-CSV (daten/healthconnect.js, daten/csv_import.js) auf die vier bebilderten Arten abbilden;
+// alles andere zeigt den Namen aus dem Export (z. B. „Yoga“), sonst „Training“.
+const ART_ALIAS = { radfahren: "rad", heimtrainer: "rad", krafttraining: "kraft", gewichtheben: "kraft", wandern: "gehen" };
+export const artName = (art, name = "") => {
+  const k = ART_ALIAS[art] || art;
+  if (["laufen", "rad", "kraft", "gehen"].includes(k)) return t("art_" + k);
+  return String(name || "").trim() || t("art_sonst");
+};
 
 function zonenDiagramm(zonenListe, qPraefix, titel, kern) {
   return zonen({ titel, kernaussage: kern, zonen: zonenListe.map((z) => ({ zone: z.zone, name: t("zone_" + z.zone), ms: z.ms, text: dauer(z.ms), q: `${qPraefix}:${z.zone}` })) }).html;
@@ -31,7 +38,7 @@ function zonenKern(zonenListe) {
 
 function trainingBelege(B, tr) {
   const b = tr.belastung;
-  B(`training:${tr.id}`, { titel: artName(tr.roh.art), wert: `${belastungText(b.wert)} ${t("einheit_von21")}`, formel: b.formel,
+  B(`training:${tr.id}`, { titel: artName(tr.roh.art, tr.roh.name), wert: `${belastungText(b.wert)} ${t("einheit_von21")}`, formel: b.formel,
     teile: b.zonen.map((z) => ({ name: t("zone_" + z.zone), wert: dauer(z.ms) })), quellen: [tr.roh.quelle, ...(b.quellen || [])] });
   for (const z of b.zonen) B(`training-zone:${tr.id}:${z.zone}`, { titel: t("zone_" + z.zone), wert: dauer(z.ms), formel: b.formel, teile: [], quellen: z.quelle || [] });
 }
@@ -49,9 +56,9 @@ function detail(ctx, id) {
   const spitze = hs.reduce((m, h) => Math.max(m, h.bpm), 0);
   const kurve = zeitreihe({ titel: t("puls_titel"), kernaussage: t("puls_kern", { wert: zahl(spitze) }), flaeche: true, karten: true,
     reihen: punkte.map((h, i) => ({ name: uhrzeit(h.t), wert: h.bpm, text: `${zahl(h.bpm)}`, q: `puls:${tr.id}:${i}`, quelle: h.quelle })) }).html;
-  const satz = tHtml("training_kern", { art: esc(artName(tr.roh.art)), von: esc(uhrzeit(tr.roh.von)), bis: esc(uhrzeit(tr.roh.bis)), wert: zahlKnopf(`training:${tr.id}`, belastungText(tr.belastung.wert)) });
+  const satz = tHtml("training_kern", { art: esc(artName(tr.roh.art, tr.roh.name)), von: esc(uhrzeit(tr.roh.von)), bis: esc(uhrzeit(tr.roh.bis)), wert: zahlKnopf(`training:${tr.id}`, belastungText(tr.belastung.wert)) });
   return `<div class="mf-sicht" data-sicht="training">
-    ${kopf(artName(tr.roh.art), { zurueck: "#/belastung" })}
+    ${kopf(artName(tr.roh.art, tr.roh.name), { zurueck: "#/belastung" })}
     ${kernaussage(satz)}${geschaetztChip(tr.belastung)}
     ${punkte.length ? `<div class="mf-karte">${kurve}</div>` : ""}
     <div class="mf-karte">${zonenDiagramm(tr.belastung.zonen, `training-zone:${tr.id}`, t("zonen_training_titel"), t("zonen_training_kern"))}</div>
@@ -64,7 +71,18 @@ export function ansicht(ctx) {
   const { bild, tag } = ctx, B = beleg(ctx.register);
   if (!bild) return leererTag(ctx, t("belastung_titel"), "keine_daten_tag", "belastung").replace(/<\/div>$/, `${liveLink()}</div>`);
   belegeTag(B, bild);
-  const bel = bild.belastung, v = vergleich(bel.wert, bild.basis.belastung);
+  const bel = bild.belastung;
+  // Ohne Pulswerte und ohne Training (z. B. Ruhetag im WHOOP-Export) gibt es nichts zu rechnen: keine Null als Messwert zeigen
+  if (!bel.gemessen && !bild.trainings.length) {
+    const fw = bild.fremd && Number.isFinite(bild.fremd.belastung) ? bild.fremd.belastung : null;
+    const satz = fw === null ? esc(t("belastung_kern_keine")) : tHtml("belastung_kern_keine_whoop", { wert: zahlKnopf(`fremd:belastung:${tag}`, belastungText(fw)) });
+    return `<div class="mf-sicht" data-sicht="belastung" data-ohne-belastung>
+    ${kopf(t("belastung_titel"))}
+    <div class="mf-held">${kernaussage(satz)}</div>
+    ${abschnitt(t("trainings_titel"), `<p class="mf-hinweis">${esc(t("trainings_leer"))}</p>` + liveLink())}
+  </div>`;
+  }
+  const v = vergleich(bel.wert, bild.basis.belastung);
   const art = v.richtung === "hoch" ? "mehr" : v.richtung === "runter" ? "weniger" : "gleich";
   const satz = tHtml((tag === ctx.heute ? "belastung_kern_" : "belastung_tag_") + art, { tag: esc(tagLang(tag)), wert: zahlKnopf(`belastung:${tag}`, belastungText(bel.wert)) });
   // Leuchtender Bogen 0–21, außen ein dünner Ring mit der Zeit je Pulszone
@@ -79,7 +97,7 @@ export function ansicht(ctx) {
     return p.length > 1 ? sparkline({ breite: 160, hoehe: 34, flaeche: true, punkte: p.map((h) => ({ wert: h.bpm })), aria: t("training_kurve_aria", { wert: zahl(hs.reduce((m, h) => Math.max(m, h.bpm), 0)) }) }).svg : "";
   };
   const liste = bild.trainings.length
-    ? `<ul class="mf-trainings">${bild.trainings.map((tr) => `<li><a class="mf-training" href="#/belastung/training/${encodeURIComponent(tr.id)}"><span class="mf-training-kopf"><span class="mf-zeile-text"><strong>${esc(artName(tr.roh.art))}</strong><small>${esc(t("training_zeile", { zeit: uhrzeit(tr.roh.von), dauer: dauer(tr.roh.bis - tr.roh.von) }))}</small></span><span class="mf-training-wert"><span class="zahl-text">${esc(belastungText(tr.belastung.wert))}</span><small>${esc(t("einheit_von21"))}</small></span><span class="mf-chevron">${IKON.rechts}</span></span><span class="mf-training-kurve" aria-hidden="true">${vorschau(tr)}</span>${geschaetztChip(tr.belastung)}</a></li>`).join("")}</ul>`
+    ? `<ul class="mf-trainings">${bild.trainings.map((tr) => `<li><a class="mf-training" href="#/belastung/training/${encodeURIComponent(tr.id)}"><span class="mf-training-kopf"><span class="mf-zeile-text"><strong>${esc(artName(tr.roh.art, tr.roh.name))}</strong><small>${esc(t("training_zeile", { zeit: uhrzeit(tr.roh.von), dauer: dauer(tr.roh.bis - tr.roh.von) }))}</small></span><span class="mf-training-wert"><span class="zahl-text">${esc(belastungText(tr.belastung.wert))}</span><small>${esc(t("einheit_von21"))}</small></span><span class="mf-chevron">${IKON.rechts}</span></span><span class="mf-training-kurve" aria-hidden="true">${vorschau(tr)}</span>${geschaetztChip(tr.belastung)}</a></li>`).join("")}</ul>`
     : `<p class="mf-hinweis">${esc(t("trainings_leer"))}</p>`;
   return `<div class="mf-sicht" data-sicht="belastung">
     ${kopf(t("belastung_titel"))}

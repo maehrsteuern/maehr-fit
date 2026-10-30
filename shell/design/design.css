@@ -333,6 +333,7 @@ dialog.mf-beleg::backdrop { background: var(--abdunkeln); }
 .mf-formel { position: relative; padding: var(--r4) var(--r4) var(--r4) calc(var(--r4) + 4px); background: var(--flaeche-2); border: 1px solid var(--haarlinie); border-radius: var(--radius-2); display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
 .mf-formel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--akzent); }
 .mf-formel code { font-family: inherit; font-size: var(--t-3); line-height: 1.5; color: var(--tinte); white-space: normal; overflow-wrap: anywhere; }
+.mf-formel-erklaerung { margin: 0 0 var(--r2); font-size: var(--t-3); line-height: 1.5; color: var(--tinte); }
 .mf-formel small { color: var(--grau-5); font-size: var(--t-2); }
 .mf-beitraege { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--r3); }
 .mf-beitrag { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px var(--r3); align-items: baseline; }

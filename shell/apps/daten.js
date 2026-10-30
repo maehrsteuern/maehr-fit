@@ -5,7 +5,7 @@
  * wählst Sprache, Darstellung und Vibration; gespeichert wird sofort.
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
- * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls, herkunft, schlafPhasen }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -49,6 +49,14 @@ export function hcText(r) {
   if (r?.fehler?.length) details.push(t("hc_luecken", { liste: r.fehler.join("; ") }));
   if (r?.gespeichert?.von) details.push(t("hc_gesamt", { von: tagLang(r.gespeichert.von), bis: tagLang(r.gespeichert.bis) }));
   if (r?.ohneHrvRuhepuls) details.push(t("hc_ohne_hrv"));
+  // Diagnose aus daten/healthconnect.js: welche App welche Art schrieb, und ob die Nächte echte Schlafphasen haben
+  if (r?.herkunft && typeof r.herkunft === "object") {
+    if (!Object.keys(r.herkunft.hrv || {}).length) details.push(t("hc_hrv_keine"));
+    const liste = Object.entries(r.herkunft).map(([art, apps]) => `${art}: ${Object.entries(apps).map(([app, n]) => `${app} (${zahl(n)})`).join(", ")}`).join("; ");
+    if (liste) details.push(t("hc_herkunft", { liste }));
+  }
+  const sp = r?.schlafPhasen;
+  if (sp && Number.isFinite(sp.mit) && Number.isFinite(sp.ohne) && sp.mit + sp.ohne > 0) details.push(t("hc_schlaf_phasen", { n: zahl(sp.mit + sp.ohne), m: zahl(sp.mit) }));
   return { text: sa.join(" · "), details };
 }
 

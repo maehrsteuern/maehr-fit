@@ -14,6 +14,7 @@
 import { t, TEXTE } from "../i18n/i18n.js";
 import { esc } from "../format.js";
 import { IKON, zahlKnopf } from "../ui.js";
+import { quellenAnzeige } from "../../daten/healthconnect.js";
 
 export const MAX_QUELLEN = 25;
 
@@ -22,7 +23,7 @@ function quellenKarten(quellen) {
   const q = (quellen || []).filter(Boolean);
   if (!q.length) return `<p class="mf-leise">${esc(t("beleg_keine_quellen"))}</p>`;
   const karten = q.slice(0, MAX_QUELLEN).map((x) => {
-    const ort = [x.datei, x.zeile !== undefined && x.zeile !== null ? `#${x.zeile}` : ""].filter(Boolean).join(" ");
+    const ort = [quellenAnzeige(x), x.datei, x.zeile !== undefined && x.zeile !== null ? `#${x.zeile}` : ""].filter(Boolean).join(" ");
     return `<li class="mf-quelle"><span class="mf-quelle-art">${esc(TEXTE["art_" + x.art] ? t("art_" + x.art) : x.art || "–")}</span><span class="mf-quelle-text"><span class="mf-quelle-id" title="${esc(t("beleg_kennung"))}">${esc(x.id || "–")}</span>${ort ? `<small title="${esc(t("beleg_ort"))}">${esc(ort)}</small>` : ""}</span></li>`;
   }).join("");
   const mehr = q.length > MAX_QUELLEN ? `<p class="mf-leise">${esc(t("beleg_weitere", { n: q.length - MAX_QUELLEN }))}</p>` : "";
@@ -42,7 +43,9 @@ export function belegHtml(e, q = "") {
   const griff = `<div class="mf-beleg-griff" data-beleg-griff aria-hidden="true" title="${esc(t("beleg_ziehen"))}"><i></i></div>`;
   if (!e) return `${griff}<div class="mf-beleg-kopf"><h2 id="mf-beleg-titel">${esc(t("beleg_titel"))}</h2><button type="button" class="mf-rund" data-beleg-zu aria-label="${esc(t("schliessen"))}">${IKON.zu}</button></div><div class="mf-beleg-leib"><p>${esc(t("beleg_unbekannt"))}</p><p class="mf-leise">${esc(q)}</p></div>`;
   const f = e.formel;
-  const formel = f && f.text ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t("beleg_formel"))}</h3><div class="mf-formel"><code>${esc(f.text)}</code>${f.fundstelle ? `<small>${esc(t("beleg_fundstelle", { text: f.fundstelle }))}</small>` : ""}${f.pruefen ? `<span><span class="mf-pruefen">${esc(t("beleg_pruefen"))}</span></span>` : ""}</div></section>` : "";
+  // Erklären vor Fachsprache: der einfache Satz (formeln.json „erklaerung“) steht über dem Rechenweg, sobald er vorhanden ist
+  const erklaerung = f && f.erklaerung && f.erklaerung !== f.text ? `<p class="mf-formel-erklaerung" data-formel-erklaerung>${esc(f.erklaerung)}</p>` : "";
+  const formel = f && f.text ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t("beleg_formel"))}</h3>${erklaerung}<div class="mf-formel"><code>${esc(f.text)}</code>${f.fundstelle ? `<small>${esc(t("beleg_fundstelle", { text: f.fundstelle }))}</small>` : ""}${f.pruefen ? `<span><span class="mf-pruefen">${esc(t("beleg_pruefen"))}</span></span>` : ""}</div></section>` : "";
   const liste = e.teile || [], mitBeitrag = liste.length && liste.every((x) => Number.isFinite(x.beitrag));
   const tabelle = liste.length ? `<table class="mf-tab"><thead><tr><th>${esc(t("beleg_name"))}</th><th class="rechts">${esc(t("beleg_wert"))}</th>${liste.some((x) => x.gewicht) ? `<th class="rechts">${esc(t("beleg_gewicht"))}</th>` : ""}</tr></thead><tbody>${liste.map((x) => `<tr><td>${esc(x.name)}</td><td class="rechts">${esc(x.wert)}</td>${liste.some((y) => y.gewicht) ? `<td class="rechts">${esc(x.gewicht || "")}</td>` : ""}</tr>`).join("")}</tbody></table>` : "";
   const teile = liste.length ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t(mitBeitrag ? "beleg_beitraege" : "beleg_teile"))}</h3>${mitBeitrag ? beitragsBalken(liste) : tabelle}${e.hinweis ? `<p class="mf-leise mf-beleg-hinweis" data-beleg-hinweis>${esc(e.hinweis)}</p>` : ""}</section>`

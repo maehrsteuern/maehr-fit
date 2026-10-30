@@ -512,6 +512,7 @@ dialog.mf-beleg::backdrop { background: var(--abdunkeln); }
 .mf-formel { position: relative; padding: var(--r4) var(--r4) var(--r4) calc(var(--r4) + 4px); background: var(--flaeche-2); border: 1px solid var(--haarlinie); border-radius: var(--radius-2); display: flex; flex-direction: column; gap: 6px; overflow: hidden; }
 .mf-formel::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--akzent); }
 .mf-formel code { font-family: inherit; font-size: var(--t-3); line-height: 1.5; color: var(--tinte); white-space: normal; overflow-wrap: anywhere; }
+.mf-formel-erklaerung { margin: 0 0 var(--r2); font-size: var(--t-3); line-height: 1.5; color: var(--tinte); }
 .mf-formel small { color: var(--grau-5); font-size: var(--t-2); }
 .mf-beitraege { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--r3); }
 .mf-beitrag { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px var(--r3); align-items: baseline; }
@@ -1017,6 +1018,8 @@ const TEXTE = {
   zonen_kern_leer: ["Heute lag dein Puls nie in einer Belastungszone.", "Today your heart rate never reached a strain zone."],
   zone_1: ["Zone 1 · sehr locker", "Zone 1 · very easy"], zone_2: ["Zone 2 · locker", "Zone 2 · easy"], zone_3: ["Zone 3 · mittel", "Zone 3 · moderate"], zone_4: ["Zone 4 · zügig", "Zone 4 · hard"], zone_5: ["Zone 5 · sehr zügig", "Zone 5 · very hard"],
   trainings_titel: ["Trainings", "Workouts"],
+  belastung_kern_keine: ["Für diesen Tag liegen weder Pulswerte noch ein Training vor – MAEHR FIT rechnet deshalb keine Belastung.", "There are no heart-rate values and no workout for this day, so MAEHR FIT calculates no strain."],
+  belastung_kern_keine_whoop: ["Für diesen Tag liegen weder Pulswerte noch ein Training vor – MAEHR FIT rechnet keine Belastung. WHOOP nennt {wert} von 21.", "There are no heart-rate values and no workout for this day, so MAEHR FIT calculates no strain. WHOOP reports {wert} of 21."],
   trainings_leer: ["An diesem Tag ist kein Training aufgezeichnet.", "No workout was recorded on this day."],
   training_zeile: ["{zeit} · {dauer}", "{zeit} · {dauer}"],
   art_laufen: ["Laufen", "Running"], art_rad: ["Radfahren", "Cycling"], art_kraft: ["Krafttraining", "Strength training"], art_gehen: ["Gehen", "Walking"], art_sonst: ["Training", "Workout"],
@@ -1194,6 +1197,9 @@ const TEXTE = {
   hc_ok_arten: ["Verbunden: {n} Messwerte gelesen: {liste}", "Connected: {n} measurements read: {liste}"],
   hc_luecken: ["Nicht alles gelesen: {liste}. Tippe noch einmal auf „Verbinden“, dann wird nachgelesen.", "Not everything was read: {liste}. Tap “Connect” again to read the rest."],
   hc_gesamt: ["Auf dem Gerät gespeichert: {von} bis {bis}", "Stored on this device: {von} to {bis}"],
+  hc_hrv_keine: ["HRV: 0 Werte – WHOOP liefert sie nicht über Health Connect.", "HRV: 0 values – WHOOP does not provide them through Health Connect."],
+  hc_schlaf_phasen: ["Schlaf: {n} Nächte, davon {m} mit Phasen.", "Sleep: {n} nights, {m} of them with stages."],
+  hc_herkunft: ["Geschrieben von: {liste}", "Written by: {liste}"],
   hc_ohne_hrv: ["Health Connect lieferte keine HRV und keinen Ruhepuls. Ohne beides lässt sich die Erholung nicht berechnen; dafür den WHOOP-Export (CSV) einlesen. Die Belastung braucht einen Ruhepuls: trage ihn in den Einstellungen ein.", "Health Connect delivered no HRV and no resting heart rate. Without them recovery cannot be calculated; import the WHOOP export (CSV) for that. Strain needs a resting heart rate: enter it in Settings."],
   csv_kopf_titel: ["Spaltennamen der Datei „{datei}“ (nur die Kopfzeile, keine Werte):", "Column names of the file “{datei}” (header row only, no values):"],
   csv_hinweise: ["Zeilen mit Hinweis (z. B. ohne Aufwachzeit): {n}", "Lines with a note (e.g. no wake-up time): {n}"],
@@ -1521,7 +1527,7 @@ return { kernaussage, leererTag, kopf, abschnitt, zahlKnopf, vergleich, neuesReg
 })();
 
 // ===== kern/formeln/formeln.json
-const __m_kern_formeln_formeln_json = { default: {"stand":"2026-10-30","quelle":"Formeln und Konstanten von MAEHR FIT. Jeder Wert mit Fundstelle; \"pruefen\": true heißt: eigene Festlegung oder noch nicht am Originaltext bestätigt – Loris entscheidet. Texte beschreiben Messwerte und Tendenzen, keine Diagnosen.","eintraege":{"rundung.kaufmaennisch":{"wert":"halb_weg_von_null","einheit":"verfahren","fundstelle":"DIN 1333:1992-02 Zahlenangaben, Abschnitt Runden (kaufmännisches Runden: ab 5 aufrunden, Betrag)","text":"Ab der Hälfte wird vom Betrag her aufgerundet (2,5 → 3; −2,5 → −3), darunter abgerundet.","erklaerung":"So wird überall gerundet, damit dieselbe Rechnung immer dieselbe Zahl ergibt.","pruefen":false},"einheit.hrv":{"wert":10,"einheit":"Zehntel je ms","fundstelle":"eigene Festlegung MF (Zahlendarstellung: RMSSD mit einer Nachkommastelle als ganze Zehntel-Millisekunden)","erklaerung":"HRV wird in Zehntel-Millisekunden gespeichert, z. B. 45,3 ms als 453. So entstehen keine Rundungsfehler.","pruefen":false},"einheit.atem":{"wert":10,"einheit":"Zehntel je Atemzug/min","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Atemzüge pro Minute in Zehnteln, z. B. 14,6 als 146.","pruefen":false},"einheit.spo2":{"wert":10,"einheit":"Zehntel je Prozentpunkt","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Sauerstoffsättigung in Zehntel-Prozent, z. B. 96,8 % als 968.","pruefen":false},"einheit.hauttemp":{"wert":100,"einheit":"Hundertstel je °C","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Abweichung der Hauttemperatur in Hundertstel Grad, z. B. +0,35 °C als 35.","pruefen":false},"hrv.messgroesse":{"wert":"rmssd","einheit":"ms","fundstelle":"Task Force of the ESC and NASPE (1996): Heart rate variability – standards of measurement, physiological interpretation, and clinical use. Circulation 93(5):1043–1065","text":"RMSSD = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender Herzschlagabstände.","erklaerung":"Die HRV misst, wie stark die Abstände zwischen zwei Herzschlägen schwanken. Mehr Schwankung in Ruhe gilt als Zeichen guter Erholung.","pruefen":false},"statistik.streuung":{"wert":"stichprobe_n_minus_1","einheit":"verfahren","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.2, Gl. (4): experimentelle Standardabweichung mit n − 1","text":"Streuung = Wurzel aus (Summe der quadrierten Abstände zum Mittel ÷ (n − 1)).","erklaerung":"Die Streuung sagt, wie weit deine Werte üblicherweise vom Mittel abweichen.","pruefen":false},"statistik.z":{"wert":"z_wert","einheit":"Streuungen","fundstelle":"Bortz J, Schuster C (2010): Statistik für Human- und Sozialwissenschaftler, 7. Aufl., Springer, Kap. 2.5 (z-Transformation)","text":"z = (heutiger Wert − Mittel) ÷ Streuung.","erklaerung":"Der z-Wert sagt, wie ungewöhnlich ein Tag für dich ist: 0 = wie immer, +1 = eine übliche Schwankung besser, −1 = eine schlechter.","pruefen":false},"zeit.iso_woche":{"wert":"montag","einheit":"Wochenbeginn","fundstelle":"ISO 8601-1:2019, Abschnitt 3.1.1.23 und 5.2.3 (Kalenderwoche: Montag bis Sonntag, Woche 1 enthält den ersten Donnerstag)","text":"Kalenderwoche nach ISO 8601: beginnt Montag; Woche 1 ist die Woche mit dem ersten Donnerstag des Jahres.","erklaerung":"Wochen laufen von Montag bis Sonntag, wie im deutschen Kalender.","pruefen":false},"zeit.hauptschlaf_min":{"wert":10800000,"einheit":"ms","fundstelle":"eigene Festlegung MF (3 Stunden)","text":"Hauptschlaf = längster Schlaf, der an diesem Kalendertag endet und mindestens 3 Stunden dauert; kürzere Schlafphasen sind Nickerchen.","erklaerung":"Ein Tag beginnt mit dem Aufwachen aus dem Hauptschlaf. Was kürzer als drei Stunden ist, zählt als Nickerchen.","pruefen":true},"zeit.tagesgrenzen":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Tag von Aufwachen bis Aufwachen; ohne Schlafdaten Mitternacht bis Mitternacht)","text":"Tag = vom Aufwachen aus dem Hauptschlaf bis zum Aufwachen am nächsten Morgen. Fehlt ein Hauptschlaf, gilt die örtliche Mitternacht.","erklaerung":"Dein Tag zählt vom Aufstehen bis zum nächsten Aufstehen – so gehört ein spätes Training noch zum selben Tag.","pruefen":false},"basis.fenster.kurz":{"wert":7,"einheit":"Tage","fundstelle":"Plews DJ, Laursen PB, Kilding AE, Buchheit M (2012): Heart rate variability in elite triathletes, is variation in variability the key to effective training? Eur J Appl Physiol 112(11):3729–3741 (gleitender 7-Tage-Mittelwert)","erklaerung":"Die letzten 7 Tage zeigen, wie es dir gerade geht.","pruefen":false},"basis.fenster.lang":{"wert":30,"einheit":"Tage","fundstelle":"eigene Festlegung MF (Monatsnormalbereich als Vergleich für die Erholung)","erklaerung":"Die letzten 30 Tage sind dein persönlicher Normalbereich. Mit ihm wird jeder Tag verglichen.","pruefen":true},"basis.min_n":{"wert":4,"einheit":"Tage","fundstelle":"eigene Festlegung MF, angelehnt an Plews DJ et al. (2014): Monitoring training with heart-rate variability: how much compliance is needed for valid assessment? Int J Sports Physiol Perform 9(5):783–790 (mindestens 3 Messungen je Woche)","erklaerung":"Erst ab 4 Tagen mit Messwerten wird ein Vergleich mit deinem Normalbereich gerechnet.","pruefen":true},"basis.hrv_ln":{"wert":"ln","einheit":"verfahren","fundstelle":"Shaffer F, Ginsberg JP (2017): An overview of heart rate variability metrics and norms. Front Public Health 5:258 (RMSSD ist schief verteilt, Logarithmus macht sie annähernd normalverteilt); Plews DJ et al. (2012), a. a. O. (ln RMSSD)","text":"Für HRV wird mit dem natürlichen Logarithmus ln(RMSSD in ms) gerechnet.","erklaerung":"HRV-Werte streuen nach oben stärker als nach unten. Mit dem Logarithmus werden Ausschläge in beide Richtungen vergleichbar.","pruefen":false},"basis.stellen":{"wert":4,"einheit":"Nachkommastellen","fundstelle":"eigene Festlegung MF (Zahlendarstellung für Mittel und Streuung)","erklaerung":"Mittelwert und Streuung werden auf 4 Nachkommastellen gerundet gespeichert.","pruefen":false},"basis.mittel":{"wert":null,"einheit":"formel","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.1 Gl. (3) (arithmetisches Mittel) und 4.2.2 Gl. (4) (Streuung)","text":"Basislinie = Mittelwert und Streuung der Werte aus den Tagen vor dem betrachteten Tag (der Tag selbst zählt nicht mit).","erklaerung":"Deine Basislinie ist dein persönlicher Normalwert aus den vergangenen Tagen.","pruefen":false},"erholung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF; Bausteine: HRV (Task Force 1996; Shaffer & Ginsberg 2017), Ruhepuls und Atemfrequenz als Abweichung vom eigenen Normalbereich (Plews et al. 2012), z-Werte (Bortz & Schuster 2010)","text":"Erholung = {erholung.mitte} + {erholung.punkte_je_z} × (Anteil HRV × z HRV + Anteil Ruhepuls × (−z Ruhepuls) + Anteil Schlaf × z Schlaf) − Abzüge für auffällige Atemfrequenz, Hauttemperatur und Sauerstoffsättigung; begrenzt auf 0 bis 100. Gewichte HRV {erholung.gewicht.hrv|prozent}, Ruhepuls {erholung.gewicht.ruhepuls|prozent}, Schlaf {erholung.gewicht.schlaf|prozent}; fehlt ein Teil, werden die übrigen auf 100 % hochgerechnet.","erklaerung":"Die Erholung vergleicht die letzte Nacht mit deinem Normalbereich. 50 heißt: ein für dich üblicher Tag. Höhere HRV, niedrigerer Ruhepuls und genug Schlaf heben den Wert; auffällige Atmung, Temperatur oder Sättigung senken ihn.","pruefen":true},"erholung.mitte":{"wert":50,"einheit":"Punkte","fundstelle":"eigene Festlegung MF (ein für dich typischer Tag liegt in der Mitte der Skala)","erklaerung":"Ein ganz normaler Tag ergibt 50 Punkte.","pruefen":true},"erholung.punkte_je_z":{"wert":20,"einheit":"Punkte je Streuung","fundstelle":"eigene Festlegung MF","erklaerung":"Eine übliche Schwankung nach oben oder unten bewegt die Erholung um 20 Punkte.","pruefen":true},"erholung.z_grenze":{"wert":3,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF (Ausreißer werden bei ±3 Streuungen abgeschnitten)","erklaerung":"Ein einzelner extremer Messwert zählt höchstens wie drei übliche Schwankungen.","pruefen":true},"erholung.gewicht.hrv":{"wert":500,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Die HRV zählt zur Hälfte.","pruefen":true},"erholung.gewicht.ruhepuls":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Der Ruhepuls zählt zu einem Viertel. Niedriger als üblich hebt die Erholung.","pruefen":true},"erholung.gewicht.schlaf":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Wie gut der Schlafbedarf gedeckt war, zählt zu einem Viertel.","pruefen":true},"erholung.schlaf.ziel":{"wert":85,"einheit":"Prozent Schlafleistung","fundstelle":"eigene Festlegung MF","text":"z Schlaf = (Schlafleistung − {erholung.schlaf.ziel}) ÷ {erholung.schlaf.skala}.","erklaerung":"85 % des Schlafbedarfs gelten als neutral; mehr hebt, weniger senkt die Erholung.","pruefen":true},"erholung.schlaf.skala":{"wert":15,"einheit":"Prozentpunkte je Streuung","fundstelle":"eigene Festlegung MF","erklaerung":"15 Prozentpunkte Schlafleistung wirken wie eine übliche Schwankung.","pruefen":true},"erholung.streuung_min":{"wert":{"hrv":0.05,"ruhepuls":1,"atem":3},"einheit":"ln-Einheiten | Schläge/min | Zehntel Atemzüge/min","fundstelle":"eigene Festlegung MF (Untergrenze, damit sehr gleichmäßige Wochen keine riesigen z-Werte erzeugen)","erklaerung":"Sind deine Werte ungewöhnlich gleichmäßig, wird mit einer Mindest-Schwankung gerechnet, damit kleine Ausschläge nicht übertrieben wirken.","pruefen":true},"erholung.atem.schwelle_z":{"wert":1,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF; Hintergrund: Miller DJ et al. (2020): Analyzing changes in respiratory rate to predict the risk of COVID-19 infection. PLoS One 15(12):e0243693","erklaerung":"Weicht die nächtliche Atemfrequenz um mehr als eine übliche Schwankung ab, gibt es einen Abzug.","pruefen":true},"erholung.atem.strafe_je_z":{"wert":8,"einheit":"Punkte je Streuung über der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je weitere übliche Schwankung Abweichung der Atemfrequenz: 8 Punkte Abzug.","pruefen":true},"erholung.hauttemp.schwelle":{"wert":50,"einheit":"Hundertstel °C","fundstelle":"eigene Festlegung MF; Hintergrund: Smarr BL et al. (2020): Feasibility of continuous fever monitoring using wearable devices. Sci Rep 10:21640","erklaerung":"Liegt die Hauttemperatur mehr als 0,5 °C neben deinem Normalwert, gibt es einen Abzug.","pruefen":true},"erholung.hauttemp.strafe_je_grad":{"wert":10,"einheit":"Punkte je °C über der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je Grad über der Schwelle: 10 Punkte Abzug.","pruefen":true},"erholung.spo2.schwelle":{"wert":950,"einheit":"Zehntel Prozent","fundstelle":"World Health Organization (2011): Pulse Oximetry Training Manual, Genf (Normalbereich 95–100 %)","erklaerung":"Liegt die nächtliche Sauerstoffsättigung unter 95 %, gibt es einen Abzug.","pruefen":false},"erholung.spo2.strafe_je_prozent":{"wert":5,"einheit":"Punkte je Prozentpunkt unter der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je Prozentpunkt unter 95 %: 5 Punkte Abzug.","pruefen":true},"erholung.stufe.gruen":{"wert":67,"einheit":"Punkte (ab)","fundstelle":"eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)","erklaerung":"Ab 67 Punkten: grün – deutlich besser erholt als üblich.","pruefen":true},"erholung.stufe.rot":{"wert":33,"einheit":"Punkte (bis)","fundstelle":"eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)","erklaerung":"Bis 33 Punkte: rot – weniger erholt als üblich. Dazwischen gelb.","pruefen":true},"puls.max.tanaka":{"wert":{"a_zehntel":2080,"b_zehntel":7},"einheit":"Zehntel Schläge/min | Zehntel Schläge/min je Lebensjahr","fundstelle":"Tanaka H, Monahan KD, Seals DR (2001): Age-predicted maximal heart rate revisited. J Am Coll Cardiol 37(1):153–156","text":"Maximalpuls = 208 − 0,7 × Alter (Schläge pro Minute), auf ganze Schläge gerundet.","erklaerung":"Wenn du deinen Maximalpuls nicht kennst, wird er aus dem Alter geschätzt. Du kannst ihn in den Einstellungen überschreiben.","pruefen":false},"belastung.karvonen":{"wert":null,"einheit":"formel","fundstelle":"Karvonen MJ, Kentala E, Mustala O (1957): The effects of training on heart rate; a longitudinal study. Ann Med Exp Biol Fenn 35(3):307–315","text":"Zonengrenze = Ruhepuls + Prozentsatz × (Maximalpuls − Ruhepuls). Ein Schlag liegt in Zone k, wenn 100 × (Puls − Ruhepuls) ≥ Grenze k × (Maximalpuls − Ruhepuls).","erklaerung":"Die Zonen richten sich nach deinem Pulsspielraum zwischen Ruhe und Maximum – so passen sie zu deinem Körper.","pruefen":false},"belastung.zonen":{"wert":[50,60,70,80,90],"einheit":"Prozent der Herzfrequenzreserve (Untergrenzen Zone 1–5)","fundstelle":"Methode: Karvonen et al. (1957), a. a. O.; 10-%-Stufen: verbreitete Praxiskonvention (Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento – dort bezogen auf den Maximalpuls)","erklaerung":"Zone 1 beginnt bei 50 % deines Pulsspielraums, Zone 5 bei 90 %. Darunter zählt nichts zur Belastung.","pruefen":true},"belastung.gewichte":{"wert":[1,2,3,4,5],"einheit":"Faktor je Zone 1–5","fundstelle":"Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento (Summated-Heart-Rate-Zone-TRIMP); Prinzip Trainingsimpuls: Banister EW (1991): Modeling elite athletic performance. In: MacDougall JD, Wenger HA, Green HJ (Hg.): Physiological testing of the high-performance athlete, 2. Aufl., Human Kinetics, S. 403–424","text":"Zonen-Minuten = Σ Minuten in Zone k × k.","erklaerung":"Eine Minute in Zone 5 zählt fünfmal so viel wie eine Minute in Zone 1.","pruefen":false},"belastung.luecke_max_ms":{"wert":60000,"einheit":"ms","fundstelle":"eigene Festlegung MF (Messlücken werden höchstens mit 60 Sekunden angerechnet)","text":"Jeder Pulswert gilt bis zum nächsten Messwert, höchstens 60 Sekunden; der letzte Wert einer Reihe zählt 0 Sekunden.","erklaerung":"Fehlen Messwerte, wird nicht geraten: eine Lücke zählt höchstens eine Minute.","pruefen":true},"belastung.skala_max":{"wert":21,"einheit":"Punkte","fundstelle":"eigene Festlegung MF (verbreitete Skala 0–21)","erklaerung":"Die Belastung reicht von 0 (keine) bis 21 (äußerst hoch).","pruefen":true},"belastung.kurve.b":{"wert":25,"einheit":"Zonen-Minuten","fundstelle":"eigene Festlegung MF","erklaerung":"Bestimmt, wie schnell die Kurve am Anfang steigt: 25 Zonen-Minuten ergeben schon gut 4 Punkte.","pruefen":true},"belastung.kurve.tmax":{"wert":700,"einheit":"Zonen-Minuten","fundstelle":"eigene Festlegung MF (etwa drei Stunden harter Ausdauer erreichen das Skalenende)","erklaerung":"Ab 700 Zonen-Minuten ist das Ende der Skala erreicht.","pruefen":true},"belastung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF; Zonen nach Karvonen et al. (1957), Gewichtung nach Edwards (1993), Trainingsimpuls nach Banister (1991)","text":"Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle. T = Zonen-Minuten des Tages (alle Trainings plus Alltag, Alltag ohne Trainingszeit).","erklaerung":"Die Belastung zählt, wie lange und wie hoch dein Puls über den Tag war. Die Kurve steigt anfangs schnell und dann immer flacher: doppelt so viel Anstrengung bringt weniger als doppelt so viele Punkte.","pruefen":true},"schlaf.bedarf.basis":{"wert":28800000,"einheit":"ms","fundstelle":"Hirshkowitz M et al. (2015): National Sleep Foundation's sleep time duration recommendations: methodology and results summary. Sleep Health 1(1):40–43 (Erwachsene 18–64 Jahre: 7–9 Stunden; Mitte 8 Stunden gewählt)","erklaerung":"Grundbedarf 8 Stunden – die Mitte der Empfehlung für Erwachsene. Du kannst ihn in den Einstellungen ändern.","pruefen":false},"schlaf.bedarf.je_belastung":{"wert":60000,"einheit":"ms je Belastungspunkt","fundstelle":"eigene Festlegung MF","erklaerung":"Je Punkt Belastung am Vortag kommt eine Minute Schlafbedarf dazu.","pruefen":true},"schlaf.bedarf.schuld_anteil":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Ein Viertel der aufgelaufenen Schlafschuld wird zum Bedarf der nächsten Nacht addiert.","pruefen":true},"schlaf.schuld.fenster":{"wert":7,"einheit":"Tage","fundstelle":"eigene Festlegung MF","text":"Schlafschuld = Summe (Bedarf ohne Schuld − geschlafene Zeit) der letzten 7 Nächte, nicht unter 0.","erklaerung":"Die Schlafschuld zählt, wie viel Schlaf dir in der letzten Woche gefehlt hat. Mehr Schlaf an einem Tag gleicht weniger an einem anderen aus.","pruefen":true},"schlaf.bedarf":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF; Grundbedarf nach Hirshkowitz et al. (2015)","text":"Schlafbedarf = Grundbedarf + {schlaf.bedarf.je_belastung|min} min je Belastungspunkt des Vortags + {schlaf.bedarf.schuld_anteil|prozent} der Schlafschuld − Nickerchen des Vortags; nicht unter 0.","erklaerung":"Wie viel Schlaf du heute Nacht brauchst: Grundbedarf, etwas mehr nach Anstrengung und nach zu kurzen Nächten, weniger nach einem Nickerchen.","pruefen":true},"schlaf.leistung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Verhältnis geschlafene Zeit zu Bedarf)","text":"Schlafleistung = geschlafene Zeit (ohne Wachphasen) ÷ Schlafbedarf × 100, höchstens 100, ganze Prozent.","erklaerung":"Wie viel von deinem Schlafbedarf du tatsächlich geschlafen hast.","pruefen":false},"schlaf.effizienz.gut":{"wert":850,"einheit":"Promille","fundstelle":"Ohayon M et al. (2017): National Sleep Foundation's sleep quality recommendations: first report. Sleep Health 3(1):6–19 (Schlafeffizienz ≥ 85 % = gute Schlafqualität)","text":"Schlafeffizienz = geschlafene Zeit ÷ Zeit im Bett (in Promille).","erklaerung":"Welcher Anteil der Zeit im Bett wirklich Schlaf war. Ab 85 % gilt das als gut.","pruefen":false},"schlaf.konsistenz.grenze":{"wert":120,"einheit":"Minuten","fundstelle":"eigene Festlegung MF","text":"Konsistenz = 100 − Abweichung der Einschlafzeit vom Mittel der letzten 7 Nächte (min) × 100 ÷ {schlaf.konsistenz.grenze}, nicht unter 0.","erklaerung":"Wie regelmäßig du ins Bett gehst. Zwei Stunden Abweichung von deiner üblichen Zeit ergeben 0 Punkte.","pruefen":true},"atem.dauer_standard":{"wert":300000,"einheit":"ms","fundstelle":"Balban MY et al. (2023): Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Rep Med 4(1):100895 (5 Minuten täglich)","erklaerung":"Eine Übung dauert ohne eigene Angabe etwa 5 Minuten.","pruefen":false},"atem.box":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"halten","ms":4000},{"art":"aus","ms":4000},{"art":"halten2","ms":4000}]},"einheit":"ms je Phase","fundstelle":"Balban MY et al. (2023), a. a. O. (Box Breathing: gleich lange Phasen Einatmen–Halten–Ausatmen–Halten)","erklaerung":"Box-Atmung: 4 Sekunden einatmen, 4 halten, 4 ausatmen, 4 halten – wie die vier Seiten eines Quadrats.","pruefen":false},"atem.vier-sieben-acht":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"halten","ms":7000},{"art":"aus","ms":8000}],"runden":4},"einheit":"ms je Phase","fundstelle":"Weil A (1999): Breathing: The Master Key to Self Healing. Sounds True, Boulder (4-7-8-Atmung, vier Atemzüge je Übung)","erklaerung":"4-7-8: 4 Sekunden durch die Nase einatmen, 7 halten, 8 durch den Mund ausatmen. Vier Runden.","pruefen":false},"atem.kohaerenz":{"wert":{"phasen":[{"art":"ein","ms":5500},{"art":"aus","ms":5500}]},"einheit":"ms je Phase","fundstelle":"Lehrer PM, Gevirtz R (2014): Heart rate variability biofeedback: how and why does it work? Front Psychol 5:756 (Resonanzatmung um 0,1 Hz, etwa 4,5–7 Atemzüge je Minute)","erklaerung":"Kohärente Atmung: 5,5 Sekunden ein, 5,5 Sekunden aus – gut fünfeinhalb Atemzüge pro Minute, ruhig und gleichmäßig.","pruefen":false},"atem.seufzer":{"wert":{"phasen":[{"art":"ein","ms":2000},{"art":"ein","ms":1000,"label":"nachatmen"},{"art":"aus","ms":6000}]},"einheit":"ms je Phase","fundstelle":"Balban MY et al. (2023), a. a. O. (Cyclic Sighing: zweimal einatmen, lang ausatmen); Phasenlängen: eigene Festlegung MF","erklaerung":"Physiologischer Seufzer: tief einatmen, kurz nachatmen bis die Lunge ganz voll ist, dann lange und langsam ausatmen.","pruefen":true},"atem.entspannung":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"aus","ms":6000}]},"einheit":"ms je Phase","fundstelle":"Van Diest I et al. (2014): Inhalation/exhalation ratio modulates the effect of slow breathing on heart rate variability and relaxation. Appl Psychophysiol Biofeedback 39(3–4):171–180 (6 Atemzüge je Minute, Ausatmen länger als Einatmen)","erklaerung":"4 Sekunden ein, 6 Sekunden aus: das längere Ausatmen wird von vielen als beruhigend erlebt.","pruefen":false},"atem.plan":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF","text":"Runden ohne eigene Angabe = abgerundet ({atem.dauer_standard|min} min ÷ Dauer einer Runde). Zeitplan = Phasen nacheinander, Runde für Runde, in Millisekunden ab Start.","erklaerung":"Der Zeitplan sagt der Animation, wann welche Phase beginnt und endet.","pruefen":false},"tagebuch.min_n":{"wert":5,"einheit":"Tage je Gruppe","fundstelle":"eigene Festlegung MF","erklaerung":"Ein Vergleich wird erst ab 5 Tagen mit und 5 Tagen ohne das Verhalten als aussagekräftig angezeigt.","pruefen":true},"tagebuch.wirkung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Mittelwertvergleich zweier Gruppen; Zusammenhang, kein Ursachennachweis)","text":"Differenz = mittlere Erholung an Tagen nach einem Tag MIT dem Verhalten − mittlere Erholung an Tagen nach einem Tag OHNE. Tage ohne Eintrag zählen nicht.","erklaerung":"Vergleicht deine Erholung am Morgen danach. Das zeigt einen Zusammenhang, keinen Beweis.","pruefen":false},"trend.band":{"wert":1,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF; angelehnt an Plews et al. (2012), a. a. O. (Normalbereich um den gleitenden Mittelwert)","text":"Band = Mittel der Vortage ± {trend.band} × Streuung.","erklaerung":"Das graue Band zeigt deinen Normalbereich der letzten Tage.","pruefen":true},"vergleich.abstand":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Gegenüberstellung je Tag; JCGM 100:2008 (GUM), Abschnitt 4.2.1 für das arithmetische Mittel)","text":"Abstand = Wert von MAEHR FIT − Wert von WHOOP am selben Tag. Mittlerer Abstand = Mittel der Beträge aller Tage mit beiden Werten; größte Abweichung = größter Betrag.","erklaerung":"Zeigt nur, wie weit beide Zahlen auseinanderliegen. Welche richtig ist, sagt der Abstand nicht.","pruefen":false},"vergleich.nah.erholung":{"wert":100,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Erholung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.erholung} Zehntel Punkte.","erklaerung":"Bei der Erholung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.nah.belastung":{"wert":20,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Belastung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.belastung} Zehntel Punkte.","erklaerung":"Bei der Belastung (0–21) zählt ein Tag bis 2 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.nah.schlaf":{"wert":100,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Schlafleistung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.schlaf} Zehntel Punkte.","erklaerung":"Bei der Schlafleistung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.fremdwert":{"wert":null,"einheit":"fremdwert","fundstelle":"WHOOP-Datenexport, Datei physiological_cycles.csv (Spalten „Recovery score %“, „Day Strain“, „Sleep performance %“)","text":"Fremdwert aus dem WHOOP-Export, Rechenweg nicht bekannt.","erklaerung":"WHOOP rechnet nach eigenem, nicht veröffentlichtem Verfahren. MAEHR FIT übernimmt die Zahl nur zum Vergleich.","pruefen":false},"zusammenfassung":{"wert":null,"einheit":"formel","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.1 (arithmetisches Mittel); Wochen nach ISO 8601-1:2019","text":"Je Woche (Montag bis Sonntag) bzw. Kalendermonat: Mittelwert, kleinster und größter Wert, Anzahl Tage je Erholungsstufe.","erklaerung":"Fasst Wochen und Monate zusammen, damit du Entwicklungen auf einen Blick siehst.","pruefen":false},"live.rr.min_ms":{"wert":300,"einheit":"ms","fundstelle":"eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O., Abschnitt „Artefakte und Ektopien“ (unplausible RR-Abstände vor der Auswertung entfernen); 300 ms entspricht 200 Schlägen/min","text":"Ein RR-Abstand unter {live.rr.min_ms} ms (über 200 Schläge pro Minute) gilt als Messfehler und wird verworfen.","erklaerung":"Sehr kurze Abstände zwischen zwei Schlägen sind fast immer Messfehler, keine echten Herzschläge.","pruefen":true},"live.rr.max_ms":{"wert":2000,"einheit":"ms","fundstelle":"eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O. (unplausible RR-Abstände entfernen); 2000 ms entspricht 30 Schlägen/min","text":"Ein RR-Abstand über {live.rr.max_ms} ms (unter 30 Schläge pro Minute) gilt als ausgelassener Schlag und wird verworfen.","erklaerung":"Sehr lange Abstände entstehen meist, wenn das Band einen Schlag nicht erkannt hat.","pruefen":true},"live.rr.sprung_promille":{"wert":200,"einheit":"Promille des vorigen RR-Abstands","fundstelle":"Karlsson M, Hörnsten R, Rydberg A, Wiklund U (2012): Automatic filtering of outliers in RR intervals before analysis of heart rate variability in Holter recordings: a comparison with carefully edited data. Biomed Eng Online 11:2 (Prozentfilter, 20 % zum vorigen Abstand); Bezug auf den letzten gültigen Abstand: eigene Festlegung MF","text":"Ein RR-Abstand wird verworfen, wenn er um mehr als {live.rr.sprung_promille|prozent} vom letzten gültigen Abstand abweicht: 1000 × |RR − RR vorher| > {live.rr.sprung_promille} × RR vorher. Unterschiede werden nur zwischen zwei direkt aufeinanderfolgenden gültigen Abständen gebildet.","erklaerung":"Springt der Abstand zwischen zwei Schlägen plötzlich um mehr als ein Fünftel, ist das meist ein Messfehler oder ein Extraschlag – er zählt nicht mit.","pruefen":true},"live.hrv_kurz.fenster":{"wert":60,"einheit":"RR-Abstände","fundstelle":"eigene Festlegung MF (etwa eine Minute); angelehnt an Munoz ML et al. (2015): Validity of (ultra-)short recordings for heart rate variability measurements. PLoS One 10(9):e0138921 (RMSSD aus 30–60 s gut mit 5 min übereinstimmend)","erklaerung":"Die Kurz-HRV wird aus den letzten 60 Herzschlägen gerechnet – etwa eine Minute.","pruefen":true},"live.hrv_kurz.min_differenzen":{"wert":10,"einheit":"Differenzen","fundstelle":"eigene Festlegung MF; angelehnt an Munoz ML et al. (2015), a. a. O. (kürzeste geprüfte Aufnahme 10 s)","erklaerung":"Erst ab 10 gültigen Unterschieden aufeinanderfolgender Schläge wird eine Kurz-HRV angezeigt.","pruefen":true},"live.hrv_kurz":{"wert":null,"einheit":"formel","fundstelle":"Task Force of the ESC and NASPE (1996), a. a. O. (RMSSD); Artefaktfilter nach Karlsson et al. (2012), a. a. O.","text":"Kurz-HRV = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender gültiger RR-Abstände, aus den letzten {live.hrv_kurz.fenster} Abständen; gültig sind Abstände von {live.rr.min_ms} bis {live.rr.max_ms} ms ohne Sprung über {live.rr.sprung_promille|prozent}. In Zehntel-Millisekunden, kaufmännisch gerundet.","erklaerung":"Wie stark die Abstände zwischen deinen Herzschlägen gerade schwanken – gemessen über etwa eine Minute. Ein Augenblickswert, kein Ersatz für die HRV der Nacht.","pruefen":false},"live.kohaerenz.min_zyklen":{"wert":2,"einheit":"Atemzüge","fundstelle":"eigene Festlegung MF","erklaerung":"Die Kohärenz wird erst gerechnet, wenn mindestens zwei ganze Atemzüge mit Herzschlägen vorliegen.","pruefen":true},"live.kohaerenz.max_zyklen":{"wert":6,"einheit":"Atemzüge","fundstelle":"eigene Festlegung MF (gleitendes Fenster, etwa eine Minute bei Resonanzatmung)","erklaerung":"Für die Anzeige zählen höchstens die letzten sechs Atemzüge, damit der Wert schnell auf dich reagiert.","pruefen":true},"live.kohaerenz":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (vereinfachter Kohärenzwert); Hintergrund: Lehrer PM, Gevirtz R (2014), a. a. O. (bei Resonanzatmung schwingt der Puls im Atemtakt); McCraty R, Atkinson M, Tomasino D, Bradley RT (2009): The coherent heart. Integral Review 5(2):10–115 (Kohärenz als Anteil der Schwingung an einer Frequenz)","text":"Die RR-Abstände der letzten ganzen Atemzüge (mindestens {live.kohaerenz.min_zyklen}, höchstens {live.kohaerenz.max_zyklen}) werden gleichmäßig im Abstand ihres Mittels gelegt. Kohärenz = 100 × (Leistung der Schwingung im Atemtakt) ÷ (gesamte Streuung): a = 2/n × Σ (RR − Mittel) × cos(2π t/T), b = 2/n × Σ (RR − Mittel) × sin(2π t/T), Leistung = (a² + b²) ÷ 2, Streuung = Σ (RR − Mittel)² ÷ n; T = Dauer eines Atemzugs. Begrenzt auf 0 bis 100, ganze Zahl.","erklaerung":"Wie gleichmäßig dein Puls im Takt deines Atems steigt und fällt: 100 heißt, fast die ganze Schwankung folgt dem Atem; 0 heißt, sie hat mit dem Atem nichts zu tun. Eigener, vereinfachter Wert – nicht mit Werten anderer Apps vergleichbar.","pruefen":true},"live.training.min_ms":{"wert":60000,"einheit":"ms","fundstelle":"eigene Festlegung MF (kürzere Live-Aufzeichnungen sind meist Fehlstarts)","erklaerung":"Eine Live-Aufzeichnung wird erst ab einer Minute als Training gespeichert.","pruefen":true},"live.formel_puls":{"wert":null,"einheit":"formel","fundstelle":"Bluetooth SIG: Heart Rate Service Specification 1.0 (2011) und GATT Specification Supplement, Merkmal Heart Rate Measurement 0x2A37 (Flags, 8/16-Bit-Puls, Energie, RR-Abstände in 1/1024 s)","text":"Puls = Wert aus dem Merkmal 0x2A37 des Dienstes Heart Rate 0x180D (Bit 0 der Flags: 16 statt 8 Bit). RR-Abstand in ms = Rohwert × 1000 ÷ 1024, kaufmännisch gerundet.","erklaerung":"So kommt der Puls live vom Band: Das Band sendet etwa einmal pro Sekunde den aktuellen Puls und, wenn es kann, die Abstände zwischen den letzten Herzschlägen.","pruefen":false},"belastung.zonen_aus_prozent":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Schätzung, wenn der Export nur Zonenanteile statt Pulswerte enthält, z. B. WHOOP-CSV „HR Zone 1–5 %“); Kurve und Gewichte wie „belastung“ (Edwards 1993, Banister 1991)","text":"Geschätzt: Für Trainings ohne einzelne Pulswerte gilt Zeit in Zone k = Dauer × Anteil k ÷ 100 (Anteile aus dem Export, ganze Millisekunden). Danach wie gemessen: Zonen-Minuten T = Σ Minuten in Zone k × k, Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle.","erklaerung":"Dein Export sagt nur, wie viel Prozent des Trainings du in jeder Zone warst. Daraus rechnen wir die Minuten je Zone und dann die Belastung wie sonst auch. Weil die Zonengrenzen des Anbieters etwas anders liegen können, ist das eine Schätzung.","pruefen":true}}} };
+const __m_kern_formeln_formeln_json = { default: {"stand":"2026-10-30","quelle":"Formeln und Konstanten von MAEHR FIT. Jeder Wert mit Fundstelle; \"pruefen\": true heißt: eigene Festlegung oder noch nicht am Originaltext bestätigt – Loris entscheidet. Texte beschreiben Messwerte und Tendenzen, keine Diagnosen.","eintraege":{"rundung.kaufmaennisch":{"wert":"halb_weg_von_null","einheit":"verfahren","fundstelle":"DIN 1333:1992-02 Zahlenangaben, Abschnitt Runden (kaufmännisches Runden: ab 5 aufrunden, Betrag)","text":"Ab der Hälfte wird vom Betrag her aufgerundet (2,5 → 3; −2,5 → −3), darunter abgerundet.","erklaerung":"So wird überall gerundet, damit dieselbe Rechnung immer dieselbe Zahl ergibt.","pruefen":false},"einheit.hrv":{"wert":10,"einheit":"Zehntel je ms","fundstelle":"eigene Festlegung MF (Zahlendarstellung: RMSSD mit einer Nachkommastelle als ganze Zehntel-Millisekunden)","erklaerung":"HRV wird in Zehntel-Millisekunden gespeichert, z. B. 45,3 ms als 453. So entstehen keine Rundungsfehler.","pruefen":false},"einheit.atem":{"wert":10,"einheit":"Zehntel je Atemzug/min","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Atemzüge pro Minute in Zehnteln, z. B. 14,6 als 146.","pruefen":false},"einheit.spo2":{"wert":10,"einheit":"Zehntel je Prozentpunkt","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Sauerstoffsättigung in Zehntel-Prozent, z. B. 96,8 % als 968.","pruefen":false},"einheit.hauttemp":{"wert":100,"einheit":"Hundertstel je °C","fundstelle":"eigene Festlegung MF (Zahlendarstellung)","erklaerung":"Abweichung der Hauttemperatur in Hundertstel Grad, z. B. +0,35 °C als 35.","pruefen":false},"hrv.messgroesse":{"wert":"rmssd","einheit":"ms","fundstelle":"Task Force of the ESC and NASPE (1996): Heart rate variability – standards of measurement, physiological interpretation, and clinical use. Circulation 93(5):1043–1065","text":"RMSSD = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender Herzschlagabstände.","erklaerung":"Die HRV misst, wie stark die Abstände zwischen zwei Herzschlägen schwanken. Mehr Schwankung in Ruhe gilt als Zeichen guter Erholung.","pruefen":false},"statistik.streuung":{"wert":"stichprobe_n_minus_1","einheit":"verfahren","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.2, Gl. (4): experimentelle Standardabweichung mit n − 1","text":"Streuung = Wurzel aus (Summe der quadrierten Abstände zum Mittel ÷ (n − 1)).","erklaerung":"Die Streuung sagt, wie weit deine Werte üblicherweise vom Mittel abweichen.","pruefen":false},"statistik.z":{"wert":"z_wert","einheit":"Streuungen","fundstelle":"Bortz J, Schuster C (2010): Statistik für Human- und Sozialwissenschaftler, 7. Aufl., Springer, Kap. 2.5 (z-Transformation)","text":"z = (heutiger Wert − Mittel) ÷ Streuung.","erklaerung":"Der z-Wert sagt, wie ungewöhnlich ein Tag für dich ist: 0 = wie immer, +1 = eine übliche Schwankung besser, −1 = eine schlechter.","pruefen":false},"zeit.iso_woche":{"wert":"montag","einheit":"Wochenbeginn","fundstelle":"ISO 8601-1:2019, Abschnitt 3.1.1.23 und 5.2.3 (Kalenderwoche: Montag bis Sonntag, Woche 1 enthält den ersten Donnerstag)","text":"Kalenderwoche nach ISO 8601: beginnt Montag; Woche 1 ist die Woche mit dem ersten Donnerstag des Jahres.","erklaerung":"Wochen laufen von Montag bis Sonntag, wie im deutschen Kalender.","pruefen":false},"zeit.hauptschlaf_min":{"wert":10800000,"einheit":"ms","fundstelle":"eigene Festlegung MF (3 Stunden)","text":"Hauptschlaf = längster Schlaf, der an diesem Kalendertag endet und mindestens 3 Stunden dauert; kürzere Schlafphasen sind Nickerchen.","erklaerung":"Ein Tag beginnt mit dem Aufwachen aus dem Hauptschlaf. Was kürzer als drei Stunden ist, zählt als Nickerchen.","pruefen":true},"zeit.nachfenster_nach_aufwachen":{"wert":10800000,"einheit":"ms","fundstelle":"eigene Festlegung MF (Nachtwerte, die WHOOP erst nach dem Aufwachen meldet, zählen bis 3 Stunden danach zur Nacht)","erklaerung":"Meldet das Band einen Nachtwert erst kurz nach dem Aufwachen, zählt er bis zu drei Stunden danach noch zur Nacht.","pruefen":true},"zusammenfuehren.ueberlappung":{"wert":500,"einheit":"Promille","fundstelle":"eigene Festlegung MF (zwei Datensätze, die sich zur Hälfte des kürzeren überdecken, sind dieselbe Nacht bzw. dasselbe Training)","erklaerung":"Kommt eine Nacht oder ein Training aus zwei Quellen und beide überdecken sich mindestens zur Hälfte, zählt es nur einmal.","pruefen":true},"zeit.tagesgrenzen":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Tag von Aufwachen bis Aufwachen; ohne Schlafdaten Mitternacht bis Mitternacht)","text":"Tag = vom Aufwachen aus dem Hauptschlaf bis zum Aufwachen am nächsten Morgen. Fehlt ein Hauptschlaf, gilt die örtliche Mitternacht.","erklaerung":"Dein Tag zählt vom Aufstehen bis zum nächsten Aufstehen – so gehört ein spätes Training noch zum selben Tag.","pruefen":false},"basis.fenster.kurz":{"wert":7,"einheit":"Tage","fundstelle":"Plews DJ, Laursen PB, Kilding AE, Buchheit M (2012): Heart rate variability in elite triathletes, is variation in variability the key to effective training? Eur J Appl Physiol 112(11):3729–3741 (gleitender 7-Tage-Mittelwert)","erklaerung":"Die letzten 7 Tage zeigen, wie es dir gerade geht.","pruefen":false},"basis.fenster.lang":{"wert":30,"einheit":"Tage","fundstelle":"eigene Festlegung MF (Monatsnormalbereich als Vergleich für die Erholung)","erklaerung":"Die letzten 30 Tage sind dein persönlicher Normalbereich. Mit ihm wird jeder Tag verglichen.","pruefen":true},"basis.min_n":{"wert":4,"einheit":"Tage","fundstelle":"eigene Festlegung MF, angelehnt an Plews DJ et al. (2014): Monitoring training with heart-rate variability: how much compliance is needed for valid assessment? Int J Sports Physiol Perform 9(5):783–790 (mindestens 3 Messungen je Woche)","erklaerung":"Erst ab 4 Tagen mit Messwerten wird ein Vergleich mit deinem Normalbereich gerechnet.","pruefen":true},"basis.hrv_ln":{"wert":"ln","einheit":"verfahren","fundstelle":"Shaffer F, Ginsberg JP (2017): An overview of heart rate variability metrics and norms. Front Public Health 5:258 (RMSSD ist schief verteilt, Logarithmus macht sie annähernd normalverteilt); Plews DJ et al. (2012), a. a. O. (ln RMSSD)","text":"Für HRV wird mit dem natürlichen Logarithmus ln(RMSSD in ms) gerechnet.","erklaerung":"HRV-Werte streuen nach oben stärker als nach unten. Mit dem Logarithmus werden Ausschläge in beide Richtungen vergleichbar.","pruefen":false},"basis.stellen":{"wert":4,"einheit":"Nachkommastellen","fundstelle":"eigene Festlegung MF (Zahlendarstellung für Mittel und Streuung)","erklaerung":"Mittelwert und Streuung werden auf 4 Nachkommastellen gerundet gespeichert.","pruefen":false},"basis.mittel":{"wert":null,"einheit":"formel","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.1 Gl. (3) (arithmetisches Mittel) und 4.2.2 Gl. (4) (Streuung)","text":"Basislinie = Mittelwert und Streuung der Werte aus den Tagen vor dem betrachteten Tag (der Tag selbst zählt nicht mit).","erklaerung":"Deine Basislinie ist dein persönlicher Normalwert aus den vergangenen Tagen.","pruefen":false},"erholung":{"wert":null,"einheit":"formel","fundstelle":"Eigene Festlegung MF (Aufbau und Gewichte). Grundlagen: HRV-Messung nach Task Force (1996) und Shaffer & Ginsberg (2017); HRV im Vergleich zum eigenen 7-Tage-Mittel nach Plews et al. (2012); Ruhepuls als Trainings- und Erholungsmerkmal nach Buchheit (2014, Front. Physiol. 5:73); Atemfrequenz als Abweichung vom eigenen Normalwert nach Miller et al. (2020, PLoS One 15:e0243693, von WHOOP mitfinanziert); z-Werte nach Bortz & Schuster (2010).","text":"Erholung = {erholung.mitte} + {erholung.punkte_je_z} × (Anteil HRV × z HRV + Anteil Ruhepuls × (−z Ruhepuls) + Anteil Schlaf × z Schlaf) − Abzüge für auffällige Atemfrequenz, Hauttemperatur und Sauerstoffsättigung; begrenzt auf 0 bis 100. Gewichte HRV {erholung.gewicht.hrv|prozent}, Ruhepuls {erholung.gewicht.ruhepuls|prozent}, Schlaf {erholung.gewicht.schlaf|prozent}; fehlt ein Teil, werden die übrigen auf 100 % hochgerechnet.","erklaerung":"Die Erholung vergleicht die letzte Nacht mit deinem Normalbereich. 50 heißt: ein für dich üblicher Tag. Höhere HRV, niedrigerer Ruhepuls und genug Schlaf heben den Wert; auffällige Atmung, Temperatur oder Sättigung senken ihn.","pruefen":false},"erholung.mitte":{"wert":50,"einheit":"Punkte","fundstelle":"eigene Festlegung MF (ein für dich typischer Tag liegt in der Mitte der Skala)","erklaerung":"Ein ganz normaler Tag ergibt 50 Punkte.","pruefen":true},"erholung.punkte_je_z":{"wert":20,"einheit":"Punkte je Streuung","fundstelle":"eigene Festlegung MF","erklaerung":"Eine übliche Schwankung nach oben oder unten bewegt die Erholung um 20 Punkte.","pruefen":true},"erholung.z_grenze":{"wert":3,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF (Ausreißer werden bei ±3 Streuungen abgeschnitten)","erklaerung":"Ein einzelner extremer Messwert zählt höchstens wie drei übliche Schwankungen.","pruefen":true},"erholung.gewicht.hrv":{"wert":500,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Die HRV zählt zur Hälfte.","pruefen":true},"erholung.gewicht.ruhepuls":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Der Ruhepuls zählt zu einem Viertel. Niedriger als üblich hebt die Erholung.","pruefen":true},"erholung.gewicht.schlaf":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Wie gut der Schlafbedarf gedeckt war, zählt zu einem Viertel.","pruefen":true},"erholung.schlaf.ziel":{"wert":85,"einheit":"Prozent Schlafleistung","fundstelle":"eigene Festlegung MF","text":"z Schlaf = (Schlafleistung − {erholung.schlaf.ziel}) ÷ {erholung.schlaf.skala}.","erklaerung":"85 % des Schlafbedarfs gelten als neutral; mehr hebt, weniger senkt die Erholung.","pruefen":true},"erholung.schlaf.skala":{"wert":15,"einheit":"Prozentpunkte je Streuung","fundstelle":"eigene Festlegung MF","erklaerung":"15 Prozentpunkte Schlafleistung wirken wie eine übliche Schwankung.","pruefen":true},"erholung.streuung_min":{"wert":{"hrv":0.05,"ruhepuls":1,"atem":3},"einheit":"ln-Einheiten | Schläge/min | Zehntel Atemzüge/min","fundstelle":"eigene Festlegung MF (Untergrenze, damit sehr gleichmäßige Wochen keine riesigen z-Werte erzeugen)","erklaerung":"Sind deine Werte ungewöhnlich gleichmäßig, wird mit einer Mindest-Schwankung gerechnet, damit kleine Ausschläge nicht übertrieben wirken.","pruefen":true},"erholung.atem.schwelle_z":{"wert":1,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF; Hintergrund: Miller DJ et al. (2020): Analyzing changes in respiratory rate to predict the risk of COVID-19 infection. PLoS One 15(12):e0243693","erklaerung":"Weicht die nächtliche Atemfrequenz um mehr als eine übliche Schwankung ab, gibt es einen Abzug.","pruefen":true},"erholung.atem.strafe_je_z":{"wert":8,"einheit":"Punkte je Streuung über der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je weitere übliche Schwankung Abweichung der Atemfrequenz: 8 Punkte Abzug.","pruefen":true},"erholung.hauttemp.schwelle":{"wert":50,"einheit":"Hundertstel °C","fundstelle":"eigene Festlegung MF; Hintergrund: Smarr BL et al. (2020): Feasibility of continuous fever monitoring using wearable devices. Sci Rep 10:21640","erklaerung":"Liegt die Hauttemperatur mehr als 0,5 °C neben deinem Normalwert, gibt es einen Abzug.","pruefen":true},"erholung.hauttemp.strafe_je_grad":{"wert":10,"einheit":"Punkte je °C über der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je Grad über der Schwelle: 10 Punkte Abzug.","pruefen":true},"erholung.spo2.schwelle":{"wert":950,"einheit":"Zehntel Prozent","fundstelle":"World Health Organization (2011): Pulse Oximetry Training Manual, Genf (Normalbereich 95–100 %)","erklaerung":"Liegt die nächtliche Sauerstoffsättigung unter 95 %, gibt es einen Abzug.","pruefen":false},"erholung.spo2.strafe_je_prozent":{"wert":5,"einheit":"Punkte je Prozentpunkt unter der Schwelle","fundstelle":"eigene Festlegung MF","erklaerung":"Je Prozentpunkt unter 95 %: 5 Punkte Abzug.","pruefen":true},"erholung.stufe.gruen":{"wert":67,"einheit":"Punkte (ab)","fundstelle":"eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)","erklaerung":"Ab 67 Punkten: grün – deutlich besser erholt als üblich.","pruefen":true},"erholung.stufe.rot":{"wert":33,"einheit":"Punkte (bis)","fundstelle":"eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)","erklaerung":"Bis 33 Punkte: rot – weniger erholt als üblich. Dazwischen gelb.","pruefen":true},"puls.max.tanaka":{"wert":{"a_zehntel":2080,"b_zehntel":7},"einheit":"Zehntel Schläge/min | Zehntel Schläge/min je Lebensjahr","fundstelle":"Tanaka H, Monahan KD, Seals DR (2001): Age-predicted maximal heart rate revisited. J Am Coll Cardiol 37(1):153–156","text":"Maximalpuls = 208 − 0,7 × Alter (Schläge pro Minute), auf ganze Schläge gerundet.","erklaerung":"Wenn du deinen Maximalpuls nicht kennst, wird er aus dem Alter geschätzt. Du kannst ihn in den Einstellungen überschreiben.","pruefen":false},"belastung.karvonen":{"wert":null,"einheit":"formel","fundstelle":"Karvonen MJ, Kentala E, Mustala O (1957): The effects of training on heart rate; a longitudinal study. Ann Med Exp Biol Fenn 35(3):307–315","text":"Zonengrenze = Ruhepuls + Prozentsatz × (Maximalpuls − Ruhepuls). Ein Schlag liegt in Zone k, wenn 100 × (Puls − Ruhepuls) ≥ Grenze k × (Maximalpuls − Ruhepuls).","erklaerung":"Die Zonen richten sich nach deinem Pulsspielraum zwischen Ruhe und Maximum – so passen sie zu deinem Körper.","pruefen":false},"belastung.zonen":{"wert":[50,60,70,80,90],"einheit":"Prozent der Herzfrequenzreserve (Untergrenzen Zone 1–5)","fundstelle":"Methode: Karvonen et al. (1957), a. a. O.; 10-%-Stufen: verbreitete Praxiskonvention (Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento – dort bezogen auf den Maximalpuls)","erklaerung":"Zone 1 beginnt bei 50 % deines Pulsspielraums, Zone 5 bei 90 %. Darunter zählt nichts zur Belastung.","pruefen":true},"belastung.gewichte":{"wert":[1,2,3,4,5],"einheit":"Faktor je Zone 1–5","fundstelle":"Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento (Summated-Heart-Rate-Zone-TRIMP); Prinzip Trainingsimpuls: Banister EW (1991): Modeling elite athletic performance. In: MacDougall JD, Wenger HA, Green HJ (Hg.): Physiological testing of the high-performance athlete, 2. Aufl., Human Kinetics, S. 403–424","text":"Zonen-Minuten = Σ Minuten in Zone k × k.","erklaerung":"Eine Minute in Zone 5 zählt fünfmal so viel wie eine Minute in Zone 1.","pruefen":false},"belastung.luecke_max_ms":{"wert":60000,"einheit":"ms","fundstelle":"eigene Festlegung MF (Messlücken werden höchstens mit 60 Sekunden angerechnet)","text":"Jeder Pulswert gilt bis zum nächsten Messwert, höchstens 60 Sekunden; der letzte Wert einer Reihe zählt 0 Sekunden.","erklaerung":"Fehlen Messwerte, wird nicht geraten: eine Lücke zählt höchstens eine Minute.","pruefen":true},"belastung.skala_max":{"wert":21,"einheit":"Punkte","fundstelle":"eigene Festlegung MF (verbreitete Skala 0–21)","erklaerung":"Die Belastung reicht von 0 (keine) bis 21 (äußerst hoch).","pruefen":true},"belastung.kurve.b":{"wert":25,"einheit":"Zonen-Minuten","fundstelle":"eigene Festlegung MF","erklaerung":"Bestimmt, wie schnell die Kurve am Anfang steigt: 25 Zonen-Minuten ergeben schon gut 4 Punkte.","pruefen":true},"belastung.kurve.tmax":{"wert":700,"einheit":"Zonen-Minuten","fundstelle":"eigene Festlegung MF (etwa drei Stunden harter Ausdauer erreichen das Skalenende)","erklaerung":"Ab 700 Zonen-Minuten ist das Ende der Skala erreicht.","pruefen":true},"belastung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF; Zonen nach Karvonen et al. (1957), Gewichtung nach Edwards (1993), Trainingsimpuls nach Banister (1991)","text":"Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle. T = Zonen-Minuten des Tages (alle Trainings plus Alltag, Alltag ohne Trainingszeit).","erklaerung":"Die Belastung zählt, wie lange und wie hoch dein Puls über den Tag war. Die Kurve steigt anfangs schnell und dann immer flacher: doppelt so viel Anstrengung bringt weniger als doppelt so viele Punkte.","pruefen":true},"schlaf.bedarf.basis":{"wert":28800000,"einheit":"ms","fundstelle":"Hirshkowitz M et al. (2015): National Sleep Foundation's sleep time duration recommendations: methodology and results summary. Sleep Health 1(1):40–43 (Erwachsene 18–64 Jahre: 7–9 Stunden; Mitte 8 Stunden gewählt)","erklaerung":"Grundbedarf 8 Stunden – die Mitte der Empfehlung für Erwachsene. Du kannst ihn in den Einstellungen ändern.","pruefen":false},"schlaf.bedarf.je_belastung":{"wert":60000,"einheit":"ms je Belastungspunkt","fundstelle":"eigene Festlegung MF","erklaerung":"Je Punkt Belastung am Vortag kommt eine Minute Schlafbedarf dazu.","pruefen":true},"schlaf.bedarf.schuld_anteil":{"wert":250,"einheit":"Promille","fundstelle":"eigene Festlegung MF","erklaerung":"Ein Viertel der aufgelaufenen Schlafschuld wird zum Bedarf der nächsten Nacht addiert.","pruefen":true},"schlaf.schuld.fenster":{"wert":7,"einheit":"Tage","fundstelle":"eigene Festlegung MF","text":"Schlafschuld = Summe (Bedarf ohne Schuld − geschlafene Zeit) der letzten 7 Nächte, nicht unter 0.","erklaerung":"Die Schlafschuld zählt, wie viel Schlaf dir in der letzten Woche gefehlt hat. Mehr Schlaf an einem Tag gleicht weniger an einem anderen aus.","pruefen":true},"schlaf.bedarf":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF; Grundbedarf nach Hirshkowitz et al. (2015)","text":"Schlafbedarf = Grundbedarf + {schlaf.bedarf.je_belastung|min} min je Belastungspunkt des Vortags + {schlaf.bedarf.schuld_anteil|prozent} der Schlafschuld − Nickerchen des Vortags; nicht unter 0.","erklaerung":"Wie viel Schlaf du heute Nacht brauchst: Grundbedarf, etwas mehr nach Anstrengung und nach zu kurzen Nächten, weniger nach einem Nickerchen.","pruefen":true},"schlaf.leistung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Verhältnis geschlafene Zeit zu Bedarf)","text":"Schlafleistung = geschlafene Zeit (ohne Wachphasen) ÷ Schlafbedarf × 100, höchstens 100, ganze Prozent.","erklaerung":"Wie viel von deinem Schlafbedarf du tatsächlich geschlafen hast.","pruefen":false},"schlaf.effizienz.gut":{"wert":850,"einheit":"Promille","fundstelle":"Ohayon M et al. (2017): National Sleep Foundation's sleep quality recommendations: first report. Sleep Health 3(1):6–19 (Schlafeffizienz ≥ 85 % = gute Schlafqualität)","text":"Schlafeffizienz = geschlafene Zeit ÷ Zeit im Bett (in Promille).","erklaerung":"Welcher Anteil der Zeit im Bett wirklich Schlaf war. Ab 85 % gilt das als gut.","pruefen":false},"schlaf.konsistenz.grenze":{"wert":120,"einheit":"Minuten","fundstelle":"eigene Festlegung MF","text":"Konsistenz = 100 − Abweichung der Einschlafzeit vom Mittel der letzten 7 Nächte (min) × 100 ÷ {schlaf.konsistenz.grenze}, nicht unter 0.","erklaerung":"Wie regelmäßig du ins Bett gehst. Zwei Stunden Abweichung von deiner üblichen Zeit ergeben 0 Punkte.","pruefen":true},"atem.dauer_standard":{"wert":300000,"einheit":"ms","fundstelle":"Balban MY et al. (2023): Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Rep Med 4(1):100895 (5 Minuten täglich)","erklaerung":"Eine Übung dauert ohne eigene Angabe etwa 5 Minuten.","pruefen":false},"atem.box":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"halten","ms":4000},{"art":"aus","ms":4000},{"art":"halten2","ms":4000}]},"einheit":"ms je Phase","fundstelle":"Balban MY et al. (2023), a. a. O. (Box Breathing: gleich lange Phasen Einatmen–Halten–Ausatmen–Halten)","erklaerung":"Box-Atmung: 4 Sekunden einatmen, 4 halten, 4 ausatmen, 4 halten – wie die vier Seiten eines Quadrats.","pruefen":false},"atem.vier-sieben-acht":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"halten","ms":7000},{"art":"aus","ms":8000}],"runden":4},"einheit":"ms je Phase","fundstelle":"Weil A (1999): Breathing: The Master Key to Self Healing. Sounds True, Boulder (4-7-8-Atmung, vier Atemzüge je Übung)","erklaerung":"4-7-8: 4 Sekunden durch die Nase einatmen, 7 halten, 8 durch den Mund ausatmen. Vier Runden.","pruefen":false},"atem.kohaerenz":{"wert":{"phasen":[{"art":"ein","ms":5500},{"art":"aus","ms":5500}]},"einheit":"ms je Phase","fundstelle":"Lehrer PM, Gevirtz R (2014): Heart rate variability biofeedback: how and why does it work? Front Psychol 5:756 (Resonanzatmung um 0,1 Hz, etwa 4,5–7 Atemzüge je Minute)","erklaerung":"Kohärente Atmung: 5,5 Sekunden ein, 5,5 Sekunden aus – gut fünfeinhalb Atemzüge pro Minute, ruhig und gleichmäßig.","pruefen":false},"atem.seufzer":{"wert":{"phasen":[{"art":"ein","ms":2000},{"art":"ein","ms":1000,"label":"nachatmen"},{"art":"aus","ms":6000}]},"einheit":"ms je Phase","fundstelle":"Balban MY et al. (2023), a. a. O. (Cyclic Sighing: zweimal einatmen, lang ausatmen); Phasenlängen: eigene Festlegung MF","erklaerung":"Physiologischer Seufzer: tief einatmen, kurz nachatmen bis die Lunge ganz voll ist, dann lange und langsam ausatmen.","pruefen":true},"atem.entspannung":{"wert":{"phasen":[{"art":"ein","ms":4000},{"art":"aus","ms":6000}]},"einheit":"ms je Phase","fundstelle":"Van Diest I et al. (2014): Inhalation/exhalation ratio modulates the effect of slow breathing on heart rate variability and relaxation. Appl Psychophysiol Biofeedback 39(3–4):171–180 (6 Atemzüge je Minute, Ausatmen länger als Einatmen)","erklaerung":"4 Sekunden ein, 6 Sekunden aus: das längere Ausatmen wird von vielen als beruhigend erlebt.","pruefen":false},"atem.plan":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF","text":"Runden ohne eigene Angabe = abgerundet ({atem.dauer_standard|min} min ÷ Dauer einer Runde). Zeitplan = Phasen nacheinander, Runde für Runde, in Millisekunden ab Start.","erklaerung":"Der Zeitplan sagt der Animation, wann welche Phase beginnt und endet.","pruefen":false},"tagebuch.min_n":{"wert":5,"einheit":"Tage je Gruppe","fundstelle":"eigene Festlegung MF","erklaerung":"Ein Vergleich wird erst ab 5 Tagen mit und 5 Tagen ohne das Verhalten als aussagekräftig angezeigt.","pruefen":true},"tagebuch.wirkung":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Mittelwertvergleich zweier Gruppen; Zusammenhang, kein Ursachennachweis)","text":"Differenz = mittlere Erholung an Tagen nach einem Tag MIT dem Verhalten − mittlere Erholung an Tagen nach einem Tag OHNE. Tage ohne Eintrag zählen nicht.","erklaerung":"Vergleicht deine Erholung am Morgen danach. Das zeigt einen Zusammenhang, keinen Beweis.","pruefen":false},"trend.band":{"wert":1,"einheit":"Streuungen","fundstelle":"eigene Festlegung MF; angelehnt an Plews et al. (2012), a. a. O. (Normalbereich um den gleitenden Mittelwert)","text":"Band = Mittel der Vortage ± {trend.band} × Streuung.","erklaerung":"Das graue Band zeigt deinen Normalbereich der letzten Tage.","pruefen":true},"vergleich.abstand":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Gegenüberstellung je Tag; JCGM 100:2008 (GUM), Abschnitt 4.2.1 für das arithmetische Mittel)","text":"Abstand = Wert von MAEHR FIT − Wert von WHOOP am selben Tag. Mittlerer Abstand = Mittel der Beträge aller Tage mit beiden Werten; größte Abweichung = größter Betrag.","erklaerung":"Zeigt nur, wie weit beide Zahlen auseinanderliegen. Welche richtig ist, sagt der Abstand nicht.","pruefen":false},"vergleich.nah.erholung":{"wert":100,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Erholung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.erholung} Zehntel Punkte.","erklaerung":"Bei der Erholung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.nah.belastung":{"wert":20,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Belastung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.belastung} Zehntel Punkte.","erklaerung":"Bei der Belastung (0–21) zählt ein Tag bis 2 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.nah.schlaf":{"wert":100,"einheit":"Zehntel Punkte","fundstelle":"eigene Festlegung MF","text":"Schlafleistung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.schlaf} Zehntel Punkte.","erklaerung":"Bei der Schlafleistung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.","pruefen":true},"vergleich.fremdwert":{"wert":null,"einheit":"fremdwert","fundstelle":"WHOOP-Datenexport, Datei physiological_cycles.csv (Spalten „Recovery score %“, „Day Strain“, „Sleep performance %“)","text":"Fremdwert aus dem WHOOP-Export, Rechenweg nicht bekannt.","erklaerung":"WHOOP rechnet nach eigenem, nicht veröffentlichtem Verfahren. MAEHR FIT übernimmt die Zahl nur zum Vergleich.","pruefen":false},"zusammenfassung":{"wert":null,"einheit":"formel","fundstelle":"JCGM 100:2008 (GUM), Abschnitt 4.2.1 (arithmetisches Mittel); Wochen nach ISO 8601-1:2019","text":"Je Woche (Montag bis Sonntag) bzw. Kalendermonat: Mittelwert, kleinster und größter Wert, Anzahl Tage je Erholungsstufe.","erklaerung":"Fasst Wochen und Monate zusammen, damit du Entwicklungen auf einen Blick siehst.","pruefen":false},"live.rr.min_ms":{"wert":300,"einheit":"ms","fundstelle":"eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O., Abschnitt „Artefakte und Ektopien“ (unplausible RR-Abstände vor der Auswertung entfernen); 300 ms entspricht 200 Schlägen/min","text":"Ein RR-Abstand unter {live.rr.min_ms} ms (über 200 Schläge pro Minute) gilt als Messfehler und wird verworfen.","erklaerung":"Sehr kurze Abstände zwischen zwei Schlägen sind fast immer Messfehler, keine echten Herzschläge.","pruefen":true},"live.rr.max_ms":{"wert":2000,"einheit":"ms","fundstelle":"eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O. (unplausible RR-Abstände entfernen); 2000 ms entspricht 30 Schlägen/min","text":"Ein RR-Abstand über {live.rr.max_ms} ms (unter 30 Schläge pro Minute) gilt als ausgelassener Schlag und wird verworfen.","erklaerung":"Sehr lange Abstände entstehen meist, wenn das Band einen Schlag nicht erkannt hat.","pruefen":true},"live.rr.sprung_promille":{"wert":200,"einheit":"Promille des vorigen RR-Abstands","fundstelle":"Karlsson M, Hörnsten R, Rydberg A, Wiklund U (2012): Automatic filtering of outliers in RR intervals before analysis of heart rate variability in Holter recordings: a comparison with carefully edited data. Biomed Eng Online 11:2 (Prozentfilter, 20 % zum vorigen Abstand); Bezug auf den letzten gültigen Abstand: eigene Festlegung MF","text":"Ein RR-Abstand wird verworfen, wenn er um mehr als {live.rr.sprung_promille|prozent} vom letzten gültigen Abstand abweicht: 1000 × |RR − RR vorher| > {live.rr.sprung_promille} × RR vorher. Unterschiede werden nur zwischen zwei direkt aufeinanderfolgenden gültigen Abständen gebildet.","erklaerung":"Springt der Abstand zwischen zwei Schlägen plötzlich um mehr als ein Fünftel, ist das meist ein Messfehler oder ein Extraschlag – er zählt nicht mit.","pruefen":true},"live.hrv_kurz.fenster":{"wert":60,"einheit":"RR-Abstände","fundstelle":"eigene Festlegung MF (etwa eine Minute); angelehnt an Munoz ML et al. (2015): Validity of (ultra-)short recordings for heart rate variability measurements. PLoS One 10(9):e0138921 (RMSSD aus 30–60 s gut mit 5 min übereinstimmend)","erklaerung":"Die Kurz-HRV wird aus den letzten 60 Herzschlägen gerechnet – etwa eine Minute.","pruefen":true},"live.hrv_kurz.min_differenzen":{"wert":10,"einheit":"Differenzen","fundstelle":"eigene Festlegung MF; angelehnt an Munoz ML et al. (2015), a. a. O. (kürzeste geprüfte Aufnahme 10 s)","erklaerung":"Erst ab 10 gültigen Unterschieden aufeinanderfolgender Schläge wird eine Kurz-HRV angezeigt.","pruefen":true},"live.hrv_kurz":{"wert":null,"einheit":"formel","fundstelle":"Task Force of the ESC and NASPE (1996), a. a. O. (RMSSD); Artefaktfilter nach Karlsson et al. (2012), a. a. O.","text":"Kurz-HRV = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender gültiger RR-Abstände, aus den letzten {live.hrv_kurz.fenster} Abständen; gültig sind Abstände von {live.rr.min_ms} bis {live.rr.max_ms} ms ohne Sprung über {live.rr.sprung_promille|prozent}. In Zehntel-Millisekunden, kaufmännisch gerundet.","erklaerung":"Wie stark die Abstände zwischen deinen Herzschlägen gerade schwanken – gemessen über etwa eine Minute. Ein Augenblickswert, kein Ersatz für die HRV der Nacht.","pruefen":false},"live.kohaerenz.min_zyklen":{"wert":2,"einheit":"Atemzüge","fundstelle":"eigene Festlegung MF","erklaerung":"Die Kohärenz wird erst gerechnet, wenn mindestens zwei ganze Atemzüge mit Herzschlägen vorliegen.","pruefen":true},"live.kohaerenz.max_zyklen":{"wert":6,"einheit":"Atemzüge","fundstelle":"eigene Festlegung MF (gleitendes Fenster, etwa eine Minute bei Resonanzatmung)","erklaerung":"Für die Anzeige zählen höchstens die letzten sechs Atemzüge, damit der Wert schnell auf dich reagiert.","pruefen":true},"live.kohaerenz":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (vereinfachter Kohärenzwert); Hintergrund: Lehrer PM, Gevirtz R (2014), a. a. O. (bei Resonanzatmung schwingt der Puls im Atemtakt); McCraty R, Atkinson M, Tomasino D, Bradley RT (2009): The coherent heart. Integral Review 5(2):10–115 (Kohärenz als Anteil der Schwingung an einer Frequenz)","text":"Die RR-Abstände der letzten ganzen Atemzüge (mindestens {live.kohaerenz.min_zyklen}, höchstens {live.kohaerenz.max_zyklen}) werden gleichmäßig im Abstand ihres Mittels gelegt. Kohärenz = 100 × (Leistung der Schwingung im Atemtakt) ÷ (gesamte Streuung): a = 2/n × Σ (RR − Mittel) × cos(2π t/T), b = 2/n × Σ (RR − Mittel) × sin(2π t/T), Leistung = (a² + b²) ÷ 2, Streuung = Σ (RR − Mittel)² ÷ n; T = Dauer eines Atemzugs. Begrenzt auf 0 bis 100, ganze Zahl.","erklaerung":"Wie gleichmäßig dein Puls im Takt deines Atems steigt und fällt: 100 heißt, fast die ganze Schwankung folgt dem Atem; 0 heißt, sie hat mit dem Atem nichts zu tun. Eigener, vereinfachter Wert – nicht mit Werten anderer Apps vergleichbar.","pruefen":true},"live.training.min_ms":{"wert":60000,"einheit":"ms","fundstelle":"eigene Festlegung MF (kürzere Live-Aufzeichnungen sind meist Fehlstarts)","erklaerung":"Eine Live-Aufzeichnung wird erst ab einer Minute als Training gespeichert.","pruefen":true},"live.formel_puls":{"wert":null,"einheit":"formel","fundstelle":"Bluetooth SIG: Heart Rate Service Specification 1.0 (2011) und GATT Specification Supplement, Merkmal Heart Rate Measurement 0x2A37 (Flags, 8/16-Bit-Puls, Energie, RR-Abstände in 1/1024 s)","text":"Puls = Wert aus dem Merkmal 0x2A37 des Dienstes Heart Rate 0x180D (Bit 0 der Flags: 16 statt 8 Bit). RR-Abstand in ms = Rohwert × 1000 ÷ 1024, kaufmännisch gerundet.","erklaerung":"So kommt der Puls live vom Band: Das Band sendet etwa einmal pro Sekunde den aktuellen Puls und, wenn es kann, die Abstände zwischen den letzten Herzschlägen.","pruefen":false},"belastung.zonen_aus_prozent":{"wert":null,"einheit":"formel","fundstelle":"eigene Festlegung MF (Schätzung, wenn der Export nur Zonenanteile statt Pulswerte enthält, z. B. WHOOP-CSV „HR Zone 1–5 %“); Kurve und Gewichte wie „belastung“ (Edwards 1993, Banister 1991)","text":"Geschätzt: Für Trainings ohne einzelne Pulswerte gilt Zeit in Zone k = Dauer × Anteil k ÷ 100 (Anteile aus dem Export, ganze Millisekunden). Danach wie gemessen: Zonen-Minuten T = Σ Minuten in Zone k × k, Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle.","erklaerung":"Dein Export sagt nur, wie viel Prozent des Trainings du in jeder Zone warst. Daraus rechnen wir die Minuten je Zone und dann die Belastung wie sonst auch. Weil die Zonengrenzen des Anbieters etwas anders liegen können, ist das eine Schätzung.","pruefen":true}}} };
 
 // ===== kern/formeln.js
 const __m_kern_formeln_js = (() => {
@@ -1911,6 +1917,54 @@ const KATALOG = [
 ];
 const SCHLUESSEL = KATALOG.map((k) => k.schluessel);
 
+/** Fragetext → Schlüssel: "Did you drink alcohol?" → "did_you_drink_alcohol" (gleiche Regel wie daten/csv_import.js frageSchluessel). */
+const textSchluessel = (text) => String(text ?? "").toLowerCase()
+  .replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue").replace(/ß/g, "ss").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+
+/**
+ * WHOOP-Fragetext → Schlüssel des Katalogs (KATALOG), wenn die Bedeutung eindeutig dieselbe ist; sonst null.
+ * Verneinte Fragen („Kein Alkohol …“, „No caffeine …“) werden nie zugeordnet (die Antwort hätte die umgekehrte Bedeutung).
+ * Nicht zugeordnet bleiben z. B. „Koffein konsumiert?“ (ohne Tageszeit; MF fragt nach Koffein am Nachmittag) und alle Fragen ohne
+ * Gegenstück; sie bleiben unter ihrem eigenen Schlüssel im Datensatz erhalten (docs/technik/datenfluss.md, Abschnitt Tagebuch).
+ */
+function katalogSchluessel(fragetext) {
+  const k = textSchluessel(fragetext);
+  if (!k || /(^|_)(kein|keine|keinen|keiner|ohne|no|not|without|nicht)(_|$)/.test(k)) return null;
+  const ohneNichtBildschirm = k.replace(/non_?screened/g, "").replace(/(ohne|nicht)_bildschirm\w*/g, "");
+  const hat = (re, text = k) => re.test(text);
+  if (hat(/(^|_)(read|reading|lesen|gelesen)(_|$)/) && hat(/(bed|bett|sleep|schlaf)/) && !hat(/(screen|bildschirm|tablet|handy|phone)/, ohneNichtBildschirm)) return "lesen";
+  if (hat(/(screen|bildschirm|handy|phone|tablet|fernseh|(^|_)tv(_|$))/, ohneNichtBildschirm) && hat(/(bed|bett|schlaf|sleep)/)) return "bildschirm_spaet";
+  if (hat(/(alkohol|alcohol)/)) return "alkohol";
+  if (hat(/(koffein|caffeine|kaffee|coffee)/) && hat(/(spaet|late|nachmittag|afternoon|abend|evening|(^|_)after(_|$))/)) return "koffein_spaet";
+  if (hat(/(^|_)(eat|ate|eaten|essen|gegessen|mahlzeit|meal)(_|$)/) && hat(/(bedtime|schlafengehen|close_to_bed|before_bed|before_sleep|kurz_vor|(^|_)(late|spaet)(_|$))/)) return "spaete_mahlzeit";
+  if (hat(/medit/)) return "meditation";
+  if (hat(/(kaltdusche|cold_shower|cold_bath|cold_plunge|ice_bath|eisbad|kalt\w*_gedusch|kalt\w*_gebadet)/)) return "kaltdusche";
+  if (hat(/sauna/)) return "sauna";
+  if (hat(/(breathwork|breathing_exercise|atemuebung|atemtechnik)/)) return "atemuebung";
+  if (hat(/stress/)) return "stress";
+  if (hat(/(^|_)(sick|ill|krank|unwohl|unwell|erkaeltet)(_|$)/)) return "krank";
+  if (hat(/(travel|reise|gereist|unterwegs)/)) return "reisen";
+  return null;
+}
+
+/**
+ * Tagebuch-Datensatz des Imports (WHOOP-Fragen unter eigenen Schlüsseln, `fragen[schluessel]` = Fragetext) um die Katalogschlüssel
+ * ergänzen. Beim Lesen angewendet, damit auch schon eingelesene Daten zählen. Mehrere Fragen auf denselben Schlüssel: ein „Ja“ gilt.
+ * Ein schon vorhandener Eintrag unter dem Katalogschlüssel (vom Nutzer gesetzt) hat Vorrang.
+ * @returns {object} Kopie des Datensatzes (unverändert, wenn es nichts zuzuordnen gibt)
+ */
+function mitKatalog(eintrag) {
+  if (!eintrag || !eintrag.fragen || !eintrag.eintraege) return eintrag;
+  const neu = {};
+  for (const [k, text] of Object.entries(eintrag.fragen)) {
+    const kat = katalogSchluessel(text);
+    const v = eintrag.eintraege[k];
+    if (!kat || typeof v !== "boolean" || kat === k || eintrag.eintraege[kat] !== undefined) continue;
+    neu[kat] = neu[kat] === true ? true : v;
+  }
+  return Object.keys(neu).length ? { ...eintrag, eintraege: { ...eintrag.eintraege, ...neu } } : eintrag;
+}
+
 /** Eintrag deuten: true / Zahl > 0 → "mit", false / 0 → "ohne", sonst null (nicht erfasst). */
 function gruppe(v) {
   if (v === true || (typeof v === "number" && v > 0)) return "mit";
@@ -1965,7 +2019,7 @@ function hinweis(mit, ohne, differenz, ok, minN) {
     : `Deine Erholung am Morgen danach war im Mittel ${betrag} Punkte ${richtung}.`;
   return { hinweisSchluessel: "tagebuch.hinweis.vergleich", hinweis: satz + schluss };
 }
-return { KATALOG, SCHLUESSEL, gruppe, tagebuchWirkung };
+return { KATALOG, SCHLUESSEL, katalogSchluessel, mitKatalog, gruppe, tagebuchWirkung };
 })();
 
 // ===== kern/belastung.js
@@ -2134,8 +2188,10 @@ function belastung({ herzschlaege, maxPuls, ruhepuls, zonenProzent, von, bis, qu
  * @returns {object|null}
  */
 function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } = {}) {
-  if (!pulsOk(maxPuls, ruhepuls)) return null;
   const tr = (trainings || []).filter(Boolean);
+  // Ohne Max-/Ruhepuls geht es nur, wenn alles aus Zonenanteilen kommt (WHOOP-CSV): dann braucht die Rechnung keine Pulsgrenzen.
+  const nurAnteile = tr.length > 0 && !(alltag || []).length && tr.every((x) => !hatProben(x.herzschlaege) && hatProzent(x));
+  if (!pulsOk(maxPuls, ruhepuls) && !nurAnteile) return null;
   const imTraining = (t) => tr.some((x) => t >= x.von && t <= x.bis);
   const teile = tr.map((x) => ({ ...zeitTraining(x, maxPuls, ruhepuls), training: x }));
   teile.push({ ...zeitInZonen((alltag || []).filter((h) => h && !imTraining(h.t)), maxPuls, ruhepuls), geschaetzt: false, training: null });
@@ -2147,14 +2203,14 @@ function belastungTag(trainings = [], alltag = [], { maxPuls, ruhepuls } = {}) {
   const ohneZoneMs = teile.reduce((a, p) => a + p.ohneZoneMs, 0);
   const einzel = teile.filter((p) => p.training).map((p) => ergebnis(p.zonen, p.ohneZoneMs, {
     art: p.training.art ?? null, von: p.training.von, bis: p.training.bis,
-    quellen: vereinige(p.training.quelle, ...p.zonen.map((z) => z.quelle)),
+    quellen: vereinige(p.training.quelle, p.training.weitereQuellen, ...p.zonen.map((z) => z.quelle)),
     geschaetzt: false, ...(p.geschaetzt ? SCHAETZUNG() : {}),
   }));
   return ergebnis(zonen, ohneZoneMs, {
-    maxPuls, ruhepuls, grenzen: zonenGrenzen(maxPuls, ruhepuls), trainings: einzel,
+    maxPuls, ruhepuls, grenzen: pulsOk(maxPuls, ruhepuls) ? zonenGrenzen(maxPuls, ruhepuls) : null, trainings: einzel,
     geschaetzt: false, ...(teile.some((p) => p.geschaetzt) ? SCHAETZUNG() : {}),
     alltagZonenMinuten: rund(trimpMs(teile.at(-1).zonen) / MS_MINUTE, 1),
-    quellen: vereinige(...tr.map((x) => x.quelle), ...zonen.map((z) => z.quelle)),
+    quellen: vereinige(...tr.map((x) => x.quelle), ...tr.map((x) => x.weitereQuellen), ...zonen.map((z) => z.quelle)),
   });
 }
 return { maxPulsTanaka, zonenGrenzen, zoneVon, zeitInZonen, zeitAusProzent, trimpMs, kurveZehntel, belastung, belastungTag };
@@ -2408,9 +2464,17 @@ const { vereinige } = __m_kern_quellen_js;
 const PHASEN = ["wach", "leicht", "tief", "rem"];
 const MINUTEN_HALBER_TAG = 12 * 60; // Wanduhr: 12 h, um Einschlafzeiten um Mitternacht zu zentrieren
 
+/** Nicht negative endliche Zahl? */
+const istMs = (x) => Number.isFinite(x) && x >= 0;
+
 /**
- * Phasen zusammenfassen.
- * @param {{von:number, bis:number, phasen?:Array<{von:number,bis:number,art:string}>}} schlaf
+ * Phasen zusammenfassen. Quellen der Phasenzeiten, in dieser Reihenfolge:
+ *  1. Zeitachse `phasen` (Health Connect): Summe je Art.
+ *  2. Summen je Phase `phasenSummen { wachMs, leichtMs, tiefMs, remMs }` (WHOOP-CSV, daten/csv_import.js): ohne Zeitachse.
+ *  3. Nur `schlafMs` (geschlafene Zeit laut Export): Dauer ohne Phasen.
+ *  4. Sonst die Zeit im Bett.
+ * Die Dauer ist immer die geschlafene Zeit (leicht + tief + REM), nie die Bettzeit, sobald Phasen oder `schlafMs` bekannt sind.
+ * @param {{von:number, bis:number, phasen?:Array<{von:number,bis:number,art:string}>, phasenSummen?:object, schlafMs?:number}} schlaf
  * @returns {{imBettMs:number, dauerMs:number, phasen:{wach:number,leicht:number,tief:number,rem:number}, anteile:Object, mitPhasen:boolean}}
  */
 function schlafZusammenfassung(schlaf) {
@@ -2418,8 +2482,16 @@ function schlafZusammenfassung(schlaf) {
   const p = { wach: 0, leicht: 0, tief: 0, rem: 0 };
   const liste = Array.isArray(schlaf.phasen) ? schlaf.phasen : [];
   for (const ph of liste) if (ph && p[ph.art] !== undefined && ph.bis > ph.von) p[ph.art] += ph.bis - ph.von;
-  const mitPhasen = liste.length > 0;
-  const dauerMs = mitPhasen ? p.leicht + p.tief + p.rem : imBettMs;
+  let mitPhasen = liste.length > 0;
+  if (!mitPhasen && schlaf.phasenSummen && typeof schlaf.phasenSummen === "object") {
+    const s = schlaf.phasenSummen;
+    const summen = { wach: s.wachMs, leicht: s.leichtMs, tief: s.tiefMs, rem: s.remMs };
+    if (summen.leicht + summen.tief + summen.rem > 0 && [summen.leicht, summen.tief, summen.rem].every(istMs)) {
+      for (const a of PHASEN) p[a] = istMs(summen[a]) ? Math.round(summen[a]) : 0;
+      mitPhasen = true;
+    }
+  }
+  const dauerMs = mitPhasen ? p.leicht + p.tief + p.rem : istMs(schlaf.schlafMs) && schlaf.schlafMs > 0 ? Math.min(Math.round(schlaf.schlafMs), imBettMs || Math.round(schlaf.schlafMs)) : imBettMs;
   const summe = p.wach + p.leicht + p.tief + p.rem;
   const anteile = {};
   for (const a of PHASEN) anteile[a] = summe > 0 ? rundBruch(p[a] * 1000, summe) : 0;
@@ -2471,7 +2543,7 @@ function schlafLeistung({ schlaf, bedarf, vorher = [] } = {}) {
   return {
     wert: w, dauerMs: z.dauerMs, imBettMs: z.imBettMs, bedarfMs, schuld: Math.max(0, bedarfMs - z.dauerMs),
     phasen: z.phasen, anteile: z.anteile, effizienz, konsistenz: schlafKonsistenz(schlaf, vorher),
-    formel: formel("schlaf.leistung"), quellen: vereinige(schlaf.quelle, bedarf?.quellen),
+    formel: formel("schlaf.leistung"), quellen: vereinige(schlaf.quelle, schlaf.weitereQuellen, bedarf?.quellen),
   };
 }
 
@@ -3056,6 +3128,104 @@ const pulsFormel = () => formel("live.formel_puls");
 return { zoneVon, laufendeBelastung, rrFilter, hrvKurz, atemKohaerenz, trainingMindestMs, pulsFormel };
 })();
 
+// ===== kern/zusammenfuehren.js
+const __m_kern_zusammenfuehren_js = (() => {
+/* kern/zusammenfuehren.js – dieselbe Nacht und dasselbe Training aus mehreren Quellen zu einem Datensatz.
+ *
+ * Kernaussage: Kommt dieselbe Nacht oder dasselbe Training einmal aus Health Connect und einmal aus dem WHOOP-Export (CSV), sind das
+ * zwei Datensätze mit verschiedener Kennung. Ohne Zusammenlegen zählte die zweite Nacht als Nickerchen und das Training doppelt
+ * (Belastung doppelt). Zwei Datensätze gelten als derselbe, wenn sie sich mindestens zur Hälfte des kürzeren überdecken
+ * (formeln.json "zusammenfuehren.ueberlappung"). Führend ist der Satz mit echten Daten (Schlafphasen bzw. Pulswerte, sonst
+ * Phasensummen, sonst Health Connect, sonst der frühere); fehlende Felder (WHOOPs eigene Werte, Phasensummen, Zonenanteile,
+ * Trainingsart) kommen aus dem anderen. Beide Quellen bleiben in `weitereQuellen` und damit im Belegfenster sichtbar.
+ *
+ * Punktwerte (HRV, Ruhepuls, Atemfrequenz, SpO2, Hauttemperatur) wählt `eineQuelle`: je Art und Nacht nur eine Quelle
+ * (Health Connect, sonst CSV, sonst die übrigen), nie gemittelt.
+ *
+ * Reine Funktionen, kein DOM, kein Netz, kein Speicher.
+ */
+const { wert } = __m_kern_formeln_js;
+
+/** Überdeckung in ms zweier Zeitspannen {von, bis}. */
+const ueberdeckung = (a, b) => Math.min(a.bis, b.bis) - Math.max(a.von, b.von);
+
+/** Gehören a und b zusammen (Überdeckung ≥ Anteil des kürzeren; ganzzahlig in Promille gerechnet)? */
+function gleicherSatz(a, b) {
+  const kurz = Math.min(a.bis - a.von, b.bis - b.von);
+  if (!(kurz > 0)) return false;
+  return ueberdeckung(a, b) * 1000 >= wert("zusammenfuehren.ueberlappung") * kurz;
+}
+
+const hatPhasen = (s) => Array.isArray(s.phasen) && s.phasen.length > 0;
+const hatSummen = (s) => !!s.phasenSummen && [s.phasenSummen.leichtMs, s.phasenSummen.tiefMs, s.phasenSummen.remMs].some((x) => Number.isFinite(x) && x > 0);
+const hatProben = (t) => Array.isArray(t.herzschlaege) && t.herzschlaege.length >= 2;
+const istHc = (x) => x.quelle?.art === "healthconnect";
+const leer = (v) => v === undefined || v === null || (Array.isArray(v) && v.length === 0);
+
+/** Rang eines Satzes als führender Satz (größer = besser). */
+const rangSchlaf = (s) => (hatPhasen(s) ? 4 : 0) + (hatSummen(s) ? 2 : 0) + (istHc(s) ? 1 : 0);
+const rangTraining = (t) => (hatProben(t) ? 4 : 0) + (istHc(t) ? 1 : 0);
+
+/** Unbestimmte Trainingsart aus Health Connect ("hc_<Nr>") oder "sonstiges" gilt als unbekannt. */
+const artUnbekannt = (a) => !a || /^hc_/.test(a) || a === "sonstiges";
+
+function vereine(lead, andere, art) {
+  const aus = { ...lead };
+  for (const o of andere) {
+    for (const [k, v] of Object.entries(o)) {
+      if (k === "quelle" || k === "weitereQuellen" || k === "von" || k === "bis") continue;
+      if (art === "schlaf" && (k === "phasen" || (k === "phasenSummen" && hatPhasen(lead)))) continue;
+      if (art === "training" && k === "herzschlaege") continue;
+      if (art === "training" && k === "art") { if (artUnbekannt(aus.art) && !artUnbekannt(v)) aus.art = v; continue; }
+      if (k === "fremdwerte" && aus.fremdwerte && v) { aus.fremdwerte = { ...v, ...Object.fromEntries(Object.entries(aus.fremdwerte).filter(([, x]) => x !== null && x !== undefined)) }; continue; }
+      if (leer(aus[k]) && !leer(v)) aus[k] = v;
+    }
+  }
+  aus.weitereQuellen = [...(lead.weitereQuellen || []), ...andere.flatMap((o) => [o.quelle, ...(o.weitereQuellen || [])])].filter(Boolean);
+  return aus;
+}
+
+/**
+ * Liste von Spannen {von, bis} zusammenlegen.
+ * @param {object[]} liste
+ * @param {"schlaf"|"training"} art
+ * @returns {object[]} nach Beginn sortiert; Sätze ohne Gegenstück unverändert (gleiches Objekt)
+ */
+function zusammenlegen(liste, art) {
+  const rang = art === "schlaf" ? rangSchlaf : rangTraining;
+  const rest = (liste || []).filter((x) => x && x.bis >= x.von).slice().sort((a, b) => a.von - b.von || (istHc(b) - istHc(a)));
+  const gruppen = [];
+  for (const x of rest) {
+    const g = gruppen.find((gr) => gr.some((y) => gleicherSatz(x, y)));
+    if (g) g.push(x); else gruppen.push([x]);
+  }
+  return gruppen.map((g) => {
+    if (g.length === 1) return g[0];
+    const lead = g.reduce((b, x) => (rang(x) > rang(b) ? x : b), g[0]);
+    return vereine(lead, g.filter((x) => x !== lead), art);
+  }).sort((a, b) => a.von - b.von);
+}
+
+/** Datenbündel mit zusammengelegten Nächten und Trainings (die übrigen Arten unverändert). Mehrfaches Anwenden ändert nichts mehr. */
+function zusammenfuehren(daten = {}) {
+  return { ...daten, schlaf: zusammenlegen(daten.schlaf, "schlaf"), training: zusammenlegen(daten.training, "training") };
+}
+
+const RANG_QUELLE = ["healthconnect", "csv"];
+/**
+ * Messreihe auf eine Quelle beschränken: Health Connect, sonst CSV, sonst die erste vorhandene Art.
+ * @param {Array<{quelle?:{art:string}}>} liste
+ */
+function eineQuelle(liste) {
+  if (!liste || liste.length < 2) return liste || [];
+  const arten = new Set(liste.map((x) => x.quelle?.art ?? ""));
+  if (arten.size < 2) return liste;
+  const wahl = RANG_QUELLE.find((a) => arten.has(a)) ?? [...arten][0];
+  return liste.filter((x) => (x.quelle?.art ?? "") === wahl);
+}
+return { gleicherSatz, zusammenlegen, zusammenfuehren, eineQuelle };
+})();
+
 // ===== kern/tag.js
 const __m_kern_tag_js = (() => {
 /* kern/tag.js – alle Rechnungen eines Tages an einem Ort.
@@ -3079,6 +3249,7 @@ const { erholung } = __m_kern_erholung_js;
 const { belastungTag, maxPulsTanaka } = __m_kern_belastung_js;
 const { schlafLeistung, schlafBedarf, schlafSchuld, schlafZusammenfassung } = __m_kern_schlaf_js;
 const { vereinige } = __m_kern_quellen_js;
+const { zusammenlegen, eineQuelle } = __m_kern_zusammenfuehren_js;
 
 const LISTEN = ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp", "schlaf", "training", "tagebuch"];
 const nachT = (a, b) => a.t - b.t;
@@ -3089,8 +3260,9 @@ function normiere(daten = {}) {
   const d = {};
   for (const k of LISTEN) d[k] = Array.isArray(daten[k]) ? daten[k].filter(Boolean).slice() : [];
   for (const k of ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp"]) d[k] = d[k].filter((x) => Number.isFinite(x.t)).sort(nachT);
-  d.schlaf = d.schlaf.filter((s) => s.bis > s.von).sort(nachVon);
-  d.training = d.training.filter((s) => s.bis >= s.von).sort(nachVon);
+  // Dieselbe Nacht / dasselbe Training aus Health Connect und WHOOP-CSV ist ein Datensatz (kern/zusammenfuehren.js)
+  d.schlaf = zusammenlegen(d.schlaf.filter((s) => s.bis > s.von), "schlaf");
+  d.training = zusammenlegen(d.training.filter((s) => s.bis >= s.von), "training");
   d.tagebuchNachTag = new Map(d.tagebuch.filter((x) => istIsoTag(x.tag)).map((x) => [x.tag, x]));
   return d;
 }
@@ -3134,13 +3306,20 @@ function auswerter(daten, einstellungen = {}) {
     const s = haupt(tag), g = grenzen(tag);
     const naechste = haupt(plusTage(tag, 1)), ende = naechste ? Math.min(naechste.von, g.bis) : g.bis; // nächste Nacht gehört zum Folgetag
     const vonN = s ? s.von : g.von, bisN = s ? s.bis + 1 : ende;
-    const rp = abschnitt(D.ruhepuls, vonN, Math.max(bisN, ende)).find((x) => Number.isFinite(x.bpm));
+    // Punktwerte je Art aus EINER Quelle (Health Connect, sonst CSV), nicht gemittelt. Gibt es im Schlaffenster nichts, zählt der Wert
+    // der ersten Stunden nach dem Aufwachen ("zeit.nachfenster_nach_aufwachen"), denn manche Geräte melden ihn erst beim Synchronisieren.
+    const nachN = s ? Math.min(bisN + wert("zeit.nachfenster_nach_aufwachen"), ende > bisN ? ende : Infinity) : null;
+    const reihe = (liste, feld) => {
+      const im = eineQuelle(abschnitt(liste, vonN, bisN).filter((x) => Number.isFinite(x[feld])));
+      return im.length || nachN === null ? im : eineQuelle(abschnitt(liste, bisN, nachN).filter((x) => Number.isFinite(x[feld])));
+    };
+    const rp = eineQuelle(abschnitt(D.ruhepuls, vonN, Math.max(bisN, ende)).filter((x) => Number.isFinite(x.bpm)))[0];
     return {
       schlaf: s,
-      hrv: mittelwert(abschnitt(D.hrv, vonN, bisN), "rmssdMs", wert("einheit.hrv")),
-      atem: mittelwert(abschnitt(D.atemfrequenz, vonN, bisN), "proMin", wert("einheit.atem")),
-      spo2: mittelwert(abschnitt(D.spo2, vonN, bisN), "prozent", wert("einheit.spo2")),
-      hauttemp: mittelwert(abschnitt(D.hauttemp, vonN, bisN), "deltaC", wert("einheit.hauttemp")),
+      hrv: mittelwert(reihe(D.hrv, "rmssdMs"), "rmssdMs", wert("einheit.hrv")),
+      atem: mittelwert(reihe(D.atemfrequenz, "proMin"), "proMin", wert("einheit.atem")),
+      spo2: mittelwert(reihe(D.spo2, "prozent"), "prozent", wert("einheit.spo2")),
+      hauttemp: mittelwert(reihe(D.hauttemp, "deltaC"), "deltaC", wert("einheit.hauttemp")),
       ruhepuls: rp ? { wert: rund(rp.bpm), n: 1, quellen: vereinige(rp.quelle) } : null,
     };
   });
@@ -3403,6 +3582,7 @@ const __m_kern_index_js = (() => {
 
 
 
+
 const { UEBUNGEN } = __m_kern_atem_js;
 const { KATALOG } = __m_kern_tagebuch_js;
 const { maxPulsTanaka } = __m_kern_belastung_js;
@@ -3412,7 +3592,7 @@ const atemKatalog = () => UEBUNGEN.slice();
 const tagebuchKatalog = () => KATALOG.map((k) => ({ ...k }));
 /** Maximalpuls aus dem Alter als {wert, formel} (Tanaka 2001). */
 const maxPulsAus = (alter) => { const m = maxPulsTanaka(alter); return m ? { wert: m.bpm, formel: m.formel } : null; };
-return { formel: __m_kern_formeln_js.formel, wert: __m_kern_formeln_js.wert, pruefListe: __m_kern_formeln_js.pruefListe, formelSchluessel: __m_kern_formeln_js.alleSchluessel, setzeFormeln: __m_kern_formeln_js.setzeFormeln, rund: __m_kern_rundung_js.rund, rundBruch: __m_kern_rundung_js.rundBruch, isoTag: __m_kern_zeit_js.isoTag, tagIso: __m_kern_zeit_js.isoTag, plusTage: __m_kern_zeit_js.plusTage, tagPlus: __m_kern_zeit_js.plusTage, mitternacht: __m_kern_zeit_js.mitternacht, lokal: __m_kern_zeit_js.lokal, tageZwischen: __m_kern_zeit_js.tageZwischen, tagLaengeMs: __m_kern_zeit_js.tagLaengeMs, wochentag: __m_kern_zeit_js.wochentag, isoWoche: __m_kern_zeit_js.isoWoche, monat: __m_kern_zeit_js.monat, dauer: __m_kern_zeit_js.dauer, hauptschlaf: __m_kern_zeit_js.hauptschlaf, tagesgrenzen: __m_kern_zeit_js.tagesgrenzen, MS_MINUTE: __m_kern_zeit_js.MS_MINUTE, MS_STUNDE: __m_kern_zeit_js.MS_STUNDE, basislinie: __m_kern_basislinie_js.basislinie, zWert: __m_kern_basislinie_js.zWert, erholung: __m_kern_erholung_js.erholung, stufe: __m_kern_erholung_js.stufe, belastung: __m_kern_belastung_js.belastung, belastungTag: __m_kern_belastung_js.belastungTag, maxPulsTanaka: __m_kern_belastung_js.maxPulsTanaka, zonenGrenzen: __m_kern_belastung_js.zonenGrenzen, zoneVon: __m_kern_belastung_js.zoneVon, schlafLeistung: __m_kern_schlaf_js.schlafLeistung, schlafBedarf: __m_kern_schlaf_js.schlafBedarf, schlafSchuld: __m_kern_schlaf_js.schlafSchuld, schlafKonsistenz: __m_kern_schlaf_js.schlafKonsistenz, schlafZusammenfassung: __m_kern_schlaf_js.schlafZusammenfassung, atemUebung: __m_kern_atem_js.atemUebung, atemPlan: __m_kern_atem_js.atemPlan, UEBUNGEN: __m_kern_atem_js.UEBUNGEN, tagebuchWirkung: __m_kern_tagebuch_js.tagebuchWirkung, TAGEBUCH_KATALOG: __m_kern_tagebuch_js.KATALOG, trend: __m_kern_trend_js.trend, wochenZusammenfassung: __m_kern_trend_js.wochenZusammenfassung, monatsZusammenfassung: __m_kern_trend_js.monatsZusammenfassung, TREND_FELDER: __m_kern_trend_js.FELDER, speicherMap: __m_kern_speicher_js.speicherMap, istSpeicher: __m_kern_speicher_js.istSpeicher, SPEICHER_SCHLUESSEL: __m_kern_speicher_js.SCHLUESSEL, demoDaten: __m_kern_demo_js.demoDaten, demoPuls: __m_kern_demo_js.demoPuls, MUSTERPERSON: __m_kern_demo_js.MUSTERPERSON, liveZone: __m_kern_live_js.zoneVon, laufendeBelastung: __m_kern_live_js.laufendeBelastung, rrFilter: __m_kern_live_js.rrFilter, hrvKurz: __m_kern_live_js.hrvKurz, atemKohaerenz: __m_kern_live_js.atemKohaerenz, pulsFormel: __m_kern_live_js.pulsFormel, tagAuswerten: __m_kern_tag_js.tagAuswerten, alleTage: __m_kern_tag_js.alleTage, auswerter: __m_kern_tag_js.auswerter, t: __m_kern_i18n_js.t, SPRACHEN: __m_kern_i18n_js.SPRACHEN, atemKatalog, tagebuchKatalog, maxPulsAus };
+return { formel: __m_kern_formeln_js.formel, wert: __m_kern_formeln_js.wert, pruefListe: __m_kern_formeln_js.pruefListe, formelSchluessel: __m_kern_formeln_js.alleSchluessel, setzeFormeln: __m_kern_formeln_js.setzeFormeln, rund: __m_kern_rundung_js.rund, rundBruch: __m_kern_rundung_js.rundBruch, isoTag: __m_kern_zeit_js.isoTag, tagIso: __m_kern_zeit_js.isoTag, plusTage: __m_kern_zeit_js.plusTage, tagPlus: __m_kern_zeit_js.plusTage, mitternacht: __m_kern_zeit_js.mitternacht, lokal: __m_kern_zeit_js.lokal, tageZwischen: __m_kern_zeit_js.tageZwischen, tagLaengeMs: __m_kern_zeit_js.tagLaengeMs, wochentag: __m_kern_zeit_js.wochentag, isoWoche: __m_kern_zeit_js.isoWoche, monat: __m_kern_zeit_js.monat, dauer: __m_kern_zeit_js.dauer, hauptschlaf: __m_kern_zeit_js.hauptschlaf, tagesgrenzen: __m_kern_zeit_js.tagesgrenzen, MS_MINUTE: __m_kern_zeit_js.MS_MINUTE, MS_STUNDE: __m_kern_zeit_js.MS_STUNDE, basislinie: __m_kern_basislinie_js.basislinie, zWert: __m_kern_basislinie_js.zWert, erholung: __m_kern_erholung_js.erholung, stufe: __m_kern_erholung_js.stufe, belastung: __m_kern_belastung_js.belastung, belastungTag: __m_kern_belastung_js.belastungTag, maxPulsTanaka: __m_kern_belastung_js.maxPulsTanaka, zonenGrenzen: __m_kern_belastung_js.zonenGrenzen, zoneVon: __m_kern_belastung_js.zoneVon, schlafLeistung: __m_kern_schlaf_js.schlafLeistung, schlafBedarf: __m_kern_schlaf_js.schlafBedarf, schlafSchuld: __m_kern_schlaf_js.schlafSchuld, schlafKonsistenz: __m_kern_schlaf_js.schlafKonsistenz, schlafZusammenfassung: __m_kern_schlaf_js.schlafZusammenfassung, atemUebung: __m_kern_atem_js.atemUebung, atemPlan: __m_kern_atem_js.atemPlan, UEBUNGEN: __m_kern_atem_js.UEBUNGEN, tagebuchWirkung: __m_kern_tagebuch_js.tagebuchWirkung, TAGEBUCH_KATALOG: __m_kern_tagebuch_js.KATALOG, katalogSchluessel: __m_kern_tagebuch_js.katalogSchluessel, mitKatalog: __m_kern_tagebuch_js.mitKatalog, trend: __m_kern_trend_js.trend, wochenZusammenfassung: __m_kern_trend_js.wochenZusammenfassung, monatsZusammenfassung: __m_kern_trend_js.monatsZusammenfassung, TREND_FELDER: __m_kern_trend_js.FELDER, speicherMap: __m_kern_speicher_js.speicherMap, istSpeicher: __m_kern_speicher_js.istSpeicher, SPEICHER_SCHLUESSEL: __m_kern_speicher_js.SCHLUESSEL, demoDaten: __m_kern_demo_js.demoDaten, demoPuls: __m_kern_demo_js.demoPuls, MUSTERPERSON: __m_kern_demo_js.MUSTERPERSON, liveZone: __m_kern_live_js.zoneVon, laufendeBelastung: __m_kern_live_js.laufendeBelastung, rrFilter: __m_kern_live_js.rrFilter, hrvKurz: __m_kern_live_js.hrvKurz, atemKohaerenz: __m_kern_live_js.atemKohaerenz, pulsFormel: __m_kern_live_js.pulsFormel, tagAuswerten: __m_kern_tag_js.tagAuswerten, alleTage: __m_kern_tag_js.alleTage, auswerter: __m_kern_tag_js.auswerter, zusammenfuehren: __m_kern_zusammenfuehren_js.zusammenfuehren, zusammenlegen: __m_kern_zusammenfuehren_js.zusammenlegen, eineQuelle: __m_kern_zusammenfuehren_js.eineQuelle, gleicherSatz: __m_kern_zusammenfuehren_js.gleicherSatz, t: __m_kern_i18n_js.t, SPRACHEN: __m_kern_i18n_js.SPRACHEN, atemKatalog, tagebuchKatalog, maxPulsAus };
 })();
 
 // ===== shell/kern_echt.js
@@ -3504,18 +3684,19 @@ function teilAnzeige(x) {
 
 function berechne(daten = {}, einst = {}, eigenesTagebuch = {}) {
   const fremd = fremdNachTag(daten.fremdwerte);
-  const tbNachTag = new Map((daten.tagebuch || []).map((x) => [x.tag, x]));
+  const tbNachTag = new Map((daten.tagebuch || []).map((x) => [x.tag, K.mitKatalog(x)]));  // WHOOP-Fragen zusätzlich unter den Katalogschlüsseln
   for (const [tag, e] of Object.entries(eigenesTagebuch)) tbNachTag.set(tag, { tag, eintraege: { ...(tbNachTag.get(tag)?.eintraege || {}), ...e.eintraege }, quelle: e.quelle });
-  const buendel = { ...daten, tagebuch: [...tbNachTag.values()] };
+  // Dieselbe Nacht / dasselbe Training aus Health Connect und CSV: ein Datensatz (kern/zusammenfuehren.js); die Ansicht liest dieselben Sätze wie der Kern
+  const buendel = K.zusammenfuehren({ ...daten, tagebuch: [...tbNachTag.values()] });
   const zahlOder = (x) => (Number.isFinite(Number(x)) && Number(x) > 0 ? Math.round(Number(x)) : undefined);
   const e = { ...einst, alter: zahlOder(einst.alter), maxPuls: zahlOder(einst.maxPuls), ruhepuls: zahlOder(einst.ruhepuls), schlafBasisMs: Number(einst.schlafBasisMs) || undefined };
   const sprache = einst.sprache || "de";
   const kernTage = K.alleTage(buendel, e);
-  const trainings = [...(daten.training || [])].sort((a, b) => a.von - b.von);
+  const trainings = [...(buendel.training || [])].sort((a, b) => a.von - b.von);
   const tage = new Map(), liste = [];
   const belastungen = [];
   for (const kt of kernTage) {
-    const roh = K.hauptschlaf(kt.tag, daten.schlaf || []);
+    const roh = K.hauptschlaf(kt.tag, buendel.schlaf || []);
     const sl = kt.schlaf;
     const bel = belastungAnzeige(kt.belastung);
     const bild = {
@@ -4794,9 +4975,25 @@ function schlafAus(roh) {
     phasen.sort((a, b) => a.von - b.von);
     const d = { von, bis, phasen, quelle: quelleHc(r, "SleepSession") };
     if (r.title) d.titel = String(r.title);
-    aus.push(mitZone(d, zoneVon(r, "startZoneOffsetSek")));
+    // Der Tag einer Nacht ist der Aufwachtag (ablage.js bezugszeit = bis): deshalb gilt der Versatz am Ende der Sitzung
+    // (bei Reisen über Zeitzonen unterscheidet er sich vom Versatz am Beginn); fehlt er, der vom Beginn.
+    aus.push(mitZone(d, zoneVon(r, "endZoneOffsetSek")));
   }
   return aus;
+}
+
+/** Hat die Nacht echte Schlafstufen (Leicht/Tief/REM/Wach)? Nur "SLEEPING" (unbestimmt) oder gar keine Stufen → nein. */
+function hatSchlafphasen(schlaf) {
+  return Array.isArray(schlaf && schlaf.phasen) && schlaf.phasen.some((p) => !p.unbestimmt);
+}
+
+/**
+ * Quelle/App-Zeile für den Beleg: "Health Connect · com.whoop.android" (nur für Health-Connect-Quellen, sonst "").
+ * Die Shell hängt sie an die Quellenkarte (shell/apps/beleg.js), damit man sieht, welche App die Zahl nach Health Connect schrieb.
+ */
+function quellenAnzeige(quelle) {
+  if (!quelle || quelle.art !== "healthconnect") return "";
+  return quelle.herkunft ? `Health Connect · ${quelle.herkunft}` : "Health Connect";
 }
 
 /** ExerciseSession → Training[]; Herzschläge im Zeitraum [von, bis] werden angehängt. */
@@ -4889,6 +5086,7 @@ const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehl
  * endgültiger Fehler wie fehlendes Recht) beenden diese Art für diesen Lauf; die anderen Arten laufen weiter.
  * Nichts wird verschluckt: `arten[typ].fehler` und `arten[typ].luecken` nennen jeden Fehler, oben stehen `fehler` (Texte),
  * `zaehlung` (gelesene Datensätze je MF-Art), `zeitraum` (erster/letzter Kalendertag) und `luecken`.
+ * `herkunft` nennt je MF-Art die schreibenden Apps (Paketname) mit Anzahl, `schlafPhasen` die Nächte mit/ohne echte Schlafstufen.
  * `paket` im Ergebnis enthält nur die neu hinzugekommenen Datensätze.
  * @param {{bruecke:object, speicher:object, jetzt?:number, arten?:string[], vorgaben?:object,
  *   fortschritt?:(info:{typ:string, art:string, nr:number, von:number, gelesen:number, phase:string})=>void}} p
@@ -4897,7 +5095,11 @@ async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = 
   if (!bruecke) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
   const v = { ...VORGABEN, ...vorgaben };
   const warte = v.warte || ((ms) => new Promise((ok) => setTimeout(ok, ms)));
-  const ergebnis = { arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [] };
+  const ergebnis = {
+    arten: {}, neu: 0, ersetzt: 0, paket: leeresPaket(), zaehlung: {}, zeitraum: null, luecken: [], fehler: [],
+    herkunft: {}, // gelesene Datensätze je MF-Art und App: { hrv: { "com.whoop.android": 12 } } (je quelle.id einmal gezählt)
+    schlafPhasen: { mit: 0, ohne: 0 }, // gelesene Nächte mit/ohne echte Schlafstufen (leer → Schlafansicht zeigt 0 Minuten je Phase)
+  };
   const meldung = (info) => { try { fortschritt?.(info); } catch { /* Anzeige darf den Abgleich nie stören */ } };
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
@@ -4908,6 +5110,19 @@ async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = 
     const mfArt = ART_ZU_PAKET[typ];
     const nrGesamt = Math.max(1, Math.ceil((jetzt - von) / v.fensterMs));
     let ersteLuecke = null, serie = 0, nr = 0;
+    const gezaehlt = new Set();
+    /** Herkunft (App) und Schlafstufen der gelesenen Datensätze vermerken; Überlappung der Fenster zählt nicht doppelt. */
+    const vermerke = (paket) => {
+      for (const d of paket[mfArt]) {
+        const id = d.quelle && d.quelle.id;
+        if (gezaehlt.has(id)) continue;
+        gezaehlt.add(id);
+        const app = (d.quelle && d.quelle.herkunft) || "unbekannt";
+        const h = (ergebnis.herkunft[mfArt] = ergebnis.herkunft[mfArt] || {});
+        h[app] = (h[app] || 0) + 1;
+        if (mfArt === "schlaf") ergebnis.schlafPhasen[hatSchlafphasen(d) ? "mit" : "ohne"] += 1;
+      }
+    };
 
     /** Ein Fenster lesen; true = gelesen und abgelegt, false = Lücke. Wirft nur bei endgültigem Fehler oder Ablagefehler. */
     const fenster = async (a, e) => {
@@ -4943,6 +5158,7 @@ async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = 
         if (bericht.vonTag === undefined || tag < bericht.vonTag) bericht.vonTag = tag;
         if (bericht.bisTag === undefined || tag > bericht.bisTag) bericht.bisTag = tag;
       }
+      vermerke(paket);
       const abgelegt = await speichereMessungen(speicher, paket);
       bericht.gelesen += roh.length;
       bericht.neu += abgelegt.neu;
@@ -4998,7 +5214,7 @@ async function herzschlaegeFuer(bruecke, sitzungen) {
   }
   return { herzschlaege };
 }
-return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, mitZeitgrenze, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
+return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, mitZeitgrenze, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, hatSchlafphasen, quellenAnzeige, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
 })();
 
 // ===== daten/bruecke_capacitor.js
@@ -5443,9 +5659,10 @@ function tagebuch(datei, csv, optionen, paket, hinweise) {
       continue;
     }
     // Tag = Kalendertag der Zyklusmitte. Ein WHOOP-Zyklus läuft von Einschlafen (meist am Vorabend) bis zum
-    // nächsten Einschlafen; die Mitte liegt sicher im gemeinten Tag. Ohne Zyklusende: Tag des Zyklusbeginns.
+    // nächsten Einschlafen; die Mitte liegt sicher im gemeinten Tag. Ohne Zyklusende (der laufende Zyklus, Befund 31.10.2026): Mitte eines
+    // Zyklus von 24 Stunden, sonst fiele der Eintrag auf den Vorabend und überschriebe die Antworten des Vortags.
     const ende = z.zeit("zyklusEnde");
-    const bezug = ende !== null && ende > start ? start + Math.floor((ende - start) / 2) : start;
+    const bezug = ende !== null && ende > start ? start + Math.floor((ende - start) / 2) : start + 12 * 3600000;
     const tag = tagIso(bezug, z.zoneMin(bezug));
     if (!tage.has(tag)) {
       tage.set(tag, {
@@ -5579,7 +5796,8 @@ const __m_daten_verbinden_js = (() => {
 //   MF.daten.healthConnect.verfuegbar()        → { verfuegbar, grund }
 //   MF.daten.healthConnect.verbinden(arten?, { fortschritt? }) → Rechte anfragen + abgleichen:
 //     { …Messpaket, erteilt, fehlend, neu, ersetzt, arten (Bericht je Health-Connect-Art), zaehlung (gelesen je MF-Art),
-//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken }
+//       zeitraum ({ von, bis } der gelesenen Datensätze), fehler (Texte), luecken,
+//       herkunft ({ hrv: { "com.whoop.android": 12 }, … } schreibende Apps je MF-Art), schlafPhasen ({ mit, ohne } Nächte mit/ohne echte Schlafstufen) }
 //     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
@@ -5761,6 +5979,7 @@ const __m_shell_apps_beleg_js = (() => {
 const { t, TEXTE } = __m_shell_i18n_i18n_js;
 const { esc } = __m_shell_format_js;
 const { IKON, zahlKnopf } = __m_shell_ui_js;
+const { quellenAnzeige } = __m_daten_healthconnect_js;
 
 const MAX_QUELLEN = 25;
 
@@ -5769,7 +5988,7 @@ function quellenKarten(quellen) {
   const q = (quellen || []).filter(Boolean);
   if (!q.length) return `<p class="mf-leise">${esc(t("beleg_keine_quellen"))}</p>`;
   const karten = q.slice(0, MAX_QUELLEN).map((x) => {
-    const ort = [x.datei, x.zeile !== undefined && x.zeile !== null ? `#${x.zeile}` : ""].filter(Boolean).join(" ");
+    const ort = [quellenAnzeige(x), x.datei, x.zeile !== undefined && x.zeile !== null ? `#${x.zeile}` : ""].filter(Boolean).join(" ");
     return `<li class="mf-quelle"><span class="mf-quelle-art">${esc(TEXTE["art_" + x.art] ? t("art_" + x.art) : x.art || "–")}</span><span class="mf-quelle-text"><span class="mf-quelle-id" title="${esc(t("beleg_kennung"))}">${esc(x.id || "–")}</span>${ort ? `<small title="${esc(t("beleg_ort"))}">${esc(ort)}</small>` : ""}</span></li>`;
   }).join("");
   const mehr = q.length > MAX_QUELLEN ? `<p class="mf-leise">${esc(t("beleg_weitere", { n: q.length - MAX_QUELLEN }))}</p>` : "";
@@ -5789,7 +6008,9 @@ function belegHtml(e, q = "") {
   const griff = `<div class="mf-beleg-griff" data-beleg-griff aria-hidden="true" title="${esc(t("beleg_ziehen"))}"><i></i></div>`;
   if (!e) return `${griff}<div class="mf-beleg-kopf"><h2 id="mf-beleg-titel">${esc(t("beleg_titel"))}</h2><button type="button" class="mf-rund" data-beleg-zu aria-label="${esc(t("schliessen"))}">${IKON.zu}</button></div><div class="mf-beleg-leib"><p>${esc(t("beleg_unbekannt"))}</p><p class="mf-leise">${esc(q)}</p></div>`;
   const f = e.formel;
-  const formel = f && f.text ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t("beleg_formel"))}</h3><div class="mf-formel"><code>${esc(f.text)}</code>${f.fundstelle ? `<small>${esc(t("beleg_fundstelle", { text: f.fundstelle }))}</small>` : ""}${f.pruefen ? `<span><span class="mf-pruefen">${esc(t("beleg_pruefen"))}</span></span>` : ""}</div></section>` : "";
+  // Erklären vor Fachsprache: der einfache Satz (formeln.json „erklaerung“) steht über dem Rechenweg, sobald er vorhanden ist
+  const erklaerung = f && f.erklaerung && f.erklaerung !== f.text ? `<p class="mf-formel-erklaerung" data-formel-erklaerung>${esc(f.erklaerung)}</p>` : "";
+  const formel = f && f.text ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t("beleg_formel"))}</h3>${erklaerung}<div class="mf-formel"><code>${esc(f.text)}</code>${f.fundstelle ? `<small>${esc(t("beleg_fundstelle", { text: f.fundstelle }))}</small>` : ""}${f.pruefen ? `<span><span class="mf-pruefen">${esc(t("beleg_pruefen"))}</span></span>` : ""}</div></section>` : "";
   const liste = e.teile || [], mitBeitrag = liste.length && liste.every((x) => Number.isFinite(x.beitrag));
   const tabelle = liste.length ? `<table class="mf-tab"><thead><tr><th>${esc(t("beleg_name"))}</th><th class="rechts">${esc(t("beleg_wert"))}</th>${liste.some((x) => x.gewicht) ? `<th class="rechts">${esc(t("beleg_gewicht"))}</th>` : ""}</tr></thead><tbody>${liste.map((x) => `<tr><td>${esc(x.name)}</td><td class="rechts">${esc(x.wert)}</td>${liste.some((y) => y.gewicht) ? `<td class="rechts">${esc(x.gewicht || "")}</td>` : ""}</tr>`).join("")}</tbody></table>` : "";
   const teile = liste.length ? `<section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t(mitBeitrag ? "beleg_beitraege" : "beleg_teile"))}</h3>${mitBeitrag ? beitragsBalken(liste) : tabelle}${e.hinweis ? `<p class="mf-leise mf-beleg-hinweis" data-beleg-hinweis>${esc(e.hinweis)}</p>` : ""}</section>`
@@ -5972,9 +6193,12 @@ function ansicht(ctx) {
   const ph = bild.schlafRoh ? phasenVon(s) : null;
   const ms = (x) => `${zahl(x)} ${t("einheit_ms")}`, bpm = (x) => `${zahl(x)} ${t("einheit_bpm")}`;
   const kacheln = [
-    kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
-      bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
-      vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } }),
+    // Ohne Pulswerte und ohne Training (Ruhetag im WHOOP-Export) steht ein Strich statt einer Null als Messwert
+    bel.gemessen
+      ? kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
+        bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
+        vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } })
+      : kennzahlKachel({ titel: t("kachel_belastung"), wert: "–", q: "" }),
     kennzahlKachel({ titel: t("kachel_schlaf"), wert: bild.schlafRoh ? dauerKurz(s.dauerMs) : "–", q: bild.schlafRoh ? `schlaf-dauer:${tag}` : "",
       bild: ph ? streifen({ segmente: ["tief", "rem", "leicht", "wach"].map((a) => ({ wert: ph[a] || 0, klasse: PHASEN_KLASSE[a], name: t("phase_" + a), text: dauer(ph[a] || 0) })) }).svg : "",
       vergleich: bild.schlafRoh ? (s.dauerMs < s.bedarfMs ? { richtung: "runter", text: t("vgl_bedarf_unter") } : { richtung: "gleich", text: t("vgl_bedarf_gedeckt") }) : null,
@@ -6092,7 +6316,14 @@ const liveLink = () => `<div class="mf-knopfreihe"><a class="mf-knopf" href="#/l
 /** Chip „geschätzt aus Zonenanteilen“, wenn der Kern die Belastung aus WHOOPs Zonenanteilen geschätzt hat (kern/belastung.js). */
 const geschaetztChip = (b) => (b?.geschaetzt ? `<span class="mf-marke-chip" data-geschaetzt>${esc(t("belastung_geschaetzt"))}</span>` : "");
 const ZONEN_KLASSE = ["vz-k0", "vz-k1", "vz-k2", "vz-k3", "vz-k4"];
-const artName = (art) => t("art_" + (["laufen", "rad", "kraft", "gehen"].includes(art) ? art : "sonst"));
+// Kürzel aus Health Connect und WHOOP-CSV (daten/healthconnect.js, daten/csv_import.js) auf die vier bebilderten Arten abbilden;
+// alles andere zeigt den Namen aus dem Export (z. B. „Yoga“), sonst „Training“.
+const ART_ALIAS = { radfahren: "rad", heimtrainer: "rad", krafttraining: "kraft", gewichtheben: "kraft", wandern: "gehen" };
+const artName = (art, name = "") => {
+  const k = ART_ALIAS[art] || art;
+  if (["laufen", "rad", "kraft", "gehen"].includes(k)) return t("art_" + k);
+  return String(name || "").trim() || t("art_sonst");
+};
 
 function zonenDiagramm(zonenListe, qPraefix, titel, kern) {
   return zonen({ titel, kernaussage: kern, zonen: zonenListe.map((z) => ({ zone: z.zone, name: t("zone_" + z.zone), ms: z.ms, text: dauer(z.ms), q: `${qPraefix}:${z.zone}` })) }).html;
@@ -6104,7 +6335,7 @@ function zonenKern(zonenListe) {
 
 function trainingBelege(B, tr) {
   const b = tr.belastung;
-  B(`training:${tr.id}`, { titel: artName(tr.roh.art), wert: `${belastungText(b.wert)} ${t("einheit_von21")}`, formel: b.formel,
+  B(`training:${tr.id}`, { titel: artName(tr.roh.art, tr.roh.name), wert: `${belastungText(b.wert)} ${t("einheit_von21")}`, formel: b.formel,
     teile: b.zonen.map((z) => ({ name: t("zone_" + z.zone), wert: dauer(z.ms) })), quellen: [tr.roh.quelle, ...(b.quellen || [])] });
   for (const z of b.zonen) B(`training-zone:${tr.id}:${z.zone}`, { titel: t("zone_" + z.zone), wert: dauer(z.ms), formel: b.formel, teile: [], quellen: z.quelle || [] });
 }
@@ -6122,9 +6353,9 @@ function detail(ctx, id) {
   const spitze = hs.reduce((m, h) => Math.max(m, h.bpm), 0);
   const kurve = zeitreihe({ titel: t("puls_titel"), kernaussage: t("puls_kern", { wert: zahl(spitze) }), flaeche: true, karten: true,
     reihen: punkte.map((h, i) => ({ name: uhrzeit(h.t), wert: h.bpm, text: `${zahl(h.bpm)}`, q: `puls:${tr.id}:${i}`, quelle: h.quelle })) }).html;
-  const satz = tHtml("training_kern", { art: esc(artName(tr.roh.art)), von: esc(uhrzeit(tr.roh.von)), bis: esc(uhrzeit(tr.roh.bis)), wert: zahlKnopf(`training:${tr.id}`, belastungText(tr.belastung.wert)) });
+  const satz = tHtml("training_kern", { art: esc(artName(tr.roh.art, tr.roh.name)), von: esc(uhrzeit(tr.roh.von)), bis: esc(uhrzeit(tr.roh.bis)), wert: zahlKnopf(`training:${tr.id}`, belastungText(tr.belastung.wert)) });
   return `<div class="mf-sicht" data-sicht="training">
-    ${kopf(artName(tr.roh.art), { zurueck: "#/belastung" })}
+    ${kopf(artName(tr.roh.art, tr.roh.name), { zurueck: "#/belastung" })}
     ${kernaussage(satz)}${geschaetztChip(tr.belastung)}
     ${punkte.length ? `<div class="mf-karte">${kurve}</div>` : ""}
     <div class="mf-karte">${zonenDiagramm(tr.belastung.zonen, `training-zone:${tr.id}`, t("zonen_training_titel"), t("zonen_training_kern"))}</div>
@@ -6137,7 +6368,18 @@ function ansicht(ctx) {
   const { bild, tag } = ctx, B = beleg(ctx.register);
   if (!bild) return leererTag(ctx, t("belastung_titel"), "keine_daten_tag", "belastung").replace(/<\/div>$/, `${liveLink()}</div>`);
   belegeTag(B, bild);
-  const bel = bild.belastung, v = vergleich(bel.wert, bild.basis.belastung);
+  const bel = bild.belastung;
+  // Ohne Pulswerte und ohne Training (z. B. Ruhetag im WHOOP-Export) gibt es nichts zu rechnen: keine Null als Messwert zeigen
+  if (!bel.gemessen && !bild.trainings.length) {
+    const fw = bild.fremd && Number.isFinite(bild.fremd.belastung) ? bild.fremd.belastung : null;
+    const satz = fw === null ? esc(t("belastung_kern_keine")) : tHtml("belastung_kern_keine_whoop", { wert: zahlKnopf(`fremd:belastung:${tag}`, belastungText(fw)) });
+    return `<div class="mf-sicht" data-sicht="belastung" data-ohne-belastung>
+    ${kopf(t("belastung_titel"))}
+    <div class="mf-held">${kernaussage(satz)}</div>
+    ${abschnitt(t("trainings_titel"), `<p class="mf-hinweis">${esc(t("trainings_leer"))}</p>` + liveLink())}
+  </div>`;
+  }
+  const v = vergleich(bel.wert, bild.basis.belastung);
   const art = v.richtung === "hoch" ? "mehr" : v.richtung === "runter" ? "weniger" : "gleich";
   const satz = tHtml((tag === ctx.heute ? "belastung_kern_" : "belastung_tag_") + art, { tag: esc(tagLang(tag)), wert: zahlKnopf(`belastung:${tag}`, belastungText(bel.wert)) });
   // Leuchtender Bogen 0–21, außen ein dünner Ring mit der Zeit je Pulszone
@@ -6152,7 +6394,7 @@ function ansicht(ctx) {
     return p.length > 1 ? sparkline({ breite: 160, hoehe: 34, flaeche: true, punkte: p.map((h) => ({ wert: h.bpm })), aria: t("training_kurve_aria", { wert: zahl(hs.reduce((m, h) => Math.max(m, h.bpm), 0)) }) }).svg : "";
   };
   const liste = bild.trainings.length
-    ? `<ul class="mf-trainings">${bild.trainings.map((tr) => `<li><a class="mf-training" href="#/belastung/training/${encodeURIComponent(tr.id)}"><span class="mf-training-kopf"><span class="mf-zeile-text"><strong>${esc(artName(tr.roh.art))}</strong><small>${esc(t("training_zeile", { zeit: uhrzeit(tr.roh.von), dauer: dauer(tr.roh.bis - tr.roh.von) }))}</small></span><span class="mf-training-wert"><span class="zahl-text">${esc(belastungText(tr.belastung.wert))}</span><small>${esc(t("einheit_von21"))}</small></span><span class="mf-chevron">${IKON.rechts}</span></span><span class="mf-training-kurve" aria-hidden="true">${vorschau(tr)}</span>${geschaetztChip(tr.belastung)}</a></li>`).join("")}</ul>`
+    ? `<ul class="mf-trainings">${bild.trainings.map((tr) => `<li><a class="mf-training" href="#/belastung/training/${encodeURIComponent(tr.id)}"><span class="mf-training-kopf"><span class="mf-zeile-text"><strong>${esc(artName(tr.roh.art, tr.roh.name))}</strong><small>${esc(t("training_zeile", { zeit: uhrzeit(tr.roh.von), dauer: dauer(tr.roh.bis - tr.roh.von) }))}</small></span><span class="mf-training-wert"><span class="zahl-text">${esc(belastungText(tr.belastung.wert))}</span><small>${esc(t("einheit_von21"))}</small></span><span class="mf-chevron">${IKON.rechts}</span></span><span class="mf-training-kurve" aria-hidden="true">${vorschau(tr)}</span>${geschaetztChip(tr.belastung)}</a></li>`).join("")}</ul>`
     : `<p class="mf-hinweis">${esc(t("trainings_leer"))}</p>`;
   return `<div class="mf-sicht" data-sicht="belastung">
     ${kopf(t("belastung_titel"))}
@@ -6161,7 +6403,7 @@ function ansicht(ctx) {
     ${abschnitt(t("trainings_titel"), liste + liveLink())}
   </div>`;
 }
-return { ansicht };
+return { artName, ansicht };
 })();
 
 // ===== shell/kern_live.js
@@ -7019,7 +7261,7 @@ const __m_shell_apps_daten_js = (() => {
  * wählst Sprache, Darstellung und Vibration; gespeichert wird sofort.
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
- * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls, herkunft, schlafPhasen }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -7063,6 +7305,14 @@ function hcText(r) {
   if (r?.fehler?.length) details.push(t("hc_luecken", { liste: r.fehler.join("; ") }));
   if (r?.gespeichert?.von) details.push(t("hc_gesamt", { von: tagLang(r.gespeichert.von), bis: tagLang(r.gespeichert.bis) }));
   if (r?.ohneHrvRuhepuls) details.push(t("hc_ohne_hrv"));
+  // Diagnose aus daten/healthconnect.js: welche App welche Art schrieb, und ob die Nächte echte Schlafphasen haben
+  if (r?.herkunft && typeof r.herkunft === "object") {
+    if (!Object.keys(r.herkunft.hrv || {}).length) details.push(t("hc_hrv_keine"));
+    const liste = Object.entries(r.herkunft).map(([art, apps]) => `${art}: ${Object.entries(apps).map(([app, n]) => `${app} (${zahl(n)})`).join(", ")}`).join("; ");
+    if (liste) details.push(t("hc_herkunft", { liste }));
+  }
+  const sp = r?.schlafPhasen;
+  if (sp && Number.isFinite(sp.mit) && Number.isFinite(sp.ohne) && sp.mit + sp.ohne > 0) details.push(t("hc_schlaf_phasen", { n: zahl(sp.mit + sp.ohne), m: zahl(sp.mit) }));
   return { text: sa.join(" · "), details };
 }
 
@@ -8344,6 +8594,7 @@ const aktionen = {
       n, arten: r.zaehlung || {}, zeitraum: r.zeitraum || null, fehler: r.fehler || [], luecken: r.luecken || [],
       gespeichert: Z.erg.erster ? { von: Z.erg.erster, bis: Z.erg.letzter } : null,   // alles, was jetzt auf dem Gerät liegt
       ohneHrvRuhepuls: leer("hrv") && leer("ruhepuls"),
+      herkunft: r.herkunft || null, schlafPhasen: r.schlafPhasen || null, // Diagnose: welche App schrieb was, Nächte mit/ohne Phasen (shell/apps/daten.js)
     };
   },
   async csvEinlesen(dateien) {

@@ -15,9 +15,17 @@ import { vereinige } from "./quellen.js";
 export const PHASEN = ["wach", "leicht", "tief", "rem"];
 const MINUTEN_HALBER_TAG = 12 * 60; // Wanduhr: 12 h, um Einschlafzeiten um Mitternacht zu zentrieren
 
+/** Nicht negative endliche Zahl? */
+const istMs = (x) => Number.isFinite(x) && x >= 0;
+
 /**
- * Phasen zusammenfassen.
- * @param {{von:number, bis:number, phasen?:Array<{von:number,bis:number,art:string}>}} schlaf
+ * Phasen zusammenfassen. Quellen der Phasenzeiten, in dieser Reihenfolge:
+ *  1. Zeitachse `phasen` (Health Connect): Summe je Art.
+ *  2. Summen je Phase `phasenSummen { wachMs, leichtMs, tiefMs, remMs }` (WHOOP-CSV, daten/csv_import.js): ohne Zeitachse.
+ *  3. Nur `schlafMs` (geschlafene Zeit laut Export): Dauer ohne Phasen.
+ *  4. Sonst die Zeit im Bett.
+ * Die Dauer ist immer die geschlafene Zeit (leicht + tief + REM), nie die Bettzeit, sobald Phasen oder `schlafMs` bekannt sind.
+ * @param {{von:number, bis:number, phasen?:Array<{von:number,bis:number,art:string}>, phasenSummen?:object, schlafMs?:number}} schlaf
  * @returns {{imBettMs:number, dauerMs:number, phasen:{wach:number,leicht:number,tief:number,rem:number}, anteile:Object, mitPhasen:boolean}}
  */
 export function schlafZusammenfassung(schlaf) {
@@ -25,8 +33,16 @@ export function schlafZusammenfassung(schlaf) {
   const p = { wach: 0, leicht: 0, tief: 0, rem: 0 };
   const liste = Array.isArray(schlaf.phasen) ? schlaf.phasen : [];
   for (const ph of liste) if (ph && p[ph.art] !== undefined && ph.bis > ph.von) p[ph.art] += ph.bis - ph.von;
-  const mitPhasen = liste.length > 0;
-  const dauerMs = mitPhasen ? p.leicht + p.tief + p.rem : imBettMs;
+  let mitPhasen = liste.length > 0;
+  if (!mitPhasen && schlaf.phasenSummen && typeof schlaf.phasenSummen === "object") {
+    const s = schlaf.phasenSummen;
+    const summen = { wach: s.wachMs, leicht: s.leichtMs, tief: s.tiefMs, rem: s.remMs };
+    if (summen.leicht + summen.tief + summen.rem > 0 && [summen.leicht, summen.tief, summen.rem].every(istMs)) {
+      for (const a of PHASEN) p[a] = istMs(summen[a]) ? Math.round(summen[a]) : 0;
+      mitPhasen = true;
+    }
+  }
+  const dauerMs = mitPhasen ? p.leicht + p.tief + p.rem : istMs(schlaf.schlafMs) && schlaf.schlafMs > 0 ? Math.min(Math.round(schlaf.schlafMs), imBettMs || Math.round(schlaf.schlafMs)) : imBettMs;
   const summe = p.wach + p.leicht + p.tief + p.rem;
   const anteile = {};
   for (const a of PHASEN) anteile[a] = summe > 0 ? rundBruch(p[a] * 1000, summe) : 0;
@@ -78,7 +94,7 @@ export function schlafLeistung({ schlaf, bedarf, vorher = [] } = {}) {
   return {
     wert: w, dauerMs: z.dauerMs, imBettMs: z.imBettMs, bedarfMs, schuld: Math.max(0, bedarfMs - z.dauerMs),
     phasen: z.phasen, anteile: z.anteile, effizienz, konsistenz: schlafKonsistenz(schlaf, vorher),
-    formel: formel("schlaf.leistung"), quellen: vereinige(schlaf.quelle, bedarf?.quellen),
+    formel: formel("schlaf.leistung"), quellen: vereinige(schlaf.quelle, schlaf.weitereQuellen, bedarf?.quellen),
   };
 }
 

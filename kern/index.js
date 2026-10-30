@@ -14,12 +14,13 @@ export { erholung, stufe } from "./erholung.js";
 export { belastung, belastungTag, maxPulsTanaka, zonenGrenzen, zoneVon } from "./belastung.js";
 export { schlafLeistung, schlafBedarf, schlafSchuld, schlafKonsistenz, schlafZusammenfassung } from "./schlaf.js";
 export { atemUebung, atemPlan, UEBUNGEN } from "./atem.js";
-export { tagebuchWirkung, KATALOG as TAGEBUCH_KATALOG } from "./tagebuch.js";
+export { tagebuchWirkung, KATALOG as TAGEBUCH_KATALOG, katalogSchluessel, mitKatalog } from "./tagebuch.js";
 export { trend, wochenZusammenfassung, monatsZusammenfassung, FELDER as TREND_FELDER } from "./trend.js";
 export { speicherMap, istSpeicher, SCHLUESSEL as SPEICHER_SCHLUESSEL } from "./speicher.js";
 export { demoDaten, demoPuls, MUSTERPERSON } from "./demo.js";
 export { zoneVon as liveZone, laufendeBelastung, rrFilter, hrvKurz, atemKohaerenz, pulsFormel } from "./live.js";
 export { tagAuswerten, alleTage, auswerter } from "./tag.js";
+export { zusammenfuehren, zusammenlegen, eineQuelle, gleicherSatz } from "./zusammenfuehren.js";
 export { t, SPRACHEN } from "./i18n.js";
 
 import { UEBUNGEN } from "./atem.js";

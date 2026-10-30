@@ -19,6 +19,7 @@ import { erholung } from "./erholung.js";
 import { belastungTag, maxPulsTanaka } from "./belastung.js";
 import { schlafLeistung, schlafBedarf, schlafSchuld, schlafZusammenfassung } from "./schlaf.js";
 import { vereinige } from "./quellen.js";
+import { zusammenlegen, eineQuelle } from "./zusammenfuehren.js";
 
 const LISTEN = ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp", "schlaf", "training", "tagebuch"];
 const nachT = (a, b) => a.t - b.t;
@@ -29,8 +30,9 @@ function normiere(daten = {}) {
   const d = {};
   for (const k of LISTEN) d[k] = Array.isArray(daten[k]) ? daten[k].filter(Boolean).slice() : [];
   for (const k of ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp"]) d[k] = d[k].filter((x) => Number.isFinite(x.t)).sort(nachT);
-  d.schlaf = d.schlaf.filter((s) => s.bis > s.von).sort(nachVon);
-  d.training = d.training.filter((s) => s.bis >= s.von).sort(nachVon);
+  // Dieselbe Nacht / dasselbe Training aus Health Connect und WHOOP-CSV ist ein Datensatz (kern/zusammenfuehren.js)
+  d.schlaf = zusammenlegen(d.schlaf.filter((s) => s.bis > s.von), "schlaf");
+  d.training = zusammenlegen(d.training.filter((s) => s.bis >= s.von), "training");
   d.tagebuchNachTag = new Map(d.tagebuch.filter((x) => istIsoTag(x.tag)).map((x) => [x.tag, x]));
   return d;
 }
@@ -74,13 +76,20 @@ export function auswerter(daten, einstellungen = {}) {
     const s = haupt(tag), g = grenzen(tag);
     const naechste = haupt(plusTage(tag, 1)), ende = naechste ? Math.min(naechste.von, g.bis) : g.bis; // nächste Nacht gehört zum Folgetag
     const vonN = s ? s.von : g.von, bisN = s ? s.bis + 1 : ende;
-    const rp = abschnitt(D.ruhepuls, vonN, Math.max(bisN, ende)).find((x) => Number.isFinite(x.bpm));
+    // Punktwerte je Art aus EINER Quelle (Health Connect, sonst CSV), nicht gemittelt. Gibt es im Schlaffenster nichts, zählt der Wert
+    // der ersten Stunden nach dem Aufwachen ("zeit.nachfenster_nach_aufwachen"), denn manche Geräte melden ihn erst beim Synchronisieren.
+    const nachN = s ? Math.min(bisN + wert("zeit.nachfenster_nach_aufwachen"), ende > bisN ? ende : Infinity) : null;
+    const reihe = (liste, feld) => {
+      const im = eineQuelle(abschnitt(liste, vonN, bisN).filter((x) => Number.isFinite(x[feld])));
+      return im.length || nachN === null ? im : eineQuelle(abschnitt(liste, bisN, nachN).filter((x) => Number.isFinite(x[feld])));
+    };
+    const rp = eineQuelle(abschnitt(D.ruhepuls, vonN, Math.max(bisN, ende)).filter((x) => Number.isFinite(x.bpm)))[0];
     return {
       schlaf: s,
-      hrv: mittelwert(abschnitt(D.hrv, vonN, bisN), "rmssdMs", wert("einheit.hrv")),
-      atem: mittelwert(abschnitt(D.atemfrequenz, vonN, bisN), "proMin", wert("einheit.atem")),
-      spo2: mittelwert(abschnitt(D.spo2, vonN, bisN), "prozent", wert("einheit.spo2")),
-      hauttemp: mittelwert(abschnitt(D.hauttemp, vonN, bisN), "deltaC", wert("einheit.hauttemp")),
+      hrv: mittelwert(reihe(D.hrv, "rmssdMs"), "rmssdMs", wert("einheit.hrv")),
+      atem: mittelwert(reihe(D.atemfrequenz, "proMin"), "proMin", wert("einheit.atem")),
+      spo2: mittelwert(reihe(D.spo2, "prozent"), "prozent", wert("einheit.spo2")),
+      hauttemp: mittelwert(reihe(D.hauttemp, "deltaC"), "deltaC", wert("einheit.hauttemp")),
       ruhepuls: rp ? { wert: rund(rp.bpm), n: 1, quellen: vereinige(rp.quelle) } : null,
     };
   });
