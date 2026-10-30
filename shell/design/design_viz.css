@@ -1,44 +1,78 @@
-/* shell/design/design_viz.css – Diagramme aus shell/viz/viz.js (vz-…) und der Heldenring (rg-…), Stil wie MBS design_viz.css
-   und design_ruhig.css (Kleid „Ruhe“). Farben nur über Tokens aus design.css (dort Verweise auf marke.css), Texte nie in der
+/* shell/design/design_viz.css – Diagramme aus shell/viz/viz.js (vz-…) und der Heldenring (rg-…), im Kleid „Nacht“
+   (docs/technik/design_mf.md): Verlaufsbögen mit ruhigem Leuchten, Flächen unter Linien, Hypnogramm, Bildzeichen für Kacheln. Farben nur über Tokens aus design.css (dort Verweise auf marke.css), Texte nie in der
    Serienfarbe, sondern in --tinte / --grau-5. */
 
-/* ---------- Ring (Heldenzahl): Spur Haarlinie, Bogen in der Farbe der Stufe, Zahl Barlow Condensed 600 */
-.rg { --rg-d: var(--rg-groesse, 240px); position: relative; width: min(100%, var(--rg-d)); aspect-ratio: 1 / 1; margin: 0 auto; }
+/* ---------- Ring (Heldenzahl): dicker Verlaufsbogen in der Farbe der Stufe, ruhiges Leuchten, Mittel-Strich, Zahl Barlow Condensed */
+.rg { --rg-d: var(--rg-groesse, 240px); --rg-farbe: var(--akzent); --rg-hell: var(--akzent-hell); --rg-glow: var(--glow-akzent);
+  position: relative; width: min(100%, var(--rg-d)); aspect-ratio: 1 / 1; margin: 6px auto; }
+.rg-gruen { --rg-farbe: var(--erholung-gruen); --rg-hell: var(--erholung-gruen-hell); --rg-glow: var(--glow-gruen); }
+.rg-gelb { --rg-farbe: var(--erholung-gelb); --rg-hell: var(--erholung-gelb-hell); --rg-glow: var(--glow-gelb); }
+.rg-rot { --rg-farbe: var(--erholung-rot); --rg-hell: var(--erholung-rot-hell); --rg-glow: var(--glow-rot); }
+.rg-leise { --rg-farbe: var(--grau-4); --rg-hell: var(--grau-4); --rg-glow: transparent; }
 .rg-bild { display: block; width: 100%; height: 100%; overflow: visible; }
-.rg-spur { stroke: var(--grau-3); }
-.rg-bogen { stroke: var(--akzent); transition: stroke-dashoffset var(--dauer-max) var(--kurve); }
-.rg-gruen .rg-bogen { stroke: var(--erholung-gruen); }
-.rg-gelb .rg-bogen { stroke: var(--erholung-gelb); }
-.rg-rot .rg-bogen { stroke: var(--erholung-rot); }
-.rg-leise .rg-bogen { stroke: var(--grau-4); }
-.rg-mitte { position: absolute; inset: 14%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
-.rg .rg-zahl { background: none; border: 0; padding: 2px 8px; margin: 0; border-radius: var(--radius-pille); cursor: pointer; white-space: nowrap; max-width: 100%;
-  font-family: var(--schrift-titel); font-weight: 600; letter-spacing: -0.01em; line-height: 1; color: var(--tinte);
-  font-size: min(var(--t-held), calc(var(--rg-d) * 1.1 / var(--rg-zeichen, 3))); }
+.rg-spur { stroke: var(--flaeche-3); }
+.rg-stopp-a { stop-color: var(--rg-farbe); } .rg-stopp-b { stop-color: var(--rg-hell); }
+.rg-bogen { stroke: var(--rg-farbe); }
+.rg-schein { stroke: var(--rg-glow); }
+.rg-kopf { fill: var(--rg-hell); }
+.rg-mittel { stroke: var(--tinte); stroke-width: 2.5; opacity: .85; }
+.rg-bild .rg-zone { fill: none; opacity: .95; }
+.rg-zone.vz-k0 { stroke: var(--vz-k0); } .rg-zone.vz-k1 { stroke: var(--vz-k1); } .rg-zone.vz-k2 { stroke: var(--vz-k2); } .rg-zone.vz-k3 { stroke: var(--vz-k3); } .rg-zone.vz-k4 { stroke: var(--vz-k4); }
+.rg-mitte { position: absolute; inset: 15%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; }
+.rg .rg-zahl { background: none; border: 0; padding: 0 8px; margin: 0; border-radius: var(--radius-pille); cursor: pointer; white-space: nowrap; max-width: 100%;
+  font-family: var(--schrift-titel); font-weight: 600; letter-spacing: -0.02em; line-height: .92; color: var(--tinte); font-variant-numeric: tabular-nums;
+  font-size: min(var(--t-held), calc(var(--rg-d) * 1.12 / var(--rg-zeichen, 3))); }
 .rg .rg-zahl:hover .rg-ziffern { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; text-decoration-color: var(--grau-4); }
 .rg .rg-zahl:focus-visible { outline: 2px solid var(--marke); outline-offset: 4px; }
-.rg-nach { font-size: .38em; font-weight: 400; letter-spacing: 0; color: var(--tinte2); margin-left: 2px; }
-.rg-label { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); line-height: 1.3; }
-.rg-zweit { font-size: var(--t-2); color: var(--grau-5); }
+.rg-nach { font-size: .36em; font-weight: 500; letter-spacing: 0; color: var(--tinte2); margin-left: 3px; vertical-align: .9em; }
+.rg-label { font-size: var(--t-1); font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--grau-5); line-height: 1.3; }
+.rg-zweit { display: inline-flex; align-items: center; gap: 6px; margin-top: 4px; padding: 3px 11px; border-radius: var(--radius-pille); background: var(--flaeche-2); border: 1px solid var(--haarlinie);
+  font-size: var(--t-2); font-weight: 500; color: var(--tinte2); line-height: 1.3; }
+.rg-zweit i { width: 8px; height: 8px; border-radius: 50%; background: var(--rg-farbe); }
+
+/* ---------- Sparkline, Minibogen, Streifen (Bildzeichen in Kacheln, Held, Trainings) */
+.vz-spark-huelle { display: block; }
+.vz-svg.vz-spark { overflow: visible; }
+.vz-spark .vz-spark-linie { stroke: var(--akzent); stroke-width: 2; }
+.vz-spark .vz-band { fill: var(--akzent); opacity: .12; }
+.vz-spark .vz-spark-punkt { stroke: var(--flaeche-1); stroke-width: 1.5; }
+.vz-spark .vz-letzter { fill: var(--akzent-hell); stroke: var(--flaeche-1); stroke-width: 2; }
+.vz-spark .vz-letzter.vz-gruen, .vz-spark .vz-letzter.vz-gelb, .vz-spark .vz-letzter.vz-rot { stroke: var(--tinte); }
+.vz-spark .vz-spark-name { font-size: 11px; fill: var(--grau-5); }
+.vz-held-spark .vz-spark-linie { stroke: var(--grau-4); stroke-width: 1.5; }
+.vz-held-spark .vz-spark-name { font-size: 12px; }
+.vz-punktreihe .vz-spark-punkt { stroke: none; }
+.vz-svg.vz-spark text { font-size: 11px; }
+.vz-akzent { fill: var(--akzent); }
+.vz-mb-spur { stroke: var(--flaeche-3); }
+.vz-mb-wert.vz-akzent { stroke: var(--akzent); fill: none; }
+.vz-mb-kopf.vz-akzent { fill: var(--akzent-hell); stroke: var(--flaeche-1); stroke-width: 2; }
+.vz-streifen { height: 10px; }
+
+/* Verlaufsstopps je Farbe (stop-color über Tokens, keine Farbwerte) */
+.vz-stopp-k0 { stop-color: var(--vz-k0); } .vz-stopp-k1 { stop-color: var(--vz-k1); } .vz-stopp-k2 { stop-color: var(--vz-k2); } .vz-stopp-k3 { stop-color: var(--vz-k3); } .vz-stopp-k4 { stop-color: var(--vz-k4); }
+.vz-stopp-hell { stop-color: var(--akzent-hell); } .vz-stopp-flaeche { stop-color: var(--akzent); }
+.vz-stopp-tief { stop-color: var(--vz-k4); } .vz-stopp-rem { stop-color: var(--vz-k1); } .vz-stopp-leicht { stop-color: var(--vz-k2); } .vz-stopp-wach { stop-color: var(--warn-punkt); }
 
 /* ---------- Diagramm-Hülle */
 .vz { margin: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--r3); }
 .vz-kopf { display: flex; flex-direction: column; gap: 4px; }
-.vz-titel { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
-.vz-kern { font-size: var(--t-4); line-height: 1.45; color: var(--tinte); }
+.vz-titel { font-size: var(--t-1); font-weight: 600; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
+.vz-kern { font-size: var(--t-4); line-height: 1.45; color: var(--tinte); max-width: 46ch; }
 .vz-svg { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; }
 .vz-svg text { font-family: var(--schrift-text); font-size: 13px; fill: var(--tinte); }
 .vz-svg .vz-wert { font-variant-numeric: tabular-nums; fill: var(--tinte); }
 .vz-svg .vz-name, .vz-svg .vz-band-text { fill: var(--grau-5); }
 .vz-treffer { fill: transparent; }
-.vz-achse { stroke: var(--grau-3); stroke-width: 1; }
-.vz-raster { stroke: var(--grau-3); stroke-width: 1; stroke-dasharray: 2 4; }
-.vz-linie { fill: none; stroke: var(--vz-k1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.vz-punkt { fill: var(--vz-k1); stroke: var(--papier); stroke-width: 2; }
-.vz-band { fill: var(--vz-k1); opacity: .14; }
-.vz-spur { fill: var(--grau-3); }
+.vz-achse { stroke: var(--grau-4); stroke-width: 1; opacity: .5; }
+.vz-raster { stroke: var(--haarlinie); stroke-width: 1; stroke-dasharray: 2 4; }
+.vz-linie { fill: none; stroke: var(--akzent); stroke-width: 2.25; stroke-linejoin: round; stroke-linecap: round; }
+.vz-punkt { fill: var(--vz-k1); stroke: var(--flaeche-1); stroke-width: 2; }
+.vz-band { fill: var(--akzent); opacity: .12; }
+.vz-spur { fill: var(--flaeche-3); }
 .vz-k0 { fill: var(--vz-k0); } .vz-k1 { fill: var(--vz-k1); } .vz-k2 { fill: var(--vz-k2); } .vz-k3 { fill: var(--vz-k3); } .vz-k4 { fill: var(--vz-k4); }
 .vz-gruen { fill: var(--erholung-gruen); } .vz-gelb { fill: var(--erholung-gelb); } .vz-rot { fill: var(--erholung-rot); }
+.vz-wach { fill: var(--warn-punkt); }
 .vz-ziel { cursor: pointer; outline: none; }
 .vz-ziel:hover .vz-marke, .vz-ziel:focus-visible .vz-marke { stroke: var(--tinte); stroke-width: 2; }
 .vz-ziel:focus-visible .vz-treffer { stroke: var(--tinte); stroke-width: 2; stroke-dasharray: 4 3; }
@@ -54,13 +88,52 @@
 .vz-f-wert { flex: none; min-width: 4ch; text-align: right; font-variant-numeric: tabular-nums; font-size: var(--t-2); color: var(--tinte); }
 .vz-segment { height: 14px; }
 .vz-legende { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
-.vz-legende li { display: flex; align-items: center; gap: var(--r2); min-width: 0; font-size: var(--t-3); color: var(--tinte2); min-height: 40px; border-top: 1px solid var(--grau-3); }
+.vz-legende li { display: flex; align-items: center; gap: var(--r2); min-width: 0; font-size: var(--t-3); color: var(--tinte2); min-height: 44px; border-top: 1px solid var(--haarlinie); }
 .vz-legende li:first-child { border-top: 0; }
 .vz-legende li > span:first-of-type { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.vz-legende .zahl { color: var(--tinte); font-weight: 500; }
+.vz-legende .zahl { color: var(--tinte); font-weight: 600; font-family: var(--schrift-titel); font-size: 17px; }
 .vz-farbe { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.vz-segment .vz-marke, .vz-balken .vz-marke { rx: 6px; }
 .vz-farbe.vz-k0 { background: var(--vz-k0); } .vz-farbe.vz-k1 { background: var(--vz-k1); } .vz-farbe.vz-k2 { background: var(--vz-k2); }
-.vz-farbe.vz-k3 { background: var(--vz-k3); } .vz-farbe.vz-k4 { background: var(--vz-k4); }
+.vz-farbe.vz-k3 { background: var(--vz-k3); } .vz-farbe.vz-k4 { background: var(--vz-k4); } .vz-farbe.vz-wach { background: var(--warn-punkt); }
+.vz-farbe-tief { background: var(--vz-k4); } .vz-farbe-rem { background: var(--vz-k1); } .vz-farbe-leicht { background: var(--vz-k2); } .vz-farbe-wach { background: var(--warn-punkt); }
+.vz-farbe-schuld { background: repeating-linear-gradient(45deg, var(--akzent) 0 2px, transparent 2px 5px); border: 1px solid var(--akzent); }
+.vz-legende-zwei { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--r2); }
+.vz-legende-zwei li { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 8px; padding: 10px 12px; min-height: 0; border: 1px solid var(--haarlinie); border-radius: var(--radius-2); background: var(--flaeche-2); }
+.vz-legende-zwei li:first-child { border-top: 1px solid var(--haarlinie); }
+.vz-legende-zwei li > span:first-of-type { font-size: var(--t-2); color: var(--grau-5); }
+.vz-legende-zwei li > .zahl, .vz-legende-zwei li > span + * { grid-column: 1 / -1; justify-self: start; font-size: 20px; }
+.vz-svg .vz-hyp-name { font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; }
+
+/* ---------- Hypnogramm (Schlafphasen über die Nacht) */
+.vz-hyp-raster { stroke: var(--haarlinie); stroke-width: 1; stroke-dasharray: 1 5; }
+.vz-hyp-stufe { stroke: var(--grau-4); stroke-width: 1; opacity: .55; }
+.vz-hyp-tief { fill: var(--vz-k4); } .vz-hyp-rem { fill: var(--vz-k1); } .vz-hyp-leicht { fill: var(--vz-k2); } .vz-hyp-wach { fill: var(--warn-punkt); }
+.vz-ziel:hover .vz-hyp, .vz-ziel:focus-visible .vz-hyp { stroke: var(--tinte); stroke-width: 1; }
+.vz-svg .vz-achsen-text { font-size: 12px; }
+@media (max-width: 760px) { .vz-svg .vz-achsen-text { font-size: 13px; } }
+
+/* ---------- Bedarf gegen geschlafene Zeit (Doppelbalken mit gestreifter Schuld) */
+.vz-bedarf { fill: var(--flaeche-3); stroke: var(--grau-4); stroke-width: 1; }
+.vz-bedarf-spur { fill: var(--flaeche-3); }
+.vz-ist { fill: var(--akzent); }
+.vz-schuld-grund { fill: var(--flaeche-3); }
+.vz-schuld-strich { stroke: var(--akzent); opacity: .7; }
+.vz-schuld { stroke: var(--akzent); stroke-width: 1; stroke-dasharray: 3 3; }
+.vz-ziel:hover .vz-ist, .vz-ziel:focus-visible .vz-ist, .vz-ziel:hover .vz-bedarf, .vz-ziel:focus-visible .vz-bedarf { stroke: var(--tinte); stroke-width: 1.5; }
+
+/* ---------- Zeitreihe: Fläche unter der Linie, Hinweiskarte am gewählten (sonst letzten) Punkt */
+.vz-flaeche { stroke: none; }
+.vz-tip { opacity: 0; pointer-events: none; transition: opacity var(--dauer-kurz) var(--kurve); }
+.vz-tip rect { fill: var(--flaeche-3); stroke: var(--haarlinie); stroke-width: 1; }
+.vz-svg .vz-tip text { fill: var(--tinte); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.vz-mit-karten .vz-ziel:hover .vz-tip, .vz-mit-karten .vz-ziel:focus-visible .vz-tip { opacity: 1; }
+.vz-mit-karten:not(:hover):not(:focus-within) .vz-ziel:last-of-type .vz-tip { opacity: 1; }
+.vz-mit-karten .vz-ziel:last-of-type .vz-wert { display: none; }
+/* Viele Punkte (> 14, z. B. Pulskurve, 30 Tage): nur die Linie, Punkte erst beim Zeigen/Fokus, der letzte bleibt */
+.vz-dicht .vz-ziel:not(:last-of-type) .vz-punkt { opacity: 0; transition: opacity var(--dauer-kurz) var(--kurve); }
+.vz-dicht .vz-ziel:not(:last-of-type):hover .vz-punkt, .vz-dicht .vz-ziel:not(:last-of-type):focus-visible .vz-punkt { opacity: 1; }
+.vz-mit-karten .vz-ziel:hover .vz-punkt, .vz-mit-karten .vz-ziel:focus-visible .vz-punkt { fill: var(--akzent-hell); }
 
 @media (max-width: 760px) { .vz-svg text { font-size: 15px; } }
 @media (forced-colors: active) { .vz-marke { stroke: CanvasText; stroke-width: 1; } }

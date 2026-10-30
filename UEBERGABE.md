@@ -5,6 +5,13 @@
 > statt einer Blackbox. Die Messwerte kommen vom WHOOP-Band, entweder über Health Connect auf dem Android-Handy oder aus dem
 > WHOOP-Datenexport. Alles bleibt auf dem Gerät; die App gibt keinen medizinischen Rat.
 
+
+> **Stand 30.10.2026 (Ende der ersten Sitzung).** Phase 1 und 2 sind gebaut und gepusht (Zweig `ccr-1cfdd73f-uziuf7`): Rechenkern mit
+> Formeldatei, Oberfläche im dunklen Kleid „Nacht“ (Barlow Condensed, leuchtender Erholungsring, Hypnogramm), Live-Puls über Bluetooth,
+> Vergleich mit WHOOP, Health-Connect- und CSV-Import, Rechner-Dienst in Python (`desktop/mf_dienst.py`) mit WLAN-Abgleich.
+> 242 Node-Tests und 30 Python-Tests grün. Noch nie am echten Band, Handy oder Rechner geprüft. Nächste Schritte: APK bauen
+> (`docs/technik/android.md`), Rechner-Dienst einrichten (`docs/technik/desktop.md`), 30+ Formelwerte mit `pruefen: true` abnehmen.
+
 ## 1. Stand (30.10.2026)
 
 | Bereich | Stand |

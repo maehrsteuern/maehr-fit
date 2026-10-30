@@ -6,14 +6,18 @@
   .mf-tagwahl .mf-tag-text { max-width: 96px; padding: 0 2px; }
   .mf-haupt { padding-left: max(var(--r3), env(safe-area-inset-left)); padding-right: max(var(--r3), env(safe-area-inset-right)); }
   .mf-karte, .mf-gliederung > summary, .mf-gliederung > .mf-gl-inhalt, .mf-zeile, .mf-schalter { padding-left: var(--r4); padding-right: var(--r4); }
-  .mf-kachel { padding: var(--r3); }
-  .mf-kachel-wert .zahl { font-size: 28px; }
+  .mf-kachel { padding: var(--r3) var(--r3) var(--r3) 14px; }
+  .mf-kachel-wert .zahl, .mf-kachel-wert .zahl-text { font-size: 28px; }
+  .mf-held .mf-kern { font-size: 19px; }
+  .mf-tagwahl .mf-rund { width: 36px; }
 }
 @media (min-width: 900px) {
   :root { --t-held: 96px; --t-anzeige: 40px; }
   .mf-haupt { max-width: 760px; padding-top: var(--r6); }
-  .mf-reiter { left: 50%; right: auto; transform: translateX(-50%); width: min(560px, 100%); border: 1px solid var(--grau-3); border-bottom: 0; border-radius: var(--radius-3) var(--radius-3) 0 0; }
-  .rg { --rg-d: var(--rg-groesse-gross, 280px); }
+  .mf-reiter { left: 50%; right: auto; transform: translateX(-50%); width: min(560px, 100%); border: 1px solid var(--haarlinie); border-bottom: 0; border-radius: var(--radius-3) var(--radius-3) 0 0; }
+  .rg { --rg-d: var(--rg-groesse-gross, 320px); }
+  .mf-held .mf-kern { font-size: 24px; max-width: 34ch; }
+  .mf-kern { font-size: 20px; }
   .mf-kacheln.mf-vier { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  dialog.mf-beleg { bottom: var(--r6); border-bottom: 1px solid var(--grau-3); border-radius: var(--radius-3); }
+  dialog.mf-beleg { bottom: var(--r6); border-bottom: 1px solid var(--haarlinie); border-radius: var(--radius-3); }
 }

@@ -2,7 +2,9 @@
  *
  * Kernaussage: Oben steht ein Satz, was die Ansicht kann, darunter groß dein Puls jetzt und die Pulszone. Du verbindest das Band
  * (oder probierst den Demo-Puls), startest die Aufzeichnung und siehst Belastung, Dauer und – wenn das Band Herzschlag-Abstände
- * sendet – die Kurz-HRV. Die Linie zeigt die letzten drei Minuten, der Balken die Zeit je Zone. „Beenden“ speichert die Einheit
+ * sendet – die Kurz-HRV. Über der Zahl pocht ein Herz im Takt deines Pulses (CSS-Animation, Dauer = 60 ÷ Puls Sekunden, nur
+ * transform; bei „weniger Bewegung“ steht es still), darunter zeigt ein Band die fünf Zonen mit einer Marke beim Puls jetzt.
+ * Die Linie zeigt die letzten drei Minuten, der Balken die Zeit je Zone. „Beenden“ speichert die Einheit
  * als Training (Quelle Bluetooth), und der Tag wird neu gerechnet. Jede Zahl öffnet ihren Beleg.
  *
  * Route: #/live[?von=atem|belastung] (Zurück-Link). Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx) → aufraeumen()
@@ -11,7 +13,7 @@
  */
 import { t } from "../i18n/i18n.js";
 import { esc, zahl, dauer, uhrzeit, belastungText } from "../format.js";
-import { kernaussage, kopf, abschnitt, zahlKnopf, beleg } from "../ui.js";
+import { kernaussage, kopf, abschnitt, zahlKnopf, beleg, IKON } from "../ui.js";
 import { segmentbalken, verlauf, kennzahlKachel } from "../viz/viz.js";
 import { maxPulsAus } from "../kern.js";
 import { liveZone, laufendeBelastung, hrvKurz, trainingMindestMs, pulsFormel, zonenGrenzen } from "../kern_live.js";
@@ -84,10 +86,23 @@ function belegeSetzen(B, E) {
 /** RR-Abstände für die Kurz-HRV: der laufenden Aufzeichnung, sonst der letzten drei Minuten. */
 const rrQuelle = () => (S.rr.length ? S.rr : puls.verlauf().flatMap((x) => x.rrMs || []));
 
+/** Zonenband unter der Zahl: fünf Abschnitte nach den Zonengrenzen, die Marke steht beim Puls jetzt (Lage als --lv-lage 0…1). */
+export function zonenbandHtml(bpm, E) {
+  const g = E.ok ? zonenGrenzen(E.maxPuls, E.ruhepuls) : [];
+  if (!g.length) return "";
+  const lo = Math.min(E.ruhepuls, g[0].abBpm), hi = E.maxPuls, spanne = Math.max(1, hi - lo);
+  const teile = (g[0].abBpm > lo ? `<span class="lv-band-teil lv-band-unter" style="flex-grow:${g[0].abBpm - lo}"></span>` : "") + g.map((z, i) => { const bis = i + 1 < g.length ? g[i + 1].abBpm : hi; return `<span class="lv-band-teil ${ZONEN_KLASSE[z.zone - 1] || "vz-k1"}" style="flex-grow:${Math.max(1, bis - z.abBpm)}"></span>`; }).join("");
+  const lage = Number.isFinite(bpm) ? Math.max(0, Math.min(1, (bpm - lo) / spanne)) : null;
+  return `<div class="lv-band" role="img" aria-label="${esc(t("live_zonenband_aria"))}"><div class="lv-band-spur">${teile}</div>${lage === null ? "" : `<div class="lv-band-zeiger" style="--lv-lage:${lage.toFixed(3)}"><i></i></div>`}</div>`;
+}
+/** Dauer eines Herzschlags in Sekunden für das pochende Herz (60 / Puls); ohne Puls steht das Herz still. */
+export const schlagDauer = (bpm) => (Number.isFinite(bpm) && bpm > 0 ? (60 / bpm).toFixed(3) + "s" : "");
+
 function heldHtml(E) {
   const l = puls.letzter();
   return `<div class="lv-wert">${zahlKnopf("live:puls", l ? zahl(l.bpm) : "–", l ? `${t("live_puls")}: ${zahl(l.bpm)} ${t("einheit_bpm")}` : t("live_warte"))}<span class="lv-einheit">${esc(t("einheit_bpm"))}</span></div>
-    <div class="lv-zone" data-zone="${l && E.ok ? liveZone(l.bpm, E) : ""}">${l && E.ok ? zahlKnopf("live:zone", zoneText(l.bpm, E)) : `<span class="mf-leise">${esc(l ? t("live_zone_fehlt") : t("live_warte"))}</span>`}</div>`;
+    <div class="lv-zone" data-zone="${l && E.ok ? liveZone(l.bpm, E) : ""}">${l && E.ok ? zahlKnopf("live:zone", zoneText(l.bpm, E)) : `<span class="mf-leise">${esc(l ? t("live_zone_fehlt") : t("live_warte"))}</span>`}</div>
+    ${zonenbandHtml(l?.bpm, E)}`;
 }
 
 function kachelnHtml() {
@@ -152,7 +167,7 @@ export function ansicht(ctx) {
     ${kopf(t("live_titel"), { zurueck })}
     ${kernaussage(esc(t(bt ? "live_kern" : "live_kern_ohne")))}
     <section class="mf-karte lv-verbindung" data-lv-teil="verbindung">${verbindungHtml(z, bt)}</section>
-    <div class="mf-held lv-held" data-lv-teil="held">${heldHtml(E)}</div>
+    <div class="mf-held lv-held"><span class="lv-herz" data-lv-herz${puls.letzter() ? ` data-schlaegt style="--lv-schlag:${schlagDauer(puls.letzter().bpm)}"` : ""} aria-hidden="true">${IKON.herz}</span><div class="lv-held-werte" data-lv-teil="held">${heldHtml(E)}</div></div>
     <div data-lv-teil="kacheln">${kachelnHtml()}</div>
     ${abschnitt("", steuerHtml(z), "lv-steuerung")}
     <div data-lv-teil="ergebnis">${ergebnisHtml()}</div>
@@ -194,12 +209,21 @@ export function binde(wurzel, ctx) {
   const E = pulsEinstellungen(ctx), B = beleg(ctx.register), bt = puls.bluetoothArt(window);
   const teil = (n) => sicht.querySelector(`[data-lv-teil="${n}"]`);
   let raf = 0, letzteSek = "";
+  // Das Herz pocht im Takt des Pulses: nur die Dauer der CSS-Animation ändert sich (transform), kein Zeitgeber
+  const herz = sicht.querySelector("[data-lv-herz]");
+  const herzTakt = () => {
+    const d = schlagDauer(puls.letzter()?.bpm);
+    if (!herz) return;
+    if (!d) { herz.removeAttribute("data-schlaegt"); return; }
+    if (herz.style.getPropertyValue("--lv-schlag") !== d) herz.style.setProperty("--lv-schlag", d);
+    herz.setAttribute("data-schlaegt", "");
+  };
   const neuZeichnen = (...namen) => {
     belegeSetzen(B, E);
     const z = puls.zustand();
     for (const n of namen) {
       if (n === "verbindung") teil(n).innerHTML = verbindungHtml(z, bt);
-      if (n === "held") teil(n).innerHTML = heldHtml(E);
+      if (n === "held") { teil(n).innerHTML = heldHtml(E); herzTakt(); }
       if (n === "kacheln") teil(n).innerHTML = kachelnHtml();
       if (n === "verlauf") teil(n).innerHTML = verlaufHtml();
       if (n === "zonen") teil(n).innerHTML = zonenHtml();

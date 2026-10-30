@@ -1,18 +1,20 @@
 /* shell/design/design_sync.css – Sync-Ansicht (shell/apps/sync.js): Handy ↔ Rechner.
-   Kernaussage: Ruhige Karten wie in „Daten“. Neu sind nur das Kamerabild zum Scannen, der QR-Code (immer auf hellem Grund,
+   Kernaussage: Ruhige Karten im Kleid „Nacht“ wie in „Daten“, je mit Symbol-Kachel vor dem Titel. Neu sind nur das Kamerabild zum Scannen, der QR-Code (immer auf hellem Grund,
    damit jede Kamera ihn liest, auch im Dunkelmodus), das Code-Feld in Festbreitenschrift und die Geräteliste mit Knopf rechts.
    Nur Tokens aus design.css, keine Farbwerte. */
-.sy-karte .mf-feld textarea { width: 100%; max-width: 100%; min-height: 88px; padding: var(--r2); border: 1px solid var(--grau-4); border-radius: var(--radius-1);
-  background: var(--grau-1); color: var(--tinte); font-size: var(--t-2); resize: vertical; }
+.sy-titel { display: flex; align-items: center; gap: var(--r3); font-size: 19px; line-height: 1.2; }
+.sy-titel .mf-pfeil-ikon { width: 38px; height: 38px; border-radius: 12px; }
+.sy-karte .mf-feld textarea { width: 100%; max-width: 100%; min-height: 88px; padding: var(--r3); border: 1px solid var(--haarlinie); border-radius: var(--radius-2);
+  background: var(--flaeche-2); box-shadow: inset 0 1px 0 var(--innenkante); color: var(--tinte); font-size: var(--t-2); resize: vertical; }
 .sy-karte .mf-feld textarea:focus { outline: none; border-color: var(--marke); box-shadow: 0 0 0 1px var(--marke); }
 .sy-code, .sy-mono { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
 .sy-code { overflow-wrap: anywhere; word-break: break-all; }
 .sy-mono { white-space: nowrap; }
 .sy-kamera { display: flex; flex-direction: column; gap: var(--r3); }
-.sy-kamera video { width: 100%; max-width: 360px; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-2); background: var(--grau-2); align-self: center; }
+.sy-kamera video { width: 100%; max-width: 360px; aspect-ratio: 1 / 1; object-fit: cover; border-radius: var(--radius-2); background: var(--flaeche-3); align-self: center; }
 .sy-qr { display: flex; flex-direction: column; align-items: center; gap: var(--r3); }
 .sy-qr .mf-feld { width: 100%; }
-.sy-qr-bild { width: min(72vw, 280px); aspect-ratio: 1 / 1; padding: var(--r3); background: var(--m-h-papier); border-radius: var(--radius-2); border: 1px solid var(--grau-3); }
+.sy-qr-bild { width: min(72vw, 280px); aspect-ratio: 1 / 1; padding: var(--r3); background: var(--m-h-papier); border-radius: var(--radius-2); border: 1px solid var(--haarlinie); }
 .sy-qr-bild svg { display: block; width: 100%; height: 100%; }
 .sy-qr-bild svg path, .sy-qr-bild svg rect:not(:first-child) { fill: var(--m-h-tinte); }
 .sy-fakten .mf-zeile { min-height: 56px; }

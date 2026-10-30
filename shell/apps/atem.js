@@ -2,7 +2,8 @@
  *
  * Kernaussage: Du wählst eine Übung und folgst einem großen Kreis: Er wächst beim Einatmen, bleibt beim Halten stehen und wird
  * beim Ausatmen kleiner. In der Mitte stehen die Phase, ein Countdown und die Runde. Auf Wunsch vibriert das Gerät oder klingt
- * ein leiser Ton bei jedem Wechsel. Wer „weniger Bewegung“ eingestellt hat, sieht statt des Kreises einen Fortschrittsbalken.
+ * ein leiser Ton bei jedem Wechsel. Ein weiches Leuchten wächst mit, und ein Punkt läuft auf einem dünnen Ring einmal je Phase
+ * herum. Wer „weniger Bewegung“ eingestellt hat, sieht statt des Kreises einen Fortschrittsbalken.
  * Am Ende steht die geatmete Zeit im Tagebuch (Eintrag „atem“ in Millisekunden).
  * „Puls mitlesen“ (Phase 2): Mit verbundenem Band (oder Demo-Puls, shell/puls.js) stehen neben dem Kreis dein Puls und die
  * Kohärenz – wie gleichmäßig der Puls dem Atemtakt folgt (kern/live.js). Danach zeigt eine Karte Puls zu Beginn und am Ende, die
@@ -74,10 +75,10 @@ function liste(ctx) {
   const heute = ctx.atemHeuteMs || 0;
   const zeilen = atemKatalog().map((name) => {
     const u = atemUebung(name);
-    return `<li><a class="mf-zeile" href="#/atem/${encodeURIComponent(u.name)}"><span class="mf-zeile-text"><strong>${esc(t("atem_" + u.name))}</strong><small>${esc(t("atem_" + u.name + "_text"))}</small><small>${esc(t("atem_dauer", { runden: u.runden, dauer: dauer(gesamtDauer(u)) }))}</small></span><span class="mf-chevron">${IKON.rechts}</span></a></li>`;
+    return `<li><a class="mf-zeile" href="#/atem/${encodeURIComponent(u.name)}"><span class="mf-pfeil-ikon" aria-hidden="true">${IKON.atem}</span><span class="mf-zeile-text"><strong>${esc(t("atem_" + u.name))}</strong><small>${esc(t("atem_" + u.name + "_text"))}</small><small>${esc(t("atem_dauer", { runden: u.runden, dauer: dauer(gesamtDauer(u)) }))}</small></span><span class="mf-chevron">${IKON.rechts}</span></a></li>`;
   }).join("");
   const satz = esc(t("atem_kern")) + (heute > 0 ? " " + esc(t("atem_heute", { wert: dauer(heute, { sekunden: true }) })) : "");
-  return `<div class="mf-sicht" data-sicht="atem">${kopf(t("atem_titel"))}${kernaussage(satz)}<ul class="mf-liste">${zeilen}</ul><div class="mf-knopfreihe"><a class="mf-knopf" href="#/live?von=atem" data-live-link>${IKON.belastung}<span>${esc(t("atem_live"))}</span></a></div></div>`;
+  return `<div class="mf-sicht" data-sicht="atem">${kopf(t("atem_titel"))}${kernaussage(satz)}<ul class="mf-liste">${zeilen}</ul><div class="mf-knopfreihe"><a class="mf-knopf" href="#/live?von=atem" data-live-link>${IKON.herz}<span>${esc(t("atem_live"))}</span></a></div></div>`;
 }
 
 const schalter = (id, titel, text, an) => `<label class="mf-schalter"><span class="mf-schalter-text"><span>${esc(titel)}</span><small>${esc(text)}</small></span><input type="checkbox" role="switch" data-at-option="${id}"${an ? " checked" : ""}></label>`;
@@ -115,7 +116,9 @@ function sitzung(ctx, name) {
     ${kernaussage(esc(t("atem_sitzung_kern")))}
     <div class="at-buehne${pulsAn ? " mit-puls" : ""}" data-zustand="bereit" data-uebung="${esc(u.name)}">
       <div class="at-kreisfeld">
-        <div class="at-ring" aria-hidden="true"></div><div class="at-kreis" aria-hidden="true"></div>
+        <div class="at-schein" aria-hidden="true"></div><div class="at-ring" aria-hidden="true"></div><div class="at-kreis" aria-hidden="true"></div>
+        <svg class="at-phasenring" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle class="at-phasenspur" cx="50" cy="50" r="48.5" fill="none" stroke-width="1.5"/></svg>
+        <div class="at-laeufer" aria-hidden="true"><i></i></div>
         <div class="at-mitte"><span class="at-phase" aria-live="polite">${esc(t("atem_bereit"))}</span><span class="at-zahl" aria-hidden="true">${Math.round(p0.ms / 1000)}</span><span class="at-runde">${esc(t("runde", { n: 1, gesamt: u.runden }))}</span></div>
       </div>
       <div class="at-puls" data-at-pulsfeld${pulsAn ? "" : " hidden"}>${pulsAn ? pulsFeldHtml([], u.zyklusMs) : ""}</div>
@@ -150,7 +153,7 @@ export function binde(wurzel, ctx) {
   if (!buehne) return () => {};
   const u = atemUebung(buehne.dataset.uebung), plan = skalenPlan(u);
   const $ = (s) => buehne.querySelector(s);
-  const kreis = $(".at-kreis"), phaseEl = $(".at-phase"), zahlEl = $(".at-zahl"), rundeEl = $(".at-runde"), balken = $(".at-balken"), fuell = $(".at-balken > span");
+  const kreis = $(".at-kreis"), schein = $(".at-schein"), laeufer = $(".at-laeufer"), phaseEl = $(".at-phase"), zahlEl = $(".at-zahl"), rundeEl = $(".at-runde"), balken = $(".at-balken"), fuell = $(".at-balken > span");
   const startK = $('[data-at="start"]'), stoppK = $('[data-at="stopp"]'), ergebnis = $(".at-ergebnis");
   const opt = { vibration: !!ctx.einst?.haptik, ton: false, puls: !!ctx.einst?.atemPuls };
   wurzel.querySelectorAll("[data-at-option]").forEach((el) => el.addEventListener("change", () => { if (el.dataset.atOption === "puls") pulsSchalten(el.checked); else opt[el.dataset.atOption] = el.checked; }));
@@ -218,7 +221,10 @@ export function binde(wurzel, ctx) {
     const sek = String(Math.ceil(p.restMs / 1000));
     if (zahlEl.textContent !== sek) zahlEl.textContent = sek;
     const anteil = p.phasenMs ? p.imPhaseMs / p.phasenMs : 1;
-    kreis.style.setProperty("--at-skala", skalaBei(u, p, plan).toFixed(4));
+    const skala = skalaBei(u, p, plan).toFixed(4);
+    kreis.style.setProperty("--at-skala", skala); schein?.style.setProperty("--at-skala", skala);
+    // Läufer auf dem dünnen Phasenring: eine Runde je Phase (nur transform)
+    if (laeufer) laeufer.style.transform = `rotate(${(anteil * 360).toFixed(1)}deg)`;
     fuell.style.transform = `scaleX(${anteil.toFixed(3)})`;
     balken.setAttribute("aria-valuenow", String(Math.round(anteil * 100)));
   };
@@ -231,7 +237,8 @@ export function binde(wurzel, ctx) {
   async function beenden(ms) {
     cancelAnimationFrame(raf); setze("fertig");
     phaseEl.textContent = t("atem_fertig"); zahlEl.textContent = "";
-    kreis.style.setProperty("--at-skala", String(SKALA_KLEIN));
+    kreis.style.setProperty("--at-skala", String(SKALA_KLEIN)); schein?.style.setProperty("--at-skala", String(SKALA_KLEIN));
+    if (laeufer) laeufer.style.transform = "";
     startK.textContent = t("atem_nochmal"); stoppK.hidden = true;
     ergebnis.hidden = false;
     if (ms >= MINDEST_MS) {

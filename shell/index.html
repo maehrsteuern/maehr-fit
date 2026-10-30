@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -16,10 +16,15 @@
 <link rel="stylesheet" href="design/design_viz.css">
 <link rel="stylesheet" href="design/design_atem.css">
 <link rel="stylesheet" href="design/design_live.css">
+<link rel="stylesheet" href="design/design_sync.css">
+<link rel="stylesheet" href="design/design_bewegung.css">
 <link rel="stylesheet" href="design/design_mobil.css">
 </head>
 <body>
-<div id="mf-wurzel"><main class="mf-haupt"><p class="mf-kern">Deine Werte werden geladen …</p></main></div>
+<div id="mf-wurzel"><main class="mf-haupt mf-laedt" aria-busy="true"><div class="mf-sicht"><p class="mf-kern">Deine Werte werden geladen …</p>
+<div class="mf-skelett mf-skelett-ring" aria-hidden="true"></div>
+<div class="mf-kacheln mf-vier" aria-hidden="true"><div class="mf-skelett mf-skelett-kachel"></div><div class="mf-skelett mf-skelett-kachel"></div><div class="mf-skelett mf-skelett-kachel"></div><div class="mf-skelett mf-skelett-kachel"></div></div>
+</div></main></div>
 <dialog class="mf-beleg" id="mf-beleg" aria-labelledby="mf-beleg-titel"></dialog>
 <noscript><p>MAEHR FIT braucht JavaScript. / MAEHR FIT needs JavaScript.</p></noscript>
 <script type="module" src="shell.js"></script>

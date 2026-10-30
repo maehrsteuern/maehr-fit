@@ -3,8 +3,11 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { TEXTE, t, setzeSprache } from "../../shell/i18n/i18n.js";
+import { TEXTE_DESIGN } from "../../shell/i18n/texte_design.js"; // trägt sich in TEXTE ein, wird unten mitgeprüft
 
 const platzhalter = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(",");
+
+test("Texte des Designs stehen in TEXTE", () => { for (const k of Object.keys(TEXTE_DESIGN)) assert.ok(TEXTE[k], k); });
 
 test("jeder Schlüssel hat DE und EN mit denselben Platzhaltern", () => {
   for (const [k, [de, en]] of Object.entries(TEXTE)) {

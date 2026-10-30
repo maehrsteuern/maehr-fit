@@ -11,7 +11,7 @@
  */
 import { t, locale } from "../i18n/i18n.js";
 import { esc, zahl } from "../format.js";
-import { kernaussage, kopf, zahlKnopf, beleg, abschnitt, tHtml } from "../ui.js";
+import { kernaussage, kopf, zahlKnopf, beleg, abschnitt, tHtml, IKON } from "../ui.js";
 import { syncEinrichten, syncJetzt, syncStatus, syncEntkoppeln, exportInhalt, mfxErstellen } from "../../daten/sync.js";
 
 /** Zustand der Ansicht (modulweit, damit ein Neuzeichnen der Shell ihn nicht verliert). */
@@ -52,7 +52,9 @@ function kernRechner(B, geraete, jetzt) {
   return tHtml(eins ? "sync_kern_rechner_eins" : "sync_kern_rechner_mehr", { g, zeit: zahlKnopf(q1, vorZeit(letzt.sync_zuletzt, jetzt)), n: zahlKnopf(q2, zahl(letzt.sync_neu)) });
 }
 
-const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt sy-karte" data-karte="${id}"><h2>${esc(titel)}</h2>${text ? `<p class="mf-leise">${esc(text)}</p>` : ""}${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p></section>`;
+/** Symbol je Karte (Kleid „Nacht“: Karten mit Symbol-Kachel links neben dem Titel). */
+const KARTEN_IKON = { koppeln: "sync", jetzt: "sync", ordner: "daten", qr: "sync", eingang: "tagebuch" };
+const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt sy-karte" data-karte="${id}"><h2 class="sy-titel"><span class="mf-pfeil-ikon" aria-hidden="true">${IKON[KARTEN_IKON[id]] || IKON.sync}</span><span>${esc(titel)}</span></h2>${text ? `<p class="mf-leise">${esc(text)}</p>` : ""}${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p></section>`;
 const knopf = (aktion, text, art = "") => `<button type="button" class="mf-knopf${art ? " " + art : ""}" data-aktion="${aktion}"${Z.laeuft ? " disabled" : ""}>${esc(text)}</button>`;
 
 function ansichtHandy(ctx, B, jetzt) {

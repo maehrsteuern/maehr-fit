@@ -1,7 +1,7 @@
 /* shell/apps/mehr.js – „Mehr“: Tagebuch, Trends, Vergleich, Daten und Einstellungen (Gliederung des fünften Reiters).
  *
  * Kernaussage: Hinter „Mehr“ liegen die übrigen Bereiche als ruhige Liste – Tagebuch, Trends, Vergleich mit WHOOP, Daten,
- * Einstellungen – und der Hinweis, dass MAEHR FIT Messwerte zeigt und keinen ärztlichen Rat gibt. Eine letzte Zeile nennt, wie viele
+ * Einstellungen, Sync (Handy ↔ Rechner) – und der Hinweis, dass MAEHR FIT Messwerte zeigt und keinen ärztlichen Rat gibt. Eine letzte Zeile nennt, wie viele
  * Formeln noch zu prüfen sind, und führt zu ihrer Liste (#/mehr/pruefen) mit Rechenweg und Fundstelle je Formel.
  *
  * Schnittstelle: ansicht(ctx) → HTML. Formeln: shell/kern.js pruefListe() → kern/formeln.js (kern/formeln/formeln.json).
@@ -17,6 +17,7 @@ export const EINTRAEGE = [
   { id: "vergleich", titel: "vgl_titel", text: "mehr_vergleich_text", ikon: "trends" },
   { id: "daten", titel: "daten_titel", text: "mehr_daten_text" },
   { id: "einstellungen", titel: "einstellungen_titel", text: "mehr_einstellungen_text" },
+  { id: "sync", titel: "sync_titel", text: "mehr_sync_text" },
 ];
 
 const zeile = (href, ikon, titel, text, rechts = "") => `<li><a class="mf-zeile" href="${esc(href)}"><span class="mf-pfeil-ikon" aria-hidden="true">${IKON[ikon] || IKON.mehr}</span><span class="mf-zeile-text"><strong>${esc(titel)}</strong><small>${esc(text)}</small></span>${rechts}<span class="mf-chevron">${IKON.rechts}</span></a></li>`;
@@ -50,7 +51,7 @@ export function ansicht(ctx = {}) {
   if ((ctx.route?.teile || [])[1] === "pruefen") return pruefen(ctx);
   const zeilen = EINTRAEGE.map((e) => zeile(`#/${e.id}`, e.ikon || e.id, t(e.titel), t(e.text))).join("");
   const n = pruefListe().length;
-  const pruefZeile = zeile("#/mehr/pruefen", "einstellungen", t("mehr_pruefen_titel"), t("mehr_pruefen_text"), `<span class="mf-zeile-rechts"><span class="zahl-text" data-pruefen-anzahl>${esc(zahl(n))}</span></span>`);
+  const pruefZeile = zeile("#/mehr/pruefen", "pruefen", t("mehr_pruefen_titel"), t("mehr_pruefen_text"), `<span class="mf-zeile-rechts"><span class="zahl-text" data-pruefen-anzahl>${esc(zahl(n))}</span></span>`);
   return `<div class="mf-sicht" data-sicht="mehr">
     ${kopf(t("mehr_titel"))}
     ${kernaussage(esc(t("mehr_kern")))}

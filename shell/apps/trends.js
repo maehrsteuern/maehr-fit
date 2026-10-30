@@ -1,7 +1,8 @@
 /* shell/apps/trends.js – „Trends“: Woche und Monat im Verlauf (docs/apps/trends.md).
  *
  * Kernaussage: Du wählst einen Messwert (Erholung, HRV, Ruhepuls, Schlafdauer) und einen Zeitraum (7 oder 30 Tage). Ein einziges
- * Diagramm zeigt die Tageswerte als Linie und deinen üblichen Bereich als hellen Streifen. Der Satz oben sagt, ob der letzte Wert
+ * Diagramm zeigt die Tageswerte als Linie mit weich auslaufender Fläche und deinen üblichen Bereich als hellen Streifen; der gewählte
+ * (sonst der letzte) Punkt trägt eine kleine Karte mit Tag und Wert. Messwert und Zeitraum wählst du in Pillen-Gruppen. Der Satz oben sagt, ob der letzte Wert
  * darüber, darunter oder darin liegt. Jeder Punkt öffnet seinen Beleg.
  *
  * Route: #/trends?feld=hrv&fenster=30. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx). Kern (über shell/kern.js): trendPunkte → kern trend (Band = Mittel ± Streuung der Tage davor).
@@ -36,9 +37,9 @@ export function ansicht(ctx) {
     band = { unten: bd.unten, oben: bd.oben, text: t("band_ueblich") };
   }
   const titel = t("trends_chart_titel", { feld: t("feld_" + feld + "_titel"), fenster: t("fenster_" + fenster) });
-  const diagramm = zeitreihe({ titel, kernaussage: t("trends_chart_kern"), band, abNull: feld === "erholung",
+  const diagramm = zeitreihe({ titel, kernaussage: t("trends_chart_kern"), band, abNull: feld === "erholung", flaeche: true, karten: true,
     reihen: punkte.map((p) => ({ name: tagKurz(p.tag), wert: p.wert, text: fmt(p.wert), q: `trend:${feld}:${p.tag}` })) }).html;
-  const wahl = (art, werte, jetzt, name) => `<div class="mf-feld"><span id="tr-${art}">${esc(name)}</span><div class="mf-wahl" role="group" aria-labelledby="tr-${art}">${werte.map((w) =>
+  const wahl = (art, werte, jetzt, name) => `<div class="mf-feld"><span id="tr-${art}">${esc(name)}</span><div class="mf-wahl mf-segment" style="--segmente:${werte.length}" role="group" aria-labelledby="tr-${art}">${werte.map((w) =>
     `<button type="button" data-tr-${art}="${w}" aria-pressed="${String(w) === String(jetzt)}">${esc(art === "feld" ? t("feld_" + w + "_titel") : t("fenster_" + w))}</button>`).join("")}</div></div>`;
   return `<div class="mf-sicht" data-sicht="trends" data-feld="${feld}" data-fenster="${fenster}">
     ${kopf(t("trends_titel"), { zurueck: "#/mehr" })}

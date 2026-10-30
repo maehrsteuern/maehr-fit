@@ -1,0 +1,36 @@
+/* shell/design/design_bewegung.css – Bewegungskatalog von MAEHR FIT (docs/technik/design_mf.md, Abschnitt „Bewegung“).
+   Kernaussage: Bewegung erklärt, sie schmückt nicht. Eine neue Ansicht taucht in Abschnitten auf (200 ms, gestaffelt um 40 ms,
+   zusammen höchstens 450 ms), der Heldenring kommt sanft dazu, Ladeflächen atmen leise in der Deckkraft, das Live-Herz pocht im
+   gemessenen Takt. Nur transform und opacity; bei prefers-reduced-motion steht alles still (design.css schaltet jede Animation ab).
+   Einzige Ausnahme von „höchstens 450 ms“: das Live-Herz (Dauer = 60 ÷ Puls, gesetzt als --lv-schlag) und der Atemkreis
+   (shell/apps/atem.js) – beide folgen einem Takt des Körpers; tests/node/ruhe.test.mjs kennt genau diese Ausnahmen. */
+
+/* ---------- Ankommen einer Ansicht: Abschnitte gestaffelt (opacity + 8 px) */
+@keyframes mf-auftauchen { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.mf-sicht.mf-neu > * { animation: mf-auftauchen var(--dauer-auftauchen) var(--kurve) both; }
+.mf-sicht.mf-neu > :nth-child(2) { animation-delay: 40ms; }
+.mf-sicht.mf-neu > :nth-child(3) { animation-delay: 80ms; }
+.mf-sicht.mf-neu > :nth-child(4) { animation-delay: 120ms; }
+.mf-sicht.mf-neu > :nth-child(5) { animation-delay: 160ms; }
+.mf-sicht.mf-neu > :nth-child(n+6) { animation-delay: 200ms; }
+
+/* ---------- Heldenring: kommt mit leichter Vergrößerung, das Leuchten blendet nach */
+@keyframes mf-ring-an { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes mf-schein-an { from { opacity: 0; } to { opacity: 1; } }
+.mf-sicht.mf-neu .rg-bild { animation: mf-ring-an var(--dauer) var(--kurve) both; }
+.mf-sicht.mf-neu .rg-schein { animation: mf-schein-an var(--dauer-max) var(--kurve) both; }
+
+/* ---------- Laden: Skelett-Flächen atmen in der Deckkraft (kein Verschieben) */
+@keyframes mf-skelett { from { opacity: .45; } to { opacity: .9; } }
+.mf-skelett { background: var(--flaeche-2); border: 1px solid var(--haarlinie); animation: mf-skelett var(--dauer-max) var(--kurve) infinite alternate; }
+.mf-skelett-ring { width: min(64vw, 240px); aspect-ratio: 1 / 1; margin: 0 auto; border-radius: 50%; background: none; border: 14px solid var(--flaeche-2); }
+.mf-skelett-kachel { height: 150px; border-radius: var(--radius-3); }
+.mf-laedt .mf-kern { text-align: center; margin: 0 auto; color: var(--grau-5); }
+
+/* ---------- Live-Herz: pocht im Takt des Pulses (Dauer aus shell/apps/live.js, nur transform) */
+@keyframes lv-schlag { 0% { transform: scale(1); } 14% { transform: scale(1.16); } 28% { transform: scale(1); } 42% { transform: scale(1.08); } 60%, 100% { transform: scale(1); } }
+.lv-herz[data-schlaegt] svg { animation: lv-schlag var(--lv-schlag) var(--kurve) infinite; transform-origin: 50% 55%; }
+
+@media (prefers-reduced-motion: reduce) {
+  .mf-sicht.mf-neu > *, .mf-sicht.mf-neu .rg-bild, .mf-sicht.mf-neu .rg-schein, .mf-skelett, .lv-herz[data-schlaegt] svg { animation: none !important; opacity: 1; transform: none; }
+}

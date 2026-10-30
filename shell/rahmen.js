@@ -25,5 +25,5 @@ export function menueHtml() {
 }
 
 export function reiterHtml(aktiv) {
-  return `<nav class="mf-reiter" aria-label="${esc(t("reiter_label"))}">${REITER.map((r) => `<a href="#/${r}"${r === aktiv ? ' aria-current="page"' : ""}>${IKON[r]}<span>${esc(t("reiter_" + r))}</span></a>`).join("")}</nav>`;
+  return `<nav class="mf-reiter" aria-label="${esc(t("reiter_label"))}">${REITER.map((r) => `<a href="#/${r}"${r === aktiv ? ' aria-current="page"' : ""}><span class="mf-reiter-ikon">${IKON[r]}</span><span class="mf-reiter-text">${esc(t("reiter_" + r))}</span></a>`).join("")}</nav>`;
 }

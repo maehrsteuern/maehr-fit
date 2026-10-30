@@ -14,6 +14,7 @@ import { t } from "../i18n/i18n.js";
 import { zahl, mitVorzeichen, tagKurz, wochentag, esc } from "../format.js";
 import { zeitreihe } from "../viz/viz.js";
 import { kernaussage, kopf, abschnitt, zahlKnopf, beleg, tHtml } from "../ui.js";
+import { leerBild } from "../icons.js";
 import { belegeTag } from "../belege.js";
 import { vergleich, VERGLEICH_FELDER } from "../kern.js";
 
@@ -88,12 +89,12 @@ export function ansicht(ctx) {
   if (!hatFremd) {
     return `<div class="mf-sicht" data-sicht="vergleich">
       ${kopf(t("vgl_titel"), { zurueck: "#/mehr" })}
-      ${kernaussage(esc(t("vgl_kern_leer")))}
-      <div class="mf-knopfreihe"><a class="mf-knopf primaer" href="#/daten">${esc(t("vgl_daten_knopf"))}</a></div>
+      <div class="mf-leer">${leerBild("allgemein")}${kernaussage(esc(t("vgl_kern_leer")))}
+      <div class="mf-knopfreihe"><a class="mf-knopf primaer" href="#/daten">${esc(t("vgl_daten_knopf"))}</a></div></div>
     </div>`;
   }
   for (const x of alle) belegeFeld(B, ctx, x);
-  const wahl = `<div class="mf-feld"><span id="vgl-wahl">${esc(t("vgl_wahl"))}</span><div class="mf-wahl" role="group" aria-labelledby="vgl-wahl">${VERGLEICH_FELDER.map((f) =>
+  const wahl = `<div class="mf-feld"><span id="vgl-wahl">${esc(t("vgl_wahl"))}</span><div class="mf-wahl mf-segment" style="--segmente:${VERGLEICH_FELDER.length}" role="group" aria-labelledby="vgl-wahl">${VERGLEICH_FELDER.map((f) =>
     `<button type="button" data-vgl-feld="${f}" aria-pressed="${f === feld}">${esc(t("vgl_feld_" + f))}</button>`).join("")}</div></div>`;
   const fehlt = v.nurWhoop ? `<p class="mf-hinweis" data-vgl-fehlt>${esc(t(v.feld === "belastung" ? "vgl_nur_whoop_belastung" : "vgl_nur_whoop", { n: zahl(v.nurWhoop) }))}</p>` : "";
   return `<div class="mf-sicht" data-sicht="vergleich" data-feld="${feld}">

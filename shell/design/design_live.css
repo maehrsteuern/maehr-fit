@@ -1,12 +1,24 @@
 /* shell/design/design_live.css – Live-Puls (shell/apps/live.js) und Puls beim Atmen (shell/apps/atem.js, at-puls…).
-   Nur Tokens aus design.css (dort Verweise auf marke.css), keine eigenen Farben. Ruhig: eine große Zahl in Fraunces, darunter
-   die Zone als Pille, keine Bewegung außer dem Wechsel der Zahl. */
-.lv-held { gap: var(--r2); padding: var(--r2) 0; }
+   Nur Tokens aus design.css (dort Verweise auf marke.css), keine eigenen Farben. Oben pocht ein Herz im Takt des Pulses
+   (design_bewegung.css), darunter groß die Zahl in Barlow Condensed, die Zone als Pille und ein Band mit den fünf Zonen. */
+.lv-held { position: relative; isolation: isolate; gap: var(--r2); padding: var(--r3) 0 var(--r4); }
+.lv-held-werte { display: flex; flex-direction: column; align-items: center; gap: var(--r3); width: 100%; }
+.lv-herz { position: relative; display: inline-flex; width: 44px; height: 44px; color: var(--erholung-rot); }
+.lv-herz::before { content: ""; position: absolute; inset: -34px; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, var(--glow-rot), transparent); }
+.lv-herz svg { width: 44px; height: 44px; stroke-width: 1.6; fill: var(--fehler-weich); }
 .lv-wert { display: flex; align-items: baseline; justify-content: center; gap: var(--r2); min-width: 0; }
-.lv-wert .zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: var(--t-held); line-height: 1; letter-spacing: -0.03em; color: var(--tinte); }
+.lv-wert .zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: var(--t-held); line-height: 1; letter-spacing: -0.02em; color: var(--tinte); font-variant-numeric: tabular-nums; }
+/* Zonenband: fünf Abschnitte nach den Grenzen, Marke = Puls jetzt (Lage per transform) */
+.lv-band { position: relative; width: 100%; max-width: 320px; padding: 6px 0; overflow: hidden; }
+.lv-band-spur { display: flex; gap: 3px; height: 8px; }
+.lv-band-teil { flex: 1 1 0; border-radius: var(--radius-pille); opacity: .9; }
+.lv-band-teil.vz-k0 { background: var(--vz-k0); } .lv-band-teil.vz-k1 { background: var(--vz-k1); } .lv-band-teil.vz-k2 { background: var(--vz-k2); }
+.lv-band-teil.vz-k3 { background: var(--vz-k3); } .lv-band-teil.vz-k4 { background: var(--vz-k4); } .lv-band-teil.lv-band-unter { background: var(--flaeche-3); }
+.lv-band-zeiger { position: absolute; inset: 0; transform: translateX(calc(var(--lv-lage, 0) * 100%)); transition: transform var(--dauer) var(--kurve); }
+.lv-band-zeiger i { position: absolute; left: -9px; top: 1px; width: 18px; height: 18px; border-radius: 50%; background: var(--tinte); border: 3px solid var(--flaeche-1); }
 .lv-einheit { font-size: var(--t-4); color: var(--tinte2); }
 .lv-zone { min-height: 32px; display: flex; align-items: center; justify-content: center; }
-.lv-zone .zahl { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 14px; border-radius: var(--radius-pille); background: var(--grau-2); font-size: var(--t-3); font-weight: 500; }
+.lv-zone .zahl { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 14px; border-radius: var(--radius-pille); background: var(--flaeche-3); font-size: var(--t-3); font-weight: 600; }
 .lv-zone[data-zone="1"] .zahl, .lv-zone[data-zone="2"] .zahl { background: var(--akzent-weich); }
 .lv-zone[data-zone="4"] .zahl, .lv-zone[data-zone="5"] .zahl { background: var(--warn-weich); }
 .lv-verbindung { display: flex; flex-direction: column; gap: var(--r3); }
@@ -25,7 +37,7 @@
 /* Atem: Puls und Kohärenz neben dem Kreis (schmal: darunter) */
 .at-puls { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: var(--r3); text-align: center; }
 .at-puls-werte { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--r3); width: 100%; }
-.at-puls-wert { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--r3); background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-2); min-width: 0; }
+.at-puls-wert { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--r3); background: var(--flaeche-1); border: 1px solid var(--haarlinie); box-shadow: inset 0 1px 0 var(--innenkante); border-radius: var(--radius-2); min-width: 0; }
 .at-puls-wert .zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: var(--t-anzeige); line-height: 1.1; color: var(--tinte); }
 .at-puls-wert small { font-size: var(--t-1); letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
 .at-puls .mf-knopfreihe { width: 100%; justify-content: center; }

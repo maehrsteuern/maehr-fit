@@ -12,6 +12,9 @@
             (hell, @media dunkel, [data-theme="dark"]) den passenden Satz.
    MF-Ergänzungen: --m-*-fehler-weich, --m-*-vz-… (Diagramme, Zonen, Schlafphasen) und --m-*-erholung-gruen/gelb/rot
             (Verweise auf ok/bernstein/fehler).
+   Kleid „Nacht“ (MF-Design, docs/technik/design_mf.md): drei Flächenstufen --m-*-flaeche-1/2/3 (Höhe durch Tonstufen statt
+            Schatten), Haarlinie und Innenkante mit Alpha, Leuchten je Erholungsstufe (--m-*-glow-…) und hellere Enden für die
+            Verläufe (--m-*-…-hell). Dunkel ist die Grundeinstellung beim ersten Start.
    Kontrast (WCAG 2.2 AA, gerechnet in tests/node/ruhe.test.mjs): Schrift ≥ 4,5:1 auf Papier und Grund, Grafik ≥ 3:1.
    ============================================================================================ */
 :root {
@@ -38,6 +41,18 @@
   /* Erholung: Verweise auf die Signale (MF) */
   --m-h-erholung-gruen: var(--m-h-ok); --m-h-erholung-gelb: var(--m-h-bernstein-punkt); --m-h-erholung-rot: var(--m-h-fehler);
   --m-d-erholung-gruen: var(--m-d-ok); --m-d-erholung-gelb: var(--m-d-bernstein-punkt); --m-d-erholung-rot: var(--m-d-fehler);
+  /* Kleid „Nacht“: Flächenstufen (1 Karte · 2 Kachel/innen · 3 Pille/gedrückt), Haarlinie, Innenkante, Glas der Leisten */
+  --m-d-flaeche-1: #131d19; --m-d-flaeche-2: #19251f; --m-d-flaeche-3: #213029;
+  --m-d-haarlinie: rgba(234, 241, 236, .09); --m-d-innenkante: rgba(255, 255, 255, .05); --m-d-glas: rgba(11, 17, 14, .74);
+  --m-h-flaeche-1: #ffffff; --m-h-flaeche-2: #f7f9f7; --m-h-flaeche-3: #eaefeb;
+  --m-h-haarlinie: rgba(23, 32, 27, .09); --m-h-innenkante: rgba(255, 255, 255, .9); --m-h-glas: rgba(244, 246, 243, .82);
+  /* Leuchten je Erholungsstufe (Ring, Bogen) und hellere Verlaufsenden – Grafik ≥ 3 : 1 auf Fläche 1 */
+  --m-d-glow-gruen: rgba(92, 201, 138, .55); --m-d-glow-gelb: rgba(230, 171, 79, .5); --m-d-glow-rot: rgba(240, 138, 131, .5); --m-d-glow-akzent: rgba(83, 195, 162, .45);
+  --m-d-gruen-hell: #a6ebc0; --m-d-gelb-hell: #f5d08f; --m-d-rot-hell: #f8b9b4; --m-d-akzent-hell: #9fe3cd;
+  --m-h-glow-gruen: rgba(29, 122, 69, .28); --m-h-glow-gelb: rgba(183, 124, 14, .26); --m-h-glow-rot: rgba(179, 38, 30, .24); --m-h-glow-akzent: rgba(10, 101, 81, .22);
+  --m-h-gruen-hell: #2f9a5c; --m-h-gelb-hell: #b67d10; --m-h-rot-hell: #d0453c; --m-h-akzent-hell: #13896b;
+  /* Bühne: Nachtgrün oben, verläuft in die Nacht; hell: Salbei mit leichtem Grünschimmer oben */
+  --m-h-buehne-oben: #e4f1ec;
   /* Abdunkeln hinter dem Belegfenster */
   --m-h-abdunkeln: rgba(11, 17, 14, .32); --m-d-abdunkeln: rgba(0, 0, 0, .55);
   /* Schriftpaar */

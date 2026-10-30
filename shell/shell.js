@@ -17,7 +17,9 @@ import { esc } from "./format.js";
 import { neuesRegister } from "./ui.js";
 import { kopfHtml, menueHtml, reiterHtml, REITER } from "./rahmen.js";
 import { vizTastatur } from "./viz/viz.js";
-import { speicherBrowser } from "./speicher_browser.js";
+import { speicherServer } from "./speicher_server.js";
+import { sprite } from "./icons.js";
+import { ankommen, scrollMerken, scrollZurueck } from "./bewegung.js";
 import { demo, tagIso, tagPlus, berechne } from "./kern.js";
 import { installiere as datenInstallieren } from "../daten/verbinden.js";
 import { leseMessungen } from "../daten/ablage.js";
@@ -31,10 +33,11 @@ import * as trends from "./apps/trends.js";
 import * as daten from "./apps/daten.js";
 import * as mehr from "./apps/mehr.js";
 import * as vergleich from "./apps/vergleich.js";
+import * as sync from "./apps/sync.js";
 
 export { REITER };
-export const APPS = { heute, schlaf, belastung, atem, tagebuch, trends, daten, einstellungen: daten, mehr, vergleich };
-const ZU_MEHR = new Set(["mehr", "tagebuch", "trends", "daten", "einstellungen", "vergleich"]);
+export const APPS = { heute, schlaf, belastung, atem, tagebuch, trends, daten, einstellungen: daten, mehr, vergleich, sync };
+const ZU_MEHR = new Set(["mehr", "tagebuch", "trends", "daten", "einstellungen", "vergleich", "sync"]);
 // Alle Arten der Ablage (daten/ablage.js ARTEN): spo2/hauttemp gehen als Abzüge in die Erholung, fremdwerte (WHOOPs eigene Zahlen) in den Vergleich
 export const DATEN_ARTEN = ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp", "schlaf", "training", "tagebuch", "fremdwerte"];
 
@@ -52,13 +55,14 @@ const Z = { hcVerfuegbar: false, speicher: null, einst: {}, messwerte: null, dem
 const anzahl = (d) => DATEN_ARTEN.reduce((s, k) => s + (Array.isArray(d?.[k]) ? d[k].length : 0), 0);
 
 function themaAnwenden() {
-  const th = Z.einst.thema || "auto", el = document.documentElement;
+  const th = Z.einst.thema || "dunkel", el = document.documentElement;
   if (th === "hell") el.dataset.theme = "light"; else if (th === "dunkel") el.dataset.theme = "dark"; else delete el.dataset.theme;
 }
 function spracheAnwenden() { setzeSprache(Z.einst.sprache || "de"); document.documentElement.lang = sprache(); document.title = t("app_name"); }
 
 async function ladeAlles() {
-  Z.einst = { haptik: false, sprache: "de", thema: "auto", ...((await Z.speicher.lies("einstellungen")) || {}) };
+  // Kleid „Nacht“: beim ersten Start dunkel (docs/technik/design_mf.md); umschalten über Kopfleiste oder Einstellungen
+  Z.einst = { haptik: false, sprache: "de", thema: "dunkel", ...((await Z.speicher.lies("einstellungen")) || {}) };
   const eigen = {};
   for (const art of DATEN_ARTEN) eigen[art] = await leseMessungen(Z.speicher, art);
   Z.demo = !(eigen && anzahl(eigen) > 0);
@@ -144,17 +148,20 @@ let letzterWeg = "";
 function zeichnen() {
   const wurzel = document.getElementById("mf-wurzel");
   const weg = wegLesen(location.hash), id = weg.teile[0], app = APPS[id];
+  const wegText = weg.teile.join("/"), neu = wegText !== letzterWeg;
+  if (neu) scrollMerken(letzterWeg);
   Z.aufraeumen(); Z.aufraeumen = () => {};
   Z.register = neuesRegister();
   const aktiv = ZU_MEHR.has(id) ? "mehr" : id;
-  const chip = Z.demo && !["daten", "einstellungen", "atem", "mehr"].includes(id) ? `<div class="mf-chip" data-demo><span>${esc(t("demo_chip"))}</span><a class="mf-knopf" href="#/daten">${esc(t("demo_verbinden"))}</a></div>` : "";
+  const chip = Z.demo && !["daten", "einstellungen", "atem", "mehr", "sync"].includes(id) ? `<div class="mf-chip" data-demo><i aria-hidden="true"></i><span>${esc(t("demo_chip"))}</span><a class="mf-knopf" href="#/daten">${esc(t("demo_verbinden"))}</a></div>` : "";
   let inhalt;
   try { inhalt = app.ansicht(kontext(weg)); } catch (e) { console.error(e); inhalt = `<p class="mf-hinweis">${esc(t("fehler_start", { text: e?.message || e }))}</p>`; }
   wurzel.innerHTML = `${kopfHtml({ tag: Z.tag, heute: Z.heute, erster: Z.erg.erster, thema: Z.einst.thema })}${menueHtml()}<main class="mf-haupt" id="mf-haupt" tabindex="-1">${chip ? `<div class="mf-sicht-chip">${chip}</div>` : ""}${inhalt}</main>${reiterHtml(aktiv)}`;
   document.body.dataset.reiter = aktiv;
   if (typeof app.binde === "function") Z.aufraeumen = app.binde(wurzel.querySelector("#mf-haupt"), kontext(weg)) || (() => {});
-  const wegText = weg.teile.join("/");
-  if (wegText !== letzterWeg) { window.scrollTo(0, 0); letzterWeg = wegText; }
+  // Reiter merken sich die Stelle: zurück zu einer Ansicht = dieselbe Scrollhöhe; neue Ansichten tauchen gestaffelt auf
+  if (neu) { scrollZurueck(wegText); letzterWeg = wegText; }
+  ankommen(wurzel.querySelector("#mf-haupt"), { neu });
 }
 
 function menueSchalten(auf) {
@@ -199,7 +206,8 @@ function klicks() {
 
 export async function start() {
   try {
-    Z.speicher = await speicherBrowser();
+    if (!document.querySelector(".mf-sprite")) document.body.insertAdjacentHTML("afterbegin", sprite());
+    Z.speicher = await speicherServer();
     window.MF = Object.assign(window.MF || {}, { speicher: Z.speicher });
     try {
       datenInstallieren(window, { speicher: Z.speicher });

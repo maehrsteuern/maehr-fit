@@ -9,12 +9,14 @@
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
- * kein eigener eingetragen ist; der Grundbedarf Schlaf ersetzt den Wert aus formeln.json „schlaf.bedarf.basis“.
+ * kein eigener eingetragen ist; der Ruhepuls (optional) gilt nur, wenn keine Nachtmessung ihn liefert (z. B. nur Live-Puls); der Grundbedarf Schlaf ersetzt den Wert aus formeln.json „schlaf.bedarf.basis“.
  */
-import { t, SPRACHEN, TEXTE } from "../i18n/i18n.js";
+import { t, SPRACHEN, TEXTE, sprache } from "../i18n/i18n.js";
 import { zahl, esc, tagLang } from "../format.js";
 import { kernaussage, kopf, zahlKnopf, beleg, tHtml } from "../ui.js";
 import { maxPulsAus, schlafBasisStandardMs } from "../kern.js";
+// Beschriftung „Ruhepuls“ steht in kern/i18n.js (shell/i18n wird parallel umgebaut)
+import { kernText } from "../kern_echt.js";
 import { ARTEN } from "../../daten/ablage.js";
 
 /** „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, … Zeitraum: … bis ….“ – reiner Text für die Statuszeile. */
@@ -72,6 +74,7 @@ function einstellungen(ctx) {
       ${feld("alter", t("einst_alter"), `<input name="alter" type="number" inputmode="numeric" min="10" max="110" step="1" value="${esc(e.alter ?? "")}">`, esc(t("einst_alter_hilfe")))}
       ${feld("maxPuls", t("einst_maxpuls"), `<input name="maxPuls" type="number" inputmode="numeric" min="100" max="230" step="1" value="${esc(e.maxPuls ?? "")}" placeholder="${esc(zahl(geschaetzt.wert))}">`,
         tHtml("einst_maxpuls_hilfe", { wert: zahlKnopf("maxpuls:schaetzung", zahl(geschaetzt.wert)) }))}
+      ${feld("ruhepuls", kernText("einst.ruhepuls", sprache()), `<input name="ruhepuls" type="number" inputmode="numeric" min="30" max="120" step="1" value="${esc(e.ruhepuls ?? "")}">`, esc(kernText("einst.ruhepuls.hilfe", sprache())))}
       ${feld("schlaf", t("einst_schlaf"), `<input name="schlaf" type="number" inputmode="decimal" min="4" max="12" step="0.25" value="${esc(stunden)}" placeholder="${esc(zahl(standardH, Number.isInteger(standardH) ? 0 : 2))}">`, esc(t("einst_schlaf_standard", { wert: zahl(standardH, Number.isInteger(standardH) ? 0 : 2) })))}
       ${feld("sprache", t("einst_sprache"), auswahl("sprache", SPRACHEN.map((s) => [s.id, s.name]), e.sprache || "de"))}
       ${feld("thema", t("einst_thema"), auswahl("thema", [["auto", t("thema_auto")], ["hell", t("thema_hell")], ["dunkel", t("thema_dunkel")]], e.thema || "auto"))}
@@ -120,6 +123,7 @@ export function binde(wurzel, ctx) {
       const k = form.querySelector('[data-q="maxpuls:schaetzung"]'); if (k) k.textContent = text;
     }
     if (el.name === "maxPuls") speichern({ maxPuls: w === "" ? null : Math.round(Number(w)) });
+    if (el.name === "ruhepuls") speichern({ ruhepuls: w === "" ? null : Math.round(Number(w)) });
     if (el.name === "schlaf") speichern({ schlafBasisMs: w === "" ? null : Math.round(Number(String(w).replace(",", ".")) * 3600000) });
     if (el.name === "sprache" || el.name === "thema") speichern({ [el.name]: w });
   });

@@ -4,14 +4,17 @@
  * Belegfenster zu jedem Schlüssel zeigt: Titel, Wert, Rechenweg mit Fundstelle (aus dem Kern), Bestandteile und die Messwerte
  * dahinter. Die Ansichten rufen belegeTag() auf und benutzen danach nur noch die Schlüssel.
  *
- * Eintrag: { titel, wert, formel: { text, fundstelle, pruefen }?, teile: [{ name, wert, gewicht? }], quellen: quelle[],
- *           fremd?: { text, q, href } }  – fremd: eine Zeile „WHOOP: 67 %“ mit Weg zum Vergleich (shell/apps/vergleich.js)
+ * Eintrag: { titel, wert, formel: { text, fundstelle, pruefen }?, teile: [{ name, wert, gewicht?, beitrag? }], quellen: quelle[],
+ *           fremd?: { text, q, href }, hinweis? }  – beitrag: Zahl mit Vorzeichen für den Beitragsbalken im Beleg (Erholung);
+ *           hinweis: ein leiser Satz des Kerns (z. B. was nicht berücksichtigt wurde)  – fremd: eine Zeile „WHOOP: 67 %“ mit Weg zum Vergleich (shell/apps/vergleich.js)
  * Fremdwerte: fremd:<feld>:<tag> (feld erholung|belastung|schlaf) – WHOOPs eigene Zahl mit CSV-Datei und Zeile.
  */
 import { t } from "./i18n/i18n.js";
 import { prozent, belastungText, dauer, dauerKurz, zahl, uhrzeit, mitVorzeichen } from "./format.js";
 
 export const PHASEN = ["wach", "leicht", "tief", "rem"];
+/** Farbe je Schlafphase (Klassen aus design_viz.css): Tief violett, Traum türkis, Leicht blau, Wach bernstein. */
+export const PHASEN_KLASSE = { wach: "vz-wach", leicht: "vz-k2", tief: "vz-k4", rem: "vz-k1" };
 const basisTeile = (b, fmt) => (b && b.n ? [{ name: t("basis_mittel"), wert: fmt(b.mittel) }, { name: t("basis_streuung"), wert: fmt(b.streuung) }, { name: t("basis_n"), wert: zahl(b.n) }] : []);
 const phasenMs = (p) => (Array.isArray(p) ? Object.fromEntries(PHASEN.map((a) => [a, p.filter((x) => x.art === a).reduce((s, x) => s + (x.ms ?? x.bis - x.von), 0)])) : p || {});
 export const phasenVon = (schlaf) => phasenMs(schlaf?.phasen);
@@ -36,7 +39,8 @@ export function belegeTag(B, bild) {
   const fremd = belegeFremd(B, bild);
   if (e && e.wert !== null && e.wert !== undefined) {
     B(`erholung:${tag}`, { titel: t("erholung"), wert: prozent(e.wert), formel: e.formel,
-      teile: e.teile.map((x) => ({ name: t("teil_" + x.name), wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), gewicht: x.gewicht === null ? t("abzug") : prozent(x.gewicht) })), quellen: e.quellen || [], fremd: fremd.erholung });
+      teile: e.teile.map((x) => ({ name: t("teil_" + x.name), wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), gewicht: x.gewicht === null ? t("abzug") : prozent(x.gewicht), beitrag: Number.isFinite(x.beitrag) ? x.beitrag : undefined })),
+      quellen: e.quellen || [], fremd: fremd.erholung, hinweis: e.hinweis });
     for (const x of e.teile) B(`erholung-teil:${tag}:${x.name}`, { titel: `${t("teil_" + x.name)} · ${t("beitrag_text")}`, wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), formel: x.formel || e.formel,
       teile: [...(x.messwert !== null && x.messwert !== undefined ? [{ name: t("messwert"), wert: zahl(x.messwert, 1) }] : []), { name: t("beleg_gewicht"), wert: x.gewicht === null ? t("abzug") : prozent(x.gewicht) }], quellen: x.quelle || [] });
   }

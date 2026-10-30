@@ -1,26 +1,36 @@
 /* shell/design/design_atem.css – Atemübung (shell/apps/atem.js): ein großer ruhiger Kreis, der mit der Phase wächst und schrumpft.
    Bewegung nur über transform/opacity; die Größe setzt atem.js je Bild (requestAnimationFrame) als --at-skala, ohne CSS-Übergang.
-   Ein- und Ausblenden höchstens 450 ms mit --kurve. Bei prefers-reduced-motion steht der Kreis still, stattdessen läuft ein
-   Fortschrittsbalken je Phase. */
-.at-buehne { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--r5); padding: var(--r4) 0; }
+   Ein- und Ausblenden höchstens 450 ms mit --kurve. Hinter dem Kreis wächst ein weiches Leuchten mit (.at-schein, gleiche Skala),
+   ein Punkt läuft einmal je Phase auf einem dünnen Ring herum (.at-laeufer, rotate). Bei prefers-reduced-motion steht der Kreis
+   still, Leuchten und Läufer sind aus, stattdessen läuft ein Fortschrittsbalken je Phase. */
+.at-buehne { position: relative; overflow-x: clip; display: flex; flex-direction: column; align-items: center; gap: var(--r5); padding: var(--r4) 0; }
 .at-kreisfeld { position: relative; width: min(78vw, 300px); aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
-.at-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--grau-3); }
-.at-kreis { position: absolute; inset: 0; border-radius: 50%; background: var(--akzent-weich); border: 2px solid var(--akzent);
-  transform: scale(var(--at-skala, .55)); opacity: var(--at-deckkraft, .9); will-change: transform; }
+.at-ring { position: absolute; inset: 6%; border-radius: 50%; border: 1px dashed var(--haarlinie); }
+.at-schein { position: absolute; inset: -6%; border-radius: 50%; background: radial-gradient(circle, var(--glow-akzent) 0%, transparent 68%);
+  transform: scale(var(--at-skala, .55)); will-change: transform; pointer-events: none; }
+.at-kreis { position: absolute; inset: 6%; border-radius: 50%; background: radial-gradient(circle at 50% 40%, var(--akzent-weich) 0%, var(--flaeche-1) 100%); border: 2px solid var(--akzent);
+  box-shadow: 0 0 0 6px var(--akzent-weich), 0 0 48px var(--glow-akzent), inset 0 1px 0 var(--innenkante);
+  transform: scale(var(--at-skala, .55)); opacity: var(--at-deckkraft, .95); will-change: transform; }
+.at-phasenring { position: absolute; inset: 0; width: 100%; height: 100%; }
+.at-phasenspur { stroke: var(--flaeche-3); }
+.at-laeufer { position: absolute; inset: 0; will-change: transform; pointer-events: none; }
+.at-laeufer i { position: absolute; top: -5px; left: 50%; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--akzent-hell); box-shadow: 0 0 12px var(--glow-akzent); }
+.at-buehne[data-zustand="bereit"] .at-laeufer, .at-buehne[data-zustand="fertig"] .at-laeufer { opacity: 0; }
 .at-mitte { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
-.at-phase { font-family: var(--schrift-titel); font-weight: 400; font-size: 28px; line-height: 1.2; color: var(--tinte); }
-.at-zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: 56px; line-height: 1; color: var(--tinte); font-variant-numeric: tabular-nums; }
+.at-phase { font-family: var(--schrift-titel); font-weight: 500; font-size: 28px; line-height: 1.2; letter-spacing: .04em; text-transform: uppercase; color: var(--tinte); }
+.at-zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: 64px; line-height: 1; color: var(--tinte); font-variant-numeric: tabular-nums; }
 .at-runde { font-size: var(--t-2); color: var(--grau-5); }
 .at-balken { display: none; width: 100%; max-width: 320px; }
 .at-buehne[data-zustand="bereit"] .at-kreis, .at-buehne[data-zustand="fertig"] .at-kreis { opacity: .5; }
-.at-buehne .at-kreis, .at-buehne .at-mitte { transition: opacity var(--dauer-max) var(--kurve); }
+.at-buehne .at-kreis, .at-buehne .at-mitte, .at-buehne .at-laeufer { transition: opacity var(--dauer-max) var(--kurve); }
 .at-buehne[data-zustand="pause"] .at-mitte { opacity: .55; }
 .at-steuer { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--r2); width: 100%; }
 .at-steuer .mf-knopf { flex: 1 1 120px; max-width: 220px; }
 .at-optionen { width: 100%; }
 @media (prefers-reduced-motion: reduce) {
-  .at-kreis { transform: scale(.8) !important; }
+  .at-kreis, .at-schein { transform: scale(.8) !important; }
+  .at-laeufer, .at-phasenring { display: none; }
   .at-balken { display: block; }
 }
-.at-balken { height: 6px; border-radius: 3px; background: var(--grau-3); overflow: hidden; }
+.at-balken { height: 6px; border-radius: 3px; background: var(--flaeche-3); overflow: hidden; }
 .at-balken > span { display: block; height: 100%; background: var(--akzent); transform-origin: left center; transform: scaleX(0); }
