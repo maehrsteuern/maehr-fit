@@ -2,7 +2,8 @@
  *
  * Kernaussage: Oben steht ein Satz, wie erholt du heute bist, und darunter die eine große Zahl im Ring. Vier Kacheln zeigen
  * Belastung, Schlaf, HRV und Ruhepuls mit einem Pfeil gegenüber deinem üblichen Wert. Darunter lässt sich aufklappen, woraus
- * sich die Erholung zusammensetzt, und eine Linie zeigt die letzten sieben Tage. Jede Zahl öffnet ihren Beleg.
+ * sich die Erholung zusammensetzt, und eine Linie zeigt die letzten sieben Tage. Jede Zahl öffnet ihren Beleg. Gibt es für den Tag
+ * WHOOPs eigene Zahlen (WHOOP-Export), führt ein kleiner Link zum Vergleich (#/vergleich).
  *
  * Schnittstelle: ansicht(ctx) → HTML (rein, ohne DOM). ctx: { tag, bild, erg, register } (shell/shell.js)
  */
@@ -63,6 +64,7 @@ export function ansicht(ctx) {
     <div class="mf-held">${kernaussage(kernsatz(bild, tag === ctx.heute))}${held}</div>
     <div class="mf-kacheln mf-vier">${kacheln}</div>
     ${gliederung}
+    ${bild.fremd ? `<p class="mf-vgl-link" data-heute-vergleich><a class="mf-link" href="#/vergleich?feld=erholung&amp;tag=${esc(tag)}">${esc(t("heute_vgl_link"))}</a></p>` : ""}
     ${abschnitt("", `<div class="mf-karte">${woche}</div>`)}
   </div>`;
 }

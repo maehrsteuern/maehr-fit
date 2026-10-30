@@ -1,0 +1,40 @@
+/* shell/design/design_live.css – Live-Puls (shell/apps/live.js) und Puls beim Atmen (shell/apps/atem.js, at-puls…).
+   Nur Tokens aus design.css (dort Verweise auf marke.css), keine eigenen Farben. Ruhig: eine große Zahl in Fraunces, darunter
+   die Zone als Pille, keine Bewegung außer dem Wechsel der Zahl. */
+.lv-held { gap: var(--r2); padding: var(--r2) 0; }
+.lv-wert { display: flex; align-items: baseline; justify-content: center; gap: var(--r2); min-width: 0; }
+.lv-wert .zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: var(--t-held); line-height: 1; letter-spacing: -0.03em; color: var(--tinte); }
+.lv-einheit { font-size: var(--t-4); color: var(--tinte2); }
+.lv-zone { min-height: 32px; display: flex; align-items: center; justify-content: center; }
+.lv-zone .zahl { display: inline-flex; align-items: center; min-height: 32px; padding: 2px 14px; border-radius: var(--radius-pille); background: var(--grau-2); font-size: var(--t-3); font-weight: 500; }
+.lv-zone[data-zone="1"] .zahl, .lv-zone[data-zone="2"] .zahl { background: var(--akzent-weich); }
+.lv-zone[data-zone="4"] .zahl, .lv-zone[data-zone="5"] .zahl { background: var(--warn-weich); }
+.lv-verbindung { display: flex; flex-direction: column; gap: var(--r3); }
+.lv-stand { display: flex; align-items: center; gap: var(--r2); font-weight: 500; min-width: 0; overflow-wrap: anywhere; }
+.lv-stand i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--grau-4); }
+.lv-stand[data-stand="verbunden"] i { background: var(--ok); }
+.lv-stand[data-stand="wieder"] i, .lv-stand[data-stand="getrennt"] i, .lv-stand[data-stand="suche"] i { background: var(--warn-punkt); }
+.lv-stand[data-stand="fehler"] i { background: var(--fehler); }
+.lv-steuerung .mf-knopfreihe > .mf-knopf { flex: 1 1 140px; }
+.lv-ergebnis { display: flex; flex-direction: column; gap: var(--r3); }
+.lv-ergebnis .mf-knopfreihe > .mf-knopf { flex: 0 1 auto; }
+.vz[data-vz="verlauf"] .vz-legende { display: flex; flex-wrap: wrap; gap: var(--r2) var(--r4); margin: 0; padding: 0; list-style: none; font-size: var(--t-2); color: var(--grau-5); }
+.vz[data-vz="verlauf"] .vz-legende li { display: inline-flex; align-items: baseline; gap: 6px; }
+.vz[data-vz="verlauf"] .vz-legende .zahl { color: var(--tinte); font-weight: 500; }
+
+/* Atem: Puls und Kohärenz neben dem Kreis (schmal: darunter) */
+.at-puls { width: 100%; max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: var(--r3); text-align: center; }
+.at-puls-werte { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--r3); width: 100%; }
+.at-puls-wert { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: var(--r3); background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-2); min-width: 0; }
+.at-puls-wert .zahl { font-family: var(--schrift-titel); font-weight: 600; font-size: var(--t-anzeige); line-height: 1.1; color: var(--tinte); }
+.at-puls-wert small { font-size: var(--t-1); letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
+.at-puls .mf-knopfreihe { width: 100%; justify-content: center; }
+.at-puls-ergebnis { width: 100%; display: flex; flex-direction: column; gap: var(--r3); }
+.at-puls-ergebnis .mf-kacheln { width: 100%; }
+@media (min-width: 720px) {
+  .at-buehne.mit-puls { display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; column-gap: var(--r5); }
+  .at-buehne.mit-puls > :not(.at-kreisfeld):not(.at-puls) { grid-column: 1 / -1; }
+  .at-buehne.mit-puls .at-kreisfeld { justify-self: center; }
+  .at-buehne.mit-puls .at-puls-werte { grid-template-columns: minmax(0, 1fr); }
+}
+[data-live-link] svg { flex: none; width: 20px; height: 20px; }

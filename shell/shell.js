@@ -6,7 +6,7 @@
  * jeder Zahl das Belegfenster. Tagebuch, Einstellungen und eingelesene Daten gehen über die Speicher-Schnittstelle.
  *
  * Wege: #/heute · #/schlaf · #/belastung[/training/<id>] · #/atem[/<übung>] · #/mehr · #/tagebuch[/wirkung] · #/trends?feld=&fenster=
- *       · #/daten · #/einstellungen
+ *       · #/daten · #/einstellungen · #/vergleich?feld=&tag= · #/mehr/pruefen
  * Speicher-Schlüssel: einstellungen · tagebuch:<JJJJ-MM-TT> (eigene Einträge) · messung:<art>:<JJJJ-MM-TT> (eigene Messwerte, abgelegt von
  *   der Datenschicht daten/ablage.js) · sync:… (Stand des Health-Connect-Abgleichs, daten/healthconnect.js)
  * Datenschicht: daten/verbinden.js installiert window.MF.daten (healthConnect.verfuegbar/verbinden, csvImport) auf demselben Speicher;
@@ -30,11 +30,13 @@ import * as tagebuch from "./apps/tagebuch.js";
 import * as trends from "./apps/trends.js";
 import * as daten from "./apps/daten.js";
 import * as mehr from "./apps/mehr.js";
+import * as vergleich from "./apps/vergleich.js";
 
 export { REITER };
-export const APPS = { heute, schlaf, belastung, atem, tagebuch, trends, daten, einstellungen: daten, mehr };
-const ZU_MEHR = new Set(["mehr", "tagebuch", "trends", "daten", "einstellungen"]);
-const DATEN_ARTEN = ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "schlaf", "training", "tagebuch"];
+export const APPS = { heute, schlaf, belastung, atem, tagebuch, trends, daten, einstellungen: daten, mehr, vergleich };
+const ZU_MEHR = new Set(["mehr", "tagebuch", "trends", "daten", "einstellungen", "vergleich"]);
+// Alle Arten der Ablage (daten/ablage.js ARTEN): spo2/hauttemp gehen als Abzüge in die Erholung, fremdwerte (WHOOPs eigene Zahlen) in den Vergleich
+export const DATEN_ARTEN = ["herzschlag", "hrv", "ruhepuls", "atemfrequenz", "spo2", "hauttemp", "schlaf", "training", "tagebuch", "fremdwerte"];
 
 /** „#/belastung/training/x?feld=hrv“ → { teile: ["belastung","training","x"], abfrage: { feld: "hrv" } } */
 export function wegLesen(hash) {
@@ -99,7 +101,10 @@ const aktionen = {
     // Dateien vorab als { name, bytes } übergeben: Blob.bytes() ist in neuen Browsern eine Methode, die daten/verbinden.js
     // sonst als Inhalt läse (Befund 30.10.2026, an die Datenschicht gemeldet).
     const liste = await Promise.all([...(dateien?.length !== undefined ? dateien : [dateien])].map(async (d) => ({ name: d.name, bytes: new Uint8Array(await d.arrayBuffer()) })));
-    return eigeneDatenUebernehmen(await window.MF.daten.csvImport(liste));
+    // Rückgabe für daten.js: Gesamtzahl, Anzahl je Art und eingelesener Zeitraum (daten/verbinden.js csvImport)
+    const r = await window.MF.daten.csvImport(liste);
+    const n = await eigeneDatenUebernehmen(r);
+    return { n, arten: r.arten || {}, zeitraum: r.zeitraum || null, hinweise: r.hinweise || [] };
   },
   async exportieren() {
     const schluessel = await Z.speicher.liste("");
@@ -212,4 +217,6 @@ export async function start() {
   }
 }
 
+import { liveEinhaengen } from "./live.js";
+liveEinhaengen(APPS);
 if (typeof document !== "undefined" && document.getElementById("mf-wurzel")) start();

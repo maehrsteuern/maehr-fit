@@ -178,3 +178,42 @@ export function demoDaten({ tage = 90, seed = 20261030, bis = "2026-10-30" } = {
   D.herzschlag = D.herzschlag.filter((h) => h.t < ende && !D.schlaf.some((s) => h.t >= s.von && h.t < s.bis));
   return { person: { ...P, maxPuls: max }, einstellungen: { alter: P.alter, maxPuls: max }, ...D };
 }
+
+/**
+ * Erfundener Live-Puls der Musterperson (für „Demo-Puls“ in der Live-Ansicht und bei „Puls mitlesen“ im Atem).
+ * Wie ein Brustgurt oder das WHOOP-Band liefert naechster() etwa jede Sekunde einen Datensatz { t, bpm, rrMs } – den Puls
+ * und die Abstände der Herzschläge, die in dieser Sekunde geendet haben. Gleicher Startwert → exakt dieselbe Reihe.
+ * Profil "training": Aufwärmen, dann Wellen um etwa 70 % der Pulsreserve. Profil "atem": ruhiger, leicht sinkender Puls,
+ * der im Atemtakt (atemZyklusMs) steigt und fällt – so zeigt die Kohärenz etwas. Alle Zahlen sind Spielwerte.
+ * @param {number} [seed]
+ * @param {{profil?:"training"|"atem", atemZyklusMs?:number, startMs?:number, ruhe?:number, max?:number}} [optionen]
+ * @returns {{naechster: () => {t:number, bpm:number, rrMs:number[]}}}
+ */
+export function demoPuls(seed = 20261030, { profil = "training", atemZyklusMs = 10000, startMs = 0, ruhe = MUSTERPERSON.ruhepulsBasis, max = maxPulsTanaka(MUSTERPERSON.alter).bpm } = {}) {
+  const r = zufall(seed), reserve = max - ruhe, T = atemZyklusMs > 0 ? atemZyklusMs : 10000;
+  let schlag = 0, gemeldet = 0; // ms seit Start: Ende des letzten Schlags, letzte Meldung
+  const zielPuls = (ms) => {
+    const s = ms / 1000;
+    if (profil === "atem") return ruhe + 12 - Math.min(6, s / 50);
+    const anlauf = Math.min(1, s / 90), welle = 0.08 * Math.sin((2 * Math.PI * s) / 120);
+    return ruhe + 30 + (0.68 * reserve - 30 + welle * reserve) * anlauf;
+  };
+  const tiefe = profil === "atem" ? 0.07 : 0.015; // Schwankung im Atemtakt (Spielwert)
+  function naechsterSchlag() {
+    const basis = 60000 / zielPuls(schlag);
+    const rr = Math.max(320, rund(basis * (1 + tiefe * Math.sin((2 * Math.PI * schlag) / T)) + r.normal(0, profil === "atem" ? 20 : 4)));
+    schlag += rr;
+    return rr;
+  }
+  let offen = [];
+  return {
+    naechster() {
+      const bis = gemeldet + 1000, rrMs = offen;
+      offen = [];
+      while (schlag < bis) { const rr = naechsterSchlag(); if (schlag <= bis) rrMs.push(rr); else offen.push(rr); }
+      gemeldet = bis;
+      const mittel = rrMs.length ? rrMs.reduce((s, x) => s + x, 0) / rrMs.length : 60000 / zielPuls(bis);
+      return { t: startMs + bis, bpm: rund(60000 / mittel), rrMs };
+    },
+  };
+}

@@ -4,7 +4,9 @@
 //   MF.daten.healthConnect.verbinden(arten?)   → Rechte anfragen + abgleichen: { …Messpaket, erteilt, fehlend, neu, ersetzt, arten }
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
-//   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, hinweise, dateien }
+//   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, zeitraum, hinweise, dateien }
+//     arten = Anzahl eingelesener Datensätze je Art ({ schlaf: 7, training: 5, … }, nur Arten > 0, Summe = neu + ersetzt),
+//     zeitraum = { von, bis } erster und letzter Kalendertag ("JJJJ-MM-TT") der eingelesenen Datensätze oder null
 // "…Messpaket" = nur die neu hinzugekommenen Datensätze: { herzschlag: [], hrv: [], …, fremdwerte: [] }.
 //   MF.daten.exportieren()                     → { format, version, erstelltMs, eintraege }
 //   MF.daten.loeschen()                        → { geloescht }
@@ -16,7 +18,7 @@
 import * as hc from "./healthconnect.js";
 import { importiereWhoop } from "./csv_import.js";
 import { leseZip } from "./zip.js";
-import { ARTEN, speichereMessungen } from "./ablage.js";
+import { ARTEN, speichereMessungen, tagVon } from "./ablage.js";
 
 export const EXPORT_FORMAT = "maehr-fit-export";
 const PRAEFIXE = ["messung:", hc.SYNC_PRAEFIX];
@@ -41,6 +43,20 @@ async function zuTexten(eingabe) {
     return inhalt.filter((e) => /\.csv$/i.test(e.name)).map((e) => ({ name: e.name, text: dec.decode(e.bytes) }));
   }
   return [{ name, text: dec.decode(bytes) }];
+}
+
+/** Erster und letzter Kalendertag eines Messpakets (Tag wie in der Ablage: Schlaf am Aufwachtag). */
+export function zeitraumVon(paket) {
+  let von = null, bis = null;
+  for (const art of ARTEN) {
+    for (const d of paket[art] || []) {
+      const tag = tagVon(art, d);
+      if (!tag) continue;
+      if (von === null || tag < von) von = tag;
+      if (bis === null || tag > bis) bis = tag;
+    }
+  }
+  return von === null ? null : { von, bis };
 }
 
 /**
@@ -89,9 +105,10 @@ export function erzeugeDaten({ speicher, bruecke = () => hc.findeBruecke(globalT
       }
       const abgelegt = await speichereMessungen(speicher, paket);
       const arten = Object.fromEntries(ARTEN.map((a) => [a, paket[a].length]).filter(([, n]) => n > 0));
-      return { ...abgelegt.neuPaket, neu: abgelegt.neu, ersetzt: abgelegt.ersetzt, arten, hinweise, dateien: uebersicht };
+      return { ...abgelegt.neuPaket, neu: abgelegt.neu, ersetzt: abgelegt.ersetzt, arten, zeitraum: zeitraumVon(paket), hinweise, dateien: uebersicht };
     },
 
+    /** Sicherung aller Messwerte: jede Art der Ablage (ARTEN, auch fremdwerte) unter "messung:…" plus Abgleichstand "sync:…". */
     async exportieren() {
       const eintraege = {};
       for (const p of PRAEFIXE) {

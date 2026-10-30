@@ -21,6 +21,7 @@
  *   zeitreihe(e)       Linie mit Punkten, optional Band { unten, oben, text } (üblicher Bereich); e.abNull = Achse ab 0
  *   segmentbalken(e)   ein Balken in Abschnitten nach Anteil (Schlafphasen), darunter Legende mit Zahlen als Knöpfe
  *   fortschritt(e)     schmaler Fortschrittsbalken 0–100: { titel, wert, text? }
+ *   verlauf(e)         Live-Linie über ein festes Zeitfenster (Puls der letzten 3 min): { titel, kernaussage, punkte: [{ t, wert }], vonMs, bisMs, q, text, kennzahlen }
  *   vizTastatur(wurzel) Enter/Leertaste auf einem Ziel = Klick (einmal je Dokument)
  */
 import { t } from "../i18n/i18n.js";
@@ -183,6 +184,37 @@ export function fortschritt(e = {}) {
   const fuell = w > 0 ? `<rect class="vz-marke ${esc(e.klasse || "vz-k1")}" x="0" y="0" width="${f1((B * w) / 100)}" height="${H}" rx="3"/>` : "";
   const svg = `<svg class="vz-svg vz-fortschritt" viewBox="0 0 ${B} ${H}" width="100%" height="${H}" preserveAspectRatio="none" role="img" aria-label="${esc(text)}" focusable="false"><title>${esc(e.titel || "")}</title><desc>${esc(text)}</desc><rect class="vz-spur" x="0" y="0" width="${B}" height="${H}" rx="3"/>${fuell}</svg>`;
   return { art: "fortschritt", svg, text, html: `<div class="vz-fortschritt-zeile" data-vz="fortschritt" data-wert="${w}">${svg}${e.ohneWert ? "" : `<span class="vz-f-wert">${esc(wt)}</span>`}</div>`, ziele: [], wert: w };
+}
+
+// ------------------------------------------------------------------ Verlauf (Live-Linie über ein festes Zeitfenster)
+/**
+ * Ruhige Linie über ein festes Zeitfenster (z. B. Puls der letzten 3 Minuten), für Live-Ansichten: ein einziges Ziel statt eines
+ * je Punkt, darunter die wichtigen Zahlen als Knöpfe. Die x-Achse ist die Zeit (vonMs … bisMs), nicht die Reihenfolge.
+ * Eingabe: { titel, kernaussage, punkte: [{ t, wert }], vonMs, bisMs, q?, text? (letzter Wert), kennzahlen?: [{ name, text, q? }], abNull? }
+ */
+export function verlauf(e = {}) {
+  const punkte = (e.punkte || []).filter((p) => p && Number.isFinite(p.t) && Number.isFinite(Number(p.wert))).map((p) => ({ t: p.t, wert: Number(p.wert) }));
+  const N = normal({ ...e, reihen: (e.kennzahlen || []).map((k) => ({ ...k, wert: 0 })) });
+  if (punkte.length < 2) return leer({ ...N, reihen: [] }, "verlauf");
+  const B = N.breite, H = 96, OB = 10, UN = H - 10, LI = 4;
+  const letzter = punkte[punkte.length - 1], letzterText = String(e.text ?? letzter.wert), RE = B - Math.max(36, breiteVon(letzterText, F_ZAHL) + 14);
+  const von = Number.isFinite(e.vonMs) ? e.vonMs : punkte[0].t, bis = Number.isFinite(e.bisMs) ? e.bisMs : letzter.t, spanne = Math.max(1, bis - von);
+  const w = punkte.map((p) => p.wert);
+  let lo = Math.min(...w), hi = Math.max(...w);
+  if (e.abNull) lo = Math.min(0, lo);
+  const luft = (hi - lo) * 0.15 || 5; lo -= e.abNull ? 0 : luft; hi += luft;
+  const sx = (t) => LI + (Math.max(0, Math.min(spanne, t - von)) / spanne) * (RE - LI);
+  const sy = (v) => UN - ((v - lo) / (hi - lo)) * (UN - OB);
+  const linie = `<polyline class="vz-linie" points="${punkte.map((p) => `${f1(sx(p.t))},${f1(sy(p.wert))}`).join(" ")}"/>`;
+  const lx = sx(letzter.t), ly = sy(letzter.wert);
+  const ende = `<circle class="vz-punkt" cx="${f1(lx)}" cy="${f1(ly)}" r="4"/><text class="vz-wert" x="${f1(lx + 8)}" y="${f1(Math.min(Math.max(ly + 5, 14), H - 2))}">${esc(letzterText)}</text>`;
+  const achse = `<line class="vz-achse" x1="${LI}" x2="${f1(RE)}" y1="${UN + 4}" y2="${UN + 4}"/>`;
+  const text = [N.titel, N.kernaussage, ...N.reihen.map((r) => `${r.name}: ${r.text}`)].filter(Boolean).map(punktEnde).join(". ") + ".";
+  const ziel = { i: 0, name: N.titel || "", text: letzterText, q: e.q || "", quelle: null };
+  const inhalt = `<g ${zielAttr(ziel)}>${tip(ziel)}<rect class="vz-treffer" x="0" y="0" width="${B}" height="${H}"/>${achse}${linie}${ende}</g>`;
+  const svg = svgHuelle(N, "verlauf", H, inhalt, text);
+  const legende = N.reihen.length ? `<ul class="vz-legende">${N.reihen.map((r) => `<li><span>${esc(r.name)}</span>${zahlKnopf(r)}</li>`).join("")}</ul>` : "";
+  return { art: "verlauf", svg, text, html: figur({ ...N, reihen: [ziel] }, "verlauf", svg + legende, false), ziele: e.q ? [{ i: 0, name: ziel.name, q: e.q, quelle: null }] : [] };
 }
 
 // ------------------------------------------------------------------ Tastatur (nur im Browser)

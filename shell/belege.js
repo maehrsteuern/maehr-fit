@@ -4,7 +4,9 @@
  * Belegfenster zu jedem Schlüssel zeigt: Titel, Wert, Rechenweg mit Fundstelle (aus dem Kern), Bestandteile und die Messwerte
  * dahinter. Die Ansichten rufen belegeTag() auf und benutzen danach nur noch die Schlüssel.
  *
- * Eintrag: { titel, wert, formel: { text, fundstelle, pruefen }?, teile: [{ name, wert, gewicht? }], quellen: quelle[] }
+ * Eintrag: { titel, wert, formel: { text, fundstelle, pruefen }?, teile: [{ name, wert, gewicht? }], quellen: quelle[],
+ *           fremd?: { text, q, href } }  – fremd: eine Zeile „WHOOP: 67 %“ mit Weg zum Vergleich (shell/apps/vergleich.js)
+ * Fremdwerte: fremd:<feld>:<tag> (feld erholung|belastung|schlaf) – WHOOPs eigene Zahl mit CSV-Datei und Zeile.
  */
 import { t } from "./i18n/i18n.js";
 import { prozent, belastungText, dauer, dauerKurz, zahl, uhrzeit, mitVorzeichen } from "./format.js";
@@ -14,22 +16,37 @@ const basisTeile = (b, fmt) => (b && b.n ? [{ name: t("basis_mittel"), wert: fmt
 const phasenMs = (p) => (Array.isArray(p) ? Object.fromEntries(PHASEN.map((a) => [a, p.filter((x) => x.art === a).reduce((s, x) => s + (x.ms ?? x.bis - x.von), 0)])) : p || {});
 export const phasenVon = (schlaf) => phasenMs(schlaf?.phasen);
 
+/** WHOOPs Zahlen eines Tages als Belege anmelden; liefert je Feld die Zeile für den MF-Beleg ({ text, q, href }) oder nichts. */
+export const FREMD_FELDER = { erholung: ["erholung", (x) => prozent(x)], belastung: ["belastung", (x) => belastungText(x)], schlaf: ["schlafLeistung", (x) => prozent(x)] };
+export function belegeFremd(B, bild) {
+  const f = bild?.fremd, aus = {};
+  if (!f) return aus;
+  for (const [feld, [k, fmt]] of Object.entries(FREMD_FELDER)) {
+    if (f[k] === null || f[k] === undefined) continue;
+    const q = `fremd:${feld}:${bild.tag}`, text = fmt(f[k]);
+    B(q, { titel: t("vgl_fremd_titel", { feld: t("vgl_feld_" + feld) }), wert: text, formel: f.formel, teile: [{ name: t("vgl_fremd_anbieter"), wert: "WHOOP" }], quellen: f.quelle ? [f.quelle] : [] });
+    aus[feld] = { text, q, href: `#/vergleich?feld=${feld}&tag=${bild.tag}` };
+  }
+  return aus;
+}
+
 export function belegeTag(B, bild) {
   if (!bild) return;
   const tag = bild.tag, e = bild.erholung, bel = bild.belastung, s = bild.schlaf;
+  const fremd = belegeFremd(B, bild);
   if (e && e.wert !== null && e.wert !== undefined) {
     B(`erholung:${tag}`, { titel: t("erholung"), wert: prozent(e.wert), formel: e.formel,
-      teile: e.teile.map((x) => ({ name: t("teil_" + x.name), wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), gewicht: x.gewicht === null ? t("abzug") : prozent(x.gewicht) })), quellen: e.quellen || [] });
+      teile: e.teile.map((x) => ({ name: t("teil_" + x.name), wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), gewicht: x.gewicht === null ? t("abzug") : prozent(x.gewicht) })), quellen: e.quellen || [], fremd: fremd.erholung });
     for (const x of e.teile) B(`erholung-teil:${tag}:${x.name}`, { titel: `${t("teil_" + x.name)} · ${t("beitrag_text")}`, wert: t("punkte", { wert: mitVorzeichen(x.beitrag) }), formel: x.formel || e.formel,
       teile: [...(x.messwert !== null && x.messwert !== undefined ? [{ name: t("messwert"), wert: zahl(x.messwert, 1) }] : []), { name: t("beleg_gewicht"), wert: x.gewicht === null ? t("abzug") : prozent(x.gewicht) }], quellen: x.quelle || [] });
   }
   B(`belastung:${tag}`, { titel: t("belastung_label"), wert: `${belastungText(bel.wert)} ${t("einheit_von21")}`, formel: bel.formel,
-    teile: bel.zonen.map((z) => ({ name: t("zone_" + z.zone), wert: dauer(z.ms) })), quellen: bel.quellen || [] });
+    teile: bel.zonen.map((z) => ({ name: t("zone_" + z.zone), wert: dauer(z.ms) })), quellen: bel.quellen || [], fremd: fremd.belastung });
   for (const z of bel.zonen) B(`zone:${tag}:${z.zone}`, { titel: t("zone_" + z.zone), wert: dauer(z.ms), formel: bel.formel, teile: [], quellen: z.quelle || [] });
   if (bild.schlafRoh) {
     const sq = s.quellen || [bild.schlafRoh.quelle];
     B(`schlaf:${tag}`, { titel: t("kachel_leistung"), wert: prozent(s.wert), formel: s.formel,
-      teile: [{ name: t("schlaf_geschlafen"), wert: dauer(s.dauerMs) }, { name: t("schlaf_bedarf"), wert: dauer(s.bedarfMs) }], quellen: sq });
+      teile: [{ name: t("schlaf_geschlafen"), wert: dauer(s.dauerMs) }, { name: t("schlaf_bedarf"), wert: dauer(s.bedarfMs) }], quellen: sq, fremd: fremd.schlaf });
     B(`schlaf-dauer:${tag}`, { titel: t("schlaf_geschlafen"), wert: dauerKurz(s.dauerMs), formel: s.formel,
       teile: PHASEN.filter((a) => a !== "wach").map((a) => ({ name: t("phase_" + a), wert: dauer(phasenVon(s)[a] || 0) })), quellen: sq });
     B(`schlaf-schuld:${tag}`, { titel: t("kachel_schuld"), wert: dauer(s.schuld), formel: s.formel,

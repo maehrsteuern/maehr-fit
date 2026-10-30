@@ -232,3 +232,31 @@ dialog.mf-beleg::backdrop { background: var(--abdunkeln); }
 .zahl-text { font-variant-numeric: tabular-nums; }
 .mf-zeile-rechts .zahl-text { color: var(--tinte); font-size: var(--t-3); font-weight: 500; }
 .mf-formular-liste .mf-schalter { min-height: 72px; }
+
+/* Phase 2 – Vergleich mit WHOOP (shell/apps/vergleich.js), WHOOP-Zeile im Beleg, Liste „noch zu prüfen“ (shell/apps/mehr.js) */
+.mf-link { color: var(--akzent); text-decoration: underline; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.mf-vgl-link { margin: 0; font-size: var(--t-2); }
+.mf-vgl-link .mf-link { display: inline-flex; align-items: center; min-height: 44px; }
+.mf-vgl-paar { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--r4); }
+@media (min-width: 720px) { .mf-vgl-paar { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mf-vgl-tabelle { overflow-x: auto; }
+.mf-vgl-tab td, .mf-vgl-tab th { padding-right: 6px; }
+.mf-vgl-tab .zahl { min-height: 40px; }
+.mf-vgl-tab small { display: block; font-size: var(--t-1); }
+.mf-vgl-aktiv td { background: var(--akzent-weich); }
+.mf-beleg-fremd { display: flex; flex-wrap: wrap; align-items: center; gap: var(--r2) var(--r4); margin: 0; padding: var(--r3) var(--r4); background: var(--grau-1); border-radius: var(--radius-2); font-size: var(--t-3); }
+.mf-beleg-fremd .mf-link { display: inline-flex; align-items: center; min-height: 44px; }
+.mf-pruef-zeile { display: flex; align-items: flex-start; gap: var(--r3); padding: var(--r3) var(--r5); }
+.mf-pruef-zeile .mf-zeile-text small { overflow-wrap: anywhere; }
+.mf-pruef-zeile .mf-zeile-rechts { max-width: 45%; }
+.mf-pruef-zeile .mf-zeile-rechts .zahl { text-align: right; overflow-wrap: anywhere; white-space: normal; }
+table.mf-tab.mf-vgl-tab td { vertical-align: middle; }
+.mf-vgl-uebersicht { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.mf-vgl-uebersicht > li { display: flex; flex-direction: column; gap: var(--r2); padding: var(--r3) 0; border-top: 1px solid var(--grau-3); }
+.mf-vgl-uebersicht > li:first-child { border-top: 0; padding-top: 0; }
+.mf-vgl-uebersicht .mf-link { font-weight: 500; align-self: flex-start; }
+.mf-vgl-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--r3); }
+.mf-vgl-stat { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.mf-vgl-stat .mf-beschriftung { font-size: var(--t-1); overflow-wrap: anywhere; }
+.mf-vgl-stat-wert { display: flex; flex-direction: column; align-items: flex-start; font-size: var(--t-3); font-weight: 500; }
+.mf-vgl-stat-wert small { font-size: var(--t-1); font-weight: 400; }

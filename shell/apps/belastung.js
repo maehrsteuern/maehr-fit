@@ -2,7 +2,8 @@
  *
  * Kernaussage: Der Satz oben nennt die Belastung des Tages auf der Skala von 0 bis 21 und vergleicht sie mit deinen üblichen
  * Tagen. Der Bogen zeigt dieselbe Zahl, die Balken zeigen, wie lange dein Puls in welcher Zone lag, und darunter stehen die
- * Trainings. Ein Tipp auf ein Training öffnet seine Pulskurve. Jede Zahl öffnet ihren Beleg.
+ * Trainings. Ein Tipp auf ein Training öffnet seine Pulskurve. Jede Zahl öffnet ihren Beleg. „Training live aufzeichnen“ führt
+ * zur Live-Ansicht (#/live, shell/apps/live.js).
  *
  * Routen: #/belastung (Tag) · #/belastung/training/<id> (ein Training). Schnittstelle: ansicht(ctx) → HTML.
  */
@@ -12,6 +13,8 @@ import { ring, zonen, zeitreihe } from "../viz/viz.js";
 import { kernaussage, leererTag, kopf, abschnitt, zahlKnopf, vergleich, beleg, tHtml, IKON } from "../ui.js";
 import { belegeTag } from "../belege.js";
 
+/** Weg zur Live-Aufzeichnung (shell/apps/live.js). */
+const liveLink = () => `<div class="mf-knopfreihe"><a class="mf-knopf" href="#/live?von=belastung" data-live-link>${IKON.belastung}<span>${esc(t("belastung_live"))}</span></a></div>`;
 const artName = (art) => t("art_" + (["laufen", "rad", "kraft", "gehen"].includes(art) ? art : "sonst"));
 
 function zonenDiagramm(zonenListe, qPraefix, titel, kern) {
@@ -55,7 +58,7 @@ export function ansicht(ctx) {
   const teile = ctx.route?.teile || [];
   if (teile[1] === "training" && teile[2]) return detail(ctx, decodeURIComponent(teile[2]));
   const { bild, tag } = ctx, B = beleg(ctx.register);
-  if (!bild) return leererTag(ctx, t("belastung_titel"), "keine_daten_tag", "belastung");
+  if (!bild) return leererTag(ctx, t("belastung_titel"), "keine_daten_tag", "belastung").replace(/<\/div>$/, `${liveLink()}</div>`);
   belegeTag(B, bild);
   const bel = bild.belastung, v = vergleich(bel.wert, bild.basis.belastung);
   const art = v.richtung === "hoch" ? "mehr" : v.richtung === "runter" ? "weniger" : "gleich";
@@ -69,6 +72,6 @@ export function ansicht(ctx) {
     ${kopf(t("belastung_titel"))}
     <div class="mf-held">${kernaussage(satz)}${bogen}</div>
     <div class="mf-karte">${zonenDiagramm(bel.zonen, `zone:${tag}`, t("zonen_titel"), zonenKern(bel.zonen))}</div>
-    ${abschnitt(t("trainings_titel"), liste)}
+    ${abschnitt(t("trainings_titel"), liste + liveLink())}
   </div>`;
 }

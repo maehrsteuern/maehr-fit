@@ -403,11 +403,118 @@
       "erklaerung": "Das graue Band zeigt deinen Normalbereich der letzten Tage.",
       "pruefen": true
     },
+    "vergleich.abstand": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (Gegenüberstellung je Tag; JCGM 100:2008 (GUM), Abschnitt 4.2.1 für das arithmetische Mittel)",
+      "text": "Abstand = Wert von MAEHR FIT − Wert von WHOOP am selben Tag. Mittlerer Abstand = Mittel der Beträge aller Tage mit beiden Werten; größte Abweichung = größter Betrag.",
+      "erklaerung": "Zeigt nur, wie weit beide Zahlen auseinanderliegen. Welche richtig ist, sagt der Abstand nicht.",
+      "pruefen": false
+    },
+    "vergleich.nah.erholung": {
+      "wert": 100, "einheit": "Zehntel Punkte",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Erholung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.erholung} Zehntel Punkte.",
+      "erklaerung": "Bei der Erholung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.",
+      "pruefen": true
+    },
+    "vergleich.nah.belastung": {
+      "wert": 20, "einheit": "Zehntel Punkte",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Belastung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.belastung} Zehntel Punkte.",
+      "erklaerung": "Bei der Belastung (0–21) zählt ein Tag bis 2 Punkte Abstand als „nah beieinander“.",
+      "pruefen": true
+    },
+    "vergleich.nah.schlaf": {
+      "wert": 100, "einheit": "Zehntel Punkte",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Schlafleistung: nah beieinander, wenn |MF − WHOOP| ≤ {vergleich.nah.schlaf} Zehntel Punkte.",
+      "erklaerung": "Bei der Schlafleistung (0–100) zählt ein Tag bis 10 Punkte Abstand als „nah beieinander“.",
+      "pruefen": true
+    },
+    "vergleich.fremdwert": {
+      "wert": null, "einheit": "fremdwert",
+      "fundstelle": "WHOOP-Datenexport, Datei physiological_cycles.csv (Spalten „Recovery score %“, „Day Strain“, „Sleep performance %“)",
+      "text": "Fremdwert aus dem WHOOP-Export, Rechenweg nicht bekannt.",
+      "erklaerung": "WHOOP rechnet nach eigenem, nicht veröffentlichtem Verfahren. MAEHR FIT übernimmt die Zahl nur zum Vergleich.",
+      "pruefen": false
+    },
     "zusammenfassung": {
       "wert": null, "einheit": "formel",
       "fundstelle": "JCGM 100:2008 (GUM), Abschnitt 4.2.1 (arithmetisches Mittel); Wochen nach ISO 8601-1:2019",
       "text": "Je Woche (Montag bis Sonntag) bzw. Kalendermonat: Mittelwert, kleinster und größter Wert, Anzahl Tage je Erholungsstufe.",
       "erklaerung": "Fasst Wochen und Monate zusammen, damit du Entwicklungen auf einen Blick siehst.",
+      "pruefen": false
+    },
+    "live.rr.min_ms": {
+      "wert": 300, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O., Abschnitt „Artefakte und Ektopien“ (unplausible RR-Abstände vor der Auswertung entfernen); 300 ms entspricht 200 Schlägen/min",
+      "text": "Ein RR-Abstand unter {live.rr.min_ms} ms (über 200 Schläge pro Minute) gilt als Messfehler und wird verworfen.",
+      "erklaerung": "Sehr kurze Abstände zwischen zwei Schlägen sind fast immer Messfehler, keine echten Herzschläge.",
+      "pruefen": true
+    },
+    "live.rr.max_ms": {
+      "wert": 2000, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF; angelehnt an Task Force of the ESC and NASPE (1996), a. a. O. (unplausible RR-Abstände entfernen); 2000 ms entspricht 30 Schlägen/min",
+      "text": "Ein RR-Abstand über {live.rr.max_ms} ms (unter 30 Schläge pro Minute) gilt als ausgelassener Schlag und wird verworfen.",
+      "erklaerung": "Sehr lange Abstände entstehen meist, wenn das Band einen Schlag nicht erkannt hat.",
+      "pruefen": true
+    },
+    "live.rr.sprung_promille": {
+      "wert": 200, "einheit": "Promille des vorigen RR-Abstands",
+      "fundstelle": "Karlsson M, Hörnsten R, Rydberg A, Wiklund U (2012): Automatic filtering of outliers in RR intervals before analysis of heart rate variability in Holter recordings: a comparison with carefully edited data. Biomed Eng Online 11:2 (Prozentfilter, 20 % zum vorigen Abstand); Bezug auf den letzten gültigen Abstand: eigene Festlegung MF",
+      "text": "Ein RR-Abstand wird verworfen, wenn er um mehr als {live.rr.sprung_promille|prozent} vom letzten gültigen Abstand abweicht: 1000 × |RR − RR vorher| > {live.rr.sprung_promille} × RR vorher. Unterschiede werden nur zwischen zwei direkt aufeinanderfolgenden gültigen Abständen gebildet.",
+      "erklaerung": "Springt der Abstand zwischen zwei Schlägen plötzlich um mehr als ein Fünftel, ist das meist ein Messfehler oder ein Extraschlag – er zählt nicht mit.",
+      "pruefen": true
+    },
+    "live.hrv_kurz.fenster": {
+      "wert": 60, "einheit": "RR-Abstände",
+      "fundstelle": "eigene Festlegung MF (etwa eine Minute); angelehnt an Munoz ML et al. (2015): Validity of (ultra-)short recordings for heart rate variability measurements. PLoS One 10(9):e0138921 (RMSSD aus 30–60 s gut mit 5 min übereinstimmend)",
+      "erklaerung": "Die Kurz-HRV wird aus den letzten 60 Herzschlägen gerechnet – etwa eine Minute.",
+      "pruefen": true
+    },
+    "live.hrv_kurz.min_differenzen": {
+      "wert": 10, "einheit": "Differenzen",
+      "fundstelle": "eigene Festlegung MF; angelehnt an Munoz ML et al. (2015), a. a. O. (kürzeste geprüfte Aufnahme 10 s)",
+      "erklaerung": "Erst ab 10 gültigen Unterschieden aufeinanderfolgender Schläge wird eine Kurz-HRV angezeigt.",
+      "pruefen": true
+    },
+    "live.hrv_kurz": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "Task Force of the ESC and NASPE (1996), a. a. O. (RMSSD); Artefaktfilter nach Karlsson et al. (2012), a. a. O.",
+      "text": "Kurz-HRV = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender gültiger RR-Abstände, aus den letzten {live.hrv_kurz.fenster} Abständen; gültig sind Abstände von {live.rr.min_ms} bis {live.rr.max_ms} ms ohne Sprung über {live.rr.sprung_promille|prozent}. In Zehntel-Millisekunden, kaufmännisch gerundet.",
+      "erklaerung": "Wie stark die Abstände zwischen deinen Herzschlägen gerade schwanken – gemessen über etwa eine Minute. Ein Augenblickswert, kein Ersatz für die HRV der Nacht.",
+      "pruefen": false
+    },
+    "live.kohaerenz.min_zyklen": {
+      "wert": 2, "einheit": "Atemzüge",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Die Kohärenz wird erst gerechnet, wenn mindestens zwei ganze Atemzüge mit Herzschlägen vorliegen.",
+      "pruefen": true
+    },
+    "live.kohaerenz.max_zyklen": {
+      "wert": 6, "einheit": "Atemzüge",
+      "fundstelle": "eigene Festlegung MF (gleitendes Fenster, etwa eine Minute bei Resonanzatmung)",
+      "erklaerung": "Für die Anzeige zählen höchstens die letzten sechs Atemzüge, damit der Wert schnell auf dich reagiert.",
+      "pruefen": true
+    },
+    "live.kohaerenz": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (vereinfachter Kohärenzwert); Hintergrund: Lehrer PM, Gevirtz R (2014), a. a. O. (bei Resonanzatmung schwingt der Puls im Atemtakt); McCraty R, Atkinson M, Tomasino D, Bradley RT (2009): The coherent heart. Integral Review 5(2):10–115 (Kohärenz als Anteil der Schwingung an einer Frequenz)",
+      "text": "Die RR-Abstände der letzten ganzen Atemzüge (mindestens {live.kohaerenz.min_zyklen}, höchstens {live.kohaerenz.max_zyklen}) werden gleichmäßig im Abstand ihres Mittels gelegt. Kohärenz = 100 × (Leistung der Schwingung im Atemtakt) ÷ (gesamte Streuung): a = 2/n × Σ (RR − Mittel) × cos(2π t/T), b = 2/n × Σ (RR − Mittel) × sin(2π t/T), Leistung = (a² + b²) ÷ 2, Streuung = Σ (RR − Mittel)² ÷ n; T = Dauer eines Atemzugs. Begrenzt auf 0 bis 100, ganze Zahl.",
+      "erklaerung": "Wie gleichmäßig dein Puls im Takt deines Atems steigt und fällt: 100 heißt, fast die ganze Schwankung folgt dem Atem; 0 heißt, sie hat mit dem Atem nichts zu tun. Eigener, vereinfachter Wert – nicht mit Werten anderer Apps vergleichbar.",
+      "pruefen": true
+    },
+    "live.training.min_ms": {
+      "wert": 60000, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF (kürzere Live-Aufzeichnungen sind meist Fehlstarts)",
+      "erklaerung": "Eine Live-Aufzeichnung wird erst ab einer Minute als Training gespeichert.",
+      "pruefen": true
+    },
+    "live.formel_puls": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "Bluetooth SIG: Heart Rate Service Specification 1.0 (2011) und GATT Specification Supplement, Merkmal Heart Rate Measurement 0x2A37 (Flags, 8/16-Bit-Puls, Energie, RR-Abstände in 1/1024 s)",
+      "text": "Puls = Wert aus dem Merkmal 0x2A37 des Dienstes Heart Rate 0x180D (Bit 0 der Flags: 16 statt 8 Bit). RR-Abstand in ms = Rohwert × 1000 ÷ 1024, kaufmännisch gerundet.",
+      "erklaerung": "So kommt der Puls live vom Band: Das Band sendet etwa einmal pro Sekunde den aktuellen Puls und, wenn es kann, die Abstände zwischen den letzten Herzschlägen.",
       "pruefen": false
     }
   }

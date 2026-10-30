@@ -11,7 +11,12 @@ const config: CapacitorConfig = {
     allowMixedContent: false,
     webContentsDebuggingEnabled: false,
   },
-  plugins: {},
+  plugins: {
+    // Live-Puls (@capacitor-community/bluetooth-le): Texte der Android-Geräteauswahl auf Deutsch
+    BluetoothLe: {
+      displayStrings: { scanning: "Suche Pulsmesser …", cancel: "Abbrechen", availableDevices: "Gefundene Pulsmesser", noDeviceFound: "Kein Pulsmesser gefunden" },
+    },
+  },
 };
 
 export default config;

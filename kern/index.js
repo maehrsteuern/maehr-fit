@@ -17,7 +17,8 @@ export { atemUebung, atemPlan, UEBUNGEN } from "./atem.js";
 export { tagebuchWirkung, KATALOG as TAGEBUCH_KATALOG } from "./tagebuch.js";
 export { trend, wochenZusammenfassung, monatsZusammenfassung, FELDER as TREND_FELDER } from "./trend.js";
 export { speicherMap, istSpeicher, SCHLUESSEL as SPEICHER_SCHLUESSEL } from "./speicher.js";
-export { demoDaten, MUSTERPERSON } from "./demo.js";
+export { demoDaten, demoPuls, MUSTERPERSON } from "./demo.js";
+export { zoneVon as liveZone, laufendeBelastung, rrFilter, hrvKurz, atemKohaerenz, pulsFormel } from "./live.js";
 export { tagAuswerten, alleTage, auswerter } from "./tag.js";
 export { t, SPRACHEN } from "./i18n.js";
 

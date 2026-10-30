@@ -25,3 +25,18 @@ klingt ein leiser Ton bei jedem Wechsel. Am Ende steht die geatmete Zeit in dein
 
 `kern/atem.js` (Phasen in ms, Runden, Fundstelle aus `formeln.json`) → Sitzung → `ctx.atemSpeichern(ms)` → Speicher
 `tagebuch:<tag>` mit `eintraege.atem` (Millisekunden, aufsummiert) und `eintraege.atemuebung = true`. Unter 10 s wird nichts gespeichert.
+
+## Puls mitlesen (Phase 2)
+
+- Schalter **„Puls mitlesen“** in der Sitzung (gemerkt in `einstellungen.atemPuls`). Ist noch nichts verbunden, stehen neben dem
+  Kreis „Band verbinden“ (nur mit Bluetooth) und „Demo-Puls“; danach zwei Kacheln: **Puls** und **Kohärenz** (0–100), beide als
+  Zahl-Knöpfe mit Beleg (`atem-live:puls`, `atem-live:kohaerenz`). Breit ab 720 px neben dem Kreis, schmal darunter.
+- Kohärenz = `atemKohaerenz(rr, zyklusMs)` aus `kern/live.js` über die RR-Abstände der laufenden Sitzung (letzte bis zu sechs
+  ganze Atemzüge, ab zwei). Eigene, vereinfachte Festlegung (`live.kohaerenz`, `pruefen: true`).
+- Nach der Sitzung (ab 10 s) eine Karte: „Dein Puls ging von 70 auf 63 Schläge pro Minute“, Kurz-HRV der Übung und Kohärenz.
+  Echte Werte (nicht Demo) kommen ins Tagebuch des Tages: `atem_puls_vor`, `atem_puls_nach` (S/min), `atem_hrv_kurz`
+  (Zehntel-ms), `atem_kohaerenz` (0–100). Puls „vor“ = letzter Wert beim Start, „nach“ = letzter Wert beim Ende.
+- Der Demo-Puls schwingt im Atemtakt der gewählten Übung (`demoPuls(seed, { profil: "atem", atemZyklusMs })`); läuft er noch mit
+  dem Trainingsprofil aus der Live-Ansicht, stellt das Einschalten des Schalters ihn um.
+- Weniger Bewegung: unverändert – der Kreis steht, der Balken zeigt die Phase, Puls und Kohärenz stehen daneben.
+- Weg zur Live-Ansicht: Knopf „Puls live ansehen“ unter der Liste (`#/live?von=atem`).

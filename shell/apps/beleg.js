@@ -2,14 +2,15 @@
  *
  * Kernaussage: Ein Tipp auf irgendeine Zahl öffnet dieses Fenster. Es sagt, was die Zahl ist, wie sie gerechnet wurde (Rechenweg
  * und Fundstelle aus dem Kern, unsichere Werte mit „noch zu prüfen“), aus welchen Teilen sie besteht und welche Messwerte dahinter
- * stehen – mit Art (Health Connect, CSV, Demo), Kennung und Datei/Zeile. Alle Zahlen laufen über einen einzigen Klick-Fang
- * auf data-q in shell/shell.js hierher.
+ * stehen – mit Art (Health Connect, CSV, Demo), Kennung und Datei/Zeile. Gibt es für den Tag eine Zahl von WHOOP, steht sie in einer
+ * Zeile darunter („WHOOP: 67 %“) mit dem Weg zum Vergleich. Alle Zahlen laufen über einen einzigen Klick-Fang auf data-q in
+ * shell/shell.js hierher.
  *
  * Schnittstelle: belegHtml(eintrag, q) → HTML (rein) · oeffnen(dialog, eintrag, q) · MAX_QUELLEN
  */
 import { t, TEXTE } from "../i18n/i18n.js";
 import { esc } from "../format.js";
-import { IKON } from "../ui.js";
+import { IKON, zahlKnopf } from "../ui.js";
 
 export const MAX_QUELLEN = 25;
 
@@ -30,6 +31,7 @@ export function belegHtml(e, q = "") {
     <div class="mf-beleg-leib" data-q-offen="${esc(q)}">
       <p class="mf-beleg-wert">${esc(e.wert)}</p>
       <p class="mf-leise">${esc(t("beleg_titel"))}</p>
+      ${e.fremd ? `<p class="mf-beleg-fremd" data-beleg-fremd><span>WHOOP: ${zahlKnopf(e.fremd.q, e.fremd.text)}</span><a class="mf-link" href="${esc(e.fremd.href)}">${esc(t("vgl_zum_vergleich"))}</a></p>` : ""}
       ${formel}${teile}
       <section class="mf-abschnitt"><h3 class="mf-beschriftung">${esc(t("beleg_quellen"))}</h3>${quellenTabelle(e.quellen)}</section>
     </div>`;

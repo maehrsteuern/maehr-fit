@@ -139,3 +139,26 @@ for (const h of ["h", "d"]) {
     }
   });
 }
+
+// ------------------------------------------------------------------ Phase 2: Live-Puls (shell/apps/live.js) und Puls beim Atmen
+import * as live from "../../shell/apps/live.js";
+for (const s of ["de", "en"]) {
+  for (const [name, app, teile, einst] of [["live", live, ["live"], {}], ["atem-puls", atem, ["atem", "kohaerenz"], { atemPuls: true }]]) {
+    test(`${name} (${s}): genau eine Kernaussage, jede Zahl ein Knopf mit Beleg`, () => {
+      setzeSprache(s);
+      const c = { ...ctx(teile), einst: { alter: 38, ...einst } };
+      const html = app.ansicht(c);
+      assert.equal(zaehle(html, /class="mf-kern"/g), 1, "genau eine Kernaussage");
+      for (const b of html.match(/<button\b[^>]*class="[^"]*\bzahl\b[^"]*"[^>]*>/g) || []) {
+        const q = /data-q="([^"]+)"/.exec(b);
+        assert.ok(q && c.register.has(q[1]), `Zahl ohne Beleg: ${b}`);
+      }
+      for (const f of html.split('<figure class="vz"').slice(1)) { assert.match(f, /class="vz-titel"/); assert.match(f, /class="vz-kern"/); }
+      setzeSprache("de");
+    });
+  }
+}
+test("Live-Puls taktet ohne Intervall-Zeitgeber", () => {
+  for (const d of ["shell/apps/live.js", "shell/puls.js", "shell/live.js", "daten/ble_puls.js", "daten/bruecke_demo.js", "daten/bruecke_webbluetooth.js", "daten/bruecke_ble_capacitor.js"]) assert.doesNotMatch(lies(d), /setInterval/, d);
+  assert.match(lies("shell/apps/live.js"), /requestAnimationFrame/);
+});

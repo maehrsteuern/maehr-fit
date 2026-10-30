@@ -77,6 +77,21 @@ Atemfrequenz, Blutsauerstoff, Schlaf und Trainings ja; Herzratenvariabilität un
 zusätzlich den **WHOOP-Export** einlesen: WHOOP-App → „Mehr“ → „App-Einstellungen“ → „Data Export“ → E-Mail-Link → ZIP
 herunterladen → in MAEHR FIT unter „Daten“ wählen.
 
+## Live-Puls über Bluetooth (ab Phase 2)
+
+Die App liest den Puls des WHOOP-Bands live über Bluetooth (`docs/technik/bluetooth.md`). Dafür steht das Modul
+`@capacitor-community/bluetooth-le` (Fassung 6.x, passend zu Capacitor 6) in `package.json`:
+
+```bash
+npm install                 # lädt @capacitor-community/bluetooth-le
+npm run android:sync        # npx cap sync android trägt das Modul in android/capacitor.settings.gradle und capacitor.build.gradle ein
+```
+
+Die beiden Gradle-Dateien sind erzeugt („DO NOT EDIT“) und werden von `npx cap sync` überschrieben – nicht von Hand ändern. Die
+Rechte (`BLUETOOTH_SCAN` mit `neverForLocation`, `BLUETOOTH_CONNECT`, alte Rechte bis Android 11) stehen schon im
+`AndroidManifest.xml`. Beim ersten „Band verbinden“ fragt Android nach „Geräte in der Nähe“ → **Zulassen**. Vorher in der WHOOP-App
+„Heart Rate Broadcast“ einschalten. Fehler „Plugin BluetoothLe not implemented“: `npx cap sync android` vergessen.
+
 ## Neu bauen nach Änderungen
 
 ```bash

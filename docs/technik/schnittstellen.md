@@ -58,3 +58,10 @@ Der Kern hat den Vertrag nur erweitert, nie geändert; `shell/kern_echt.js` übe
 - Weitere Einstiege in `kern/index.js`: `alleTage`, `atemKatalog`, `tagebuchKatalog`, `maxPulsAus`, `demoDaten({ bis, tage })`.
 - **Messwerte-Paket** (`kern/tag.js`): `{ herzschlag, hrv, ruhepuls, atemfrequenz, spo2, hauttemp, schlaf, training, tagebuch }`.
 - **Daten:** `Training.zonenProzent` und `zoneMin` (WHOOP-CSV ohne Herzschlag-Proben), `Schlaf.phasenSummen`, `fremdwerte { erholung, belastung, schlafLeistung }` (WHOOPs eigene Werte zum Vergleich), `quelle.herkunft`. Speicher-Schlüssel `messung:<art>:<tag>`; `verbinden()` und `csvImport(dateien)` geben die neuen Messwerte zurück.
+
+## Ergänzungen Phase 2 (Live-Puls, 30.10.2026)
+- `quelle.art` zusätzlich `"ble"` (Live-Puls über Bluetooth), Kennung `"<Gerät>:<t>"`; Trainings aus der Live-Aufzeichnung `"live:<Gerät>:<von>"`.
+- `Herzschlag` darf `rrMs: number[]` (RR-Abstände in ms), `energieKj` und `kontakt` tragen (`daten/ble_puls.js`).
+- Kern: `kern/live.js` – `zoneVon(bpm, { maxPuls, ruhepuls })`, `laufendeBelastung(neue, e, zustand)`, `rrFilter`, `hrvKurz(rr, fenster)`,
+  `atemKohaerenz(rr, zyklusMs)`, `trainingMindestMs()`, `pulsFormel()`; `kern/demo.js` – `demoPuls(seed, { profil, atemZyklusMs })`.
+  Shell-Tür: `shell/kern_live.js`. Tagebuch-Zahlen aus „Puls mitlesen“: `atem_puls_vor`, `atem_puls_nach`, `atem_hrv_kurz` (Zehntel-ms), `atem_kohaerenz`.

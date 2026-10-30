@@ -37,6 +37,9 @@ await MF.daten.loeschen();                   // alle "messung:" und "sync:health
 `verbinden`, `synchronisieren` und `csvImport` liefern die **neu hinzugekommenen** Datensätze als Messpaket auf oberster Ebene
 (`{ herzschlag: [], hrv: [], ruhepuls: [], atemfrequenz: [], spo2: [], hauttemp: [], schlaf: [], training: [], tagebuch: [], fremdwerte: [] }`)
 plus `neu`, `ersetzt`, `arten`, `hinweise` (CSV: `{ datei, zeile, text }` für übersprungene oder geschätzte Zeilen).
+CSV zusätzlich: `arten` = Anzahl je Art aller eingelesenen Datensätze (Summe = `neu` + `ersetzt`), `zeitraum` = `{ von, bis }`
+(erster/letzter Kalendertag wie in der Ablage, `zeitraumVon(paket)`). `exportieren()` enthält jede Art unter `messung:` – auch
+`fremdwerte` (geprüft in `tests/node/daten_pipeline.test.mjs`).
 
 ## Ablage
 
