@@ -1,0 +1,132 @@
+// Verbindungsstück der Datenschicht: stellt `window.MF.daten` bereit.
+//
+//   MF.daten.healthConnect.verfuegbar()        → { verfuegbar, grund }
+//   MF.daten.healthConnect.verbinden(arten?)   → Rechte anfragen + abgleichen: { …Messpaket, erteilt, fehlend, neu, ersetzt, arten }
+//   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
+//   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
+//   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, hinweise, dateien }
+// "…Messpaket" = nur die neu hinzugekommenen Datensätze: { herzschlag: [], hrv: [], …, fremdwerte: [] }.
+//   MF.daten.exportieren()                     → { format, version, erstelltMs, eintraege }
+//   MF.daten.loeschen()                        → { geloescht }
+//
+// Alles landet im Speicher unter "messung:<art>:<JJJJ-MM-TT>" (siehe daten/ablage.js), doppelte quelle.id wird ersetzt.
+// Der Speicher kommt von außen (Shell: IndexedDB, Tests: Map). Die Brücke wird bei jedem Aufruf neu gesucht,
+// damit die Reihenfolge des Ladens (Capacitor vor oder nach der App) egal ist.
+
+import * as hc from "./healthconnect.js";
+import { importiereWhoop } from "./csv_import.js";
+import { leseZip } from "./zip.js";
+import { ARTEN, speichereMessungen } from "./ablage.js";
+
+export const EXPORT_FORMAT = "maehr-fit-export";
+const PRAEFIXE = ["messung:", hc.SYNC_PRAEFIX];
+
+function istZip(name, bytes) {
+  if (/\.zip$/i.test(name || "")) return true;
+  return !!(bytes && bytes.length > 3 && bytes[0] === 0x50 && bytes[1] === 0x4b && bytes[2] === 3 && bytes[3] === 4);
+}
+
+/** Eine Eingabe (File, {name,text}, {name,bytes}) in CSV-Texte auflösen; ZIPs werden entpackt. */
+async function zuTexten(eingabe) {
+  const name = eingabe.name || "unbenannt.csv";
+  if (typeof eingabe.text === "string") return [{ name, text: eingabe.text }];
+  // Achtung: Bei echten File-/Blob-Objekten ist `bytes` eine Methode (Blob.bytes()), kein Feld.
+  let bytes = typeof eingabe.bytes === "function" ? new Uint8Array(await eingabe.bytes()) : eingabe.bytes;
+  if (!bytes && typeof eingabe.arrayBuffer === "function") bytes = new Uint8Array(await eingabe.arrayBuffer());
+  if (!bytes) return [];
+  if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+  const dec = new TextDecoder("utf-8");
+  if (istZip(name, bytes)) {
+    const inhalt = await leseZip(bytes);
+    return inhalt.filter((e) => /\.csv$/i.test(e.name)).map((e) => ({ name: e.name, text: dec.decode(e.bytes) }));
+  }
+  return [{ name, text: dec.decode(bytes) }];
+}
+
+/**
+ * Datenschicht erzeugen.
+ * @param {{ speicher: {lies,schreib,liste,loesche?}, bruecke?: object|(() => object|null), jetzt?: () => number,
+ *           zone?: number|string }} p  zone: Zeitzone für CSV ohne Zeitzonenspalte (sonst Gerätezeitzone)
+ */
+export function erzeugeDaten({ speicher, bruecke = () => hc.findeBruecke(globalThis), jetzt = () => Date.now(), zone } = {}) {
+  if (!speicher) throw new Error("erzeugeDaten: speicher fehlt (Schnittstelle kern/speicher.js).");
+  const holeBruecke = typeof bruecke === "function" ? bruecke : () => bruecke;
+
+  // Rückgaben enthalten die neu hinzugekommenen Datensätze zusätzlich als Messpaket-Felder auf oberster Ebene
+  // ({ herzschlag: [...], hrv: [...], … }), damit die Shell sie direkt übernehmen kann (shell/shell.js).
+  async function abgleichen(optionen = {}) {
+    const r = await hc.synchronisieren({ bruecke: holeBruecke(), speicher, jetzt: jetzt(), ...optionen });
+    const { paket, ...rest } = r;
+    return { ...paket, ...rest };
+  }
+
+  return {
+    healthConnect: {
+      verfuegbar: () => hc.verfuegbar(holeBruecke()),
+      /** Leserechte anfragen und, wenn mindestens eine Art freigegeben ist, gleich abgleichen. */
+      async verbinden(arten = hc.RECORD_TYPEN) {
+        if (!holeBruecke()) throw new Error("Health Connect ist nur in der Android-App verfügbar.");
+        const rechte = await hc.berechtigungen(holeBruecke(), arten);
+        if (!rechte.erteilt.length) {
+          throw new Error("Health Connect: keine Leseberechtigung erteilt.");
+        }
+        const sync = await abgleichen({ arten: rechte.erteilt });
+        return { ...sync, erteilt: rechte.erteilt, fehlend: rechte.fehlend };
+      },
+      /** Leserechte nur anfragen, ohne abzugleichen. */
+      berechtigungen: (arten = hc.RECORD_TYPEN) => hc.berechtigungen(holeBruecke(), arten),
+      synchronisieren: abgleichen,
+    },
+
+    /** Eine Datei oder mehrere (FileList, Array). CSV oder ZIP des WHOOP-Exports. */
+    async csvImport(dateien) {
+      const liste = dateien && typeof dateien.length === "number" && typeof dateien !== "string"
+        ? Array.from(dateien) : [dateien].filter(Boolean);
+      const texte = (await Promise.all(liste.map(zuTexten))).flat();
+      const { paket, hinweise, dateien: uebersicht } = importiereWhoop(texte, { zone });
+      if (!uebersicht.some((d) => d.art)) {
+        throw new Error("Keine WHOOP-Datei erkannt (erwartet: physiological_cycles, sleeps, workouts, journal_entries).");
+      }
+      const abgelegt = await speichereMessungen(speicher, paket);
+      const arten = Object.fromEntries(ARTEN.map((a) => [a, paket[a].length]).filter(([, n]) => n > 0));
+      return { ...abgelegt.neuPaket, neu: abgelegt.neu, ersetzt: abgelegt.ersetzt, arten, hinweise, dateien: uebersicht };
+    },
+
+    async exportieren() {
+      const eintraege = {};
+      for (const p of PRAEFIXE) {
+        for (const k of (await speicher.liste(p)).sort()) {
+          const w = await speicher.lies(k);
+          if (w !== null && w !== undefined) eintraege[k] = w;
+        }
+      }
+      return { format: EXPORT_FORMAT, version: 1, erstelltMs: jetzt(), eintraege };
+    },
+
+    async loeschen() {
+      let geloescht = 0;
+      for (const p of PRAEFIXE) {
+        for (const k of await speicher.liste(p)) {
+          if (typeof speicher.loesche === "function") await speicher.loesche(k);
+          else await speicher.schreib(k, null);
+          geloescht += 1;
+        }
+      }
+      return { geloescht };
+    },
+  };
+}
+
+/**
+ * `ziel.MF.daten` einrichten (Shell ruft das einmal beim Start auf).
+ * @param {object} [ziel] meist window
+ * @param {{speicher?: object, zone?: number|string, jetzt?: () => number}} [optionen] speicher fehlt → ziel.MF.speicher
+ */
+export function installiere(ziel = globalThis, optionen = {}) {
+  ziel.MF = ziel.MF || {};
+  const speicher = optionen.speicher || ziel.MF.speicher;
+  ziel.MF.daten = erzeugeDaten({
+    speicher, bruecke: () => hc.findeBruecke(ziel), zone: optionen.zone, ...(optionen.jetzt ? { jetzt: optionen.jetzt } : {}),
+  });
+  return ziel.MF.daten;
+}

@@ -44,3 +44,17 @@ Jede sichtbare Zahl: `<button class="zahl" data-q="erholung:2026-10-30">…</but
 speicher = { lies(schluessel) -> Promise<any>, schreib(schluessel, wert) -> Promise<void>, liste(praefix) -> Promise<String[]> }
 ```
 Shell liefert IndexedDB (`shell/speicher_browser.js`); Tests liefern eine Map.
+
+## Ergänzungen aus dem Bau (30.10.2026)
+Der Kern hat den Vertrag nur erweitert, nie geändert; `shell/kern_echt.js` übersetzt in die Form der Ansichten.
+- **Ganze Einheiten:** HRV und Atemfrequenz in Zehnteln, SpO2 in Zehntel-Prozent, Hauttemperatur in Hundertstel-Grad; HRV-Basislinie logarithmiert (ln RMSSD).
+- `tagesgrenzen(tag, einstellungen, schlaefe)` – Aufwachen-bis-Aufwachen braucht die Schlafdaten.
+- `erholung` nimmt zusätzlich `hauttemp`, `spo2`; liefert `wert: null` mit `grund: "zu_wenig_daten"`; `teile[]` mit `basis`, `z`, `gewicht` (0–1), `beitrag`, ggf. `ausgelassen`.
+- `belastung` liefert `wert` (0–21, eine Nachkommastelle), `wertZehntel` (ganzzahlig), `zonenMinuten`, `trainings[]`; `belastungTag(trainings, alltag, { maxPuls, ruhepuls })`.
+- `schlafLeistung` liefert zusätzlich `effizienz`, `konsistenz`.
+- `atemUebung` liefert `zyklusMs`, `gesamtMs`, `beschreibung`, je Phase `label`; der Seufzer hat zweimal `"ein"`.
+- `tagebuchWirkung(tage, schluessel)` nimmt Tag-Objekte, bildet Folgetag-Paare selbst; liefert `aussagekraeftig`, `hinweisSchluessel`, `paare`.
+- `trend`: `fenster` ist das Fenster der Basislinie; `basis: { mittel, streuung, n, genug, unten, oben }`.
+- Weitere Einstiege in `kern/index.js`: `alleTage`, `atemKatalog`, `tagebuchKatalog`, `maxPulsAus`, `demoDaten({ bis, tage })`.
+- **Messwerte-Paket** (`kern/tag.js`): `{ herzschlag, hrv, ruhepuls, atemfrequenz, spo2, hauttemp, schlaf, training, tagebuch }`.
+- **Daten:** `Training.zonenProzent` und `zoneMin` (WHOOP-CSV ohne Herzschlag-Proben), `Schlaf.phasenSummen`, `fremdwerte { erholung, belastung, schlafLeistung }` (WHOOPs eigene Werte zum Vergleich), `quelle.herkunft`. Speicher-Schlüssel `messung:<art>:<tag>`; `verbinden()` und `csvImport(dateien)` geben die neuen Messwerte zurück.

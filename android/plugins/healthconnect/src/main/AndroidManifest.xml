@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Health-Connect-Teil des Manifests. Wird beim Bauen in das App-Manifest eingemischt. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Nur Leserechte. MAEHR FIT schreibt nichts nach Health Connect. -->
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
+    <uses-permission android:name="android.permission.health.READ_RESTING_HEART_RATE" />
+    <uses-permission android:name="android.permission.health.READ_RESPIRATORY_RATE" />
+    <uses-permission android:name="android.permission.health.READ_OXYGEN_SATURATION" />
+    <uses-permission android:name="android.permission.health.READ_SKIN_TEMPERATURE" />
+    <uses-permission android:name="android.permission.health.READ_SLEEP" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <!-- Ältere Daten als 30 Tage vor der ersten Freigabe (nur wo Health Connect das anbietet). -->
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_HISTORY" />
+
+    <!-- Android 13 und älter: Health Connect ist eine eigene App, die gefunden werden muss. -->
+    <queries>
+        <package android:name="com.google.android.apps.healthdata" />
+    </queries>
+
+    <application>
+        <!-- Datenschutzhinweis, den Health Connect beim Freigabe-Dialog verlinkt. -->
+        <activity
+            android:name="de.maehrsteuern.fit.healthconnect.DatenschutzActivity"
+            android:exported="true"
+            android:label="@string/mf_hc_datenschutz_titel"
+            android:theme="@android:style/Theme.Material.Light.DarkActionBar">
+            <!-- Android 13 und älter -->
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+
+        <!-- Android 14 und neuer -->
+        <activity-alias
+            android:name="de.maehrsteuern.fit.healthconnect.ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity="de.maehrsteuern.fit.healthconnect.DatenschutzActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+</manifest>

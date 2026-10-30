@@ -1,0 +1,29 @@
+[
+ {
+  "metadata": {
+   "id": "rhr-27",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793079600000,
+  "zoneOffsetSek": 3600,
+  "beatsPerMinute": 51
+ },
+ {
+  "metadata": {
+   "id": "rhr-28",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793165700000,
+  "zoneOffsetSek": 3600,
+  "beatsPerMinute": 54
+ },
+ {
+  "metadata": {
+   "id": "rhr-29",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793253000000,
+  "zoneOffsetSek": 3600,
+  "beatsPerMinute": 52
+ }
+]

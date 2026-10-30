@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mf_hc_datenschutz_titel">MAEHR FIT – Privacy</string>
+    <string name="mf_hc_datenschutz_text">What MAEHR FIT does with your health data:\n\n• MAEHR FIT reads from Health Connect: heart rate, heart rate variability, resting heart rate, respiratory rate, oxygen saturation, skin temperature, sleep and exercise.\n\n• Your data stays on this device. The app sends nothing to the internet and shares nothing with third parties.\n\n• MAEHR FIT writes nothing to Health Connect.\n\n• You can revoke access in Health Connect at any time and delete all data in the app under “Data”.\n\n• MAEHR FIT shows measurements and trends. It is not a medical device and gives no medical advice.</string>
+</resources>

@@ -1,0 +1,26 @@
+/* shell/design/design_atem.css – Atemübung (shell/apps/atem.js): ein großer ruhiger Kreis, der mit der Phase wächst und schrumpft.
+   Bewegung nur über transform/opacity; die Größe setzt atem.js je Bild (requestAnimationFrame) als --at-skala, ohne CSS-Übergang.
+   Ein- und Ausblenden höchstens 450 ms mit --kurve. Bei prefers-reduced-motion steht der Kreis still, stattdessen läuft ein
+   Fortschrittsbalken je Phase. */
+.at-buehne { position: relative; display: flex; flex-direction: column; align-items: center; gap: var(--r5); padding: var(--r4) 0; }
+.at-kreisfeld { position: relative; width: min(78vw, 300px); aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; }
+.at-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--grau-3); }
+.at-kreis { position: absolute; inset: 0; border-radius: 50%; background: var(--akzent-weich); border: 2px solid var(--akzent);
+  transform: scale(var(--at-skala, .55)); opacity: var(--at-deckkraft, .9); will-change: transform; }
+.at-mitte { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.at-phase { font-family: var(--schrift-titel); font-weight: 400; font-size: 28px; line-height: 1.2; color: var(--tinte); }
+.at-zahl { font-family: var(--schrift-titel); font-weight: 300; font-size: 56px; line-height: 1; color: var(--tinte); font-variant-numeric: tabular-nums; }
+.at-runde { font-size: var(--t-2); color: var(--grau-5); }
+.at-balken { display: none; width: 100%; max-width: 320px; }
+.at-buehne[data-zustand="bereit"] .at-kreis, .at-buehne[data-zustand="fertig"] .at-kreis { opacity: .5; }
+.at-buehne .at-kreis, .at-buehne .at-mitte { transition: opacity var(--dauer-max) var(--kurve); }
+.at-buehne[data-zustand="pause"] .at-mitte { opacity: .55; }
+.at-steuer { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--r2); width: 100%; }
+.at-steuer .mf-knopf { flex: 1 1 120px; max-width: 220px; }
+.at-optionen { width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  .at-kreis { transform: scale(.8) !important; }
+  .at-balken { display: block; }
+}
+.at-balken { height: 6px; border-radius: 3px; background: var(--grau-3); overflow: hidden; }
+.at-balken > span { display: block; height: 100%; background: var(--akzent); transform-origin: left center; transform: scaleX(0); }

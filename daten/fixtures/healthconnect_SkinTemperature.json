@@ -1,0 +1,27 @@
+[
+ {
+  "metadata": {
+   "id": "skin-29",
+   "dataOrigin": "com.whoop.android"
+  },
+  "startTime": 1793225400000,
+  "endTime": 1793253000000,
+  "startZoneOffsetSek": 3600,
+  "baselineCelsius": 33.6,
+  "measurementLocation": 3,
+  "deltas": [
+   {
+    "time": 1793232000000,
+    "deltaCelsius": 0.2
+   },
+   {
+    "time": 1793239200000,
+    "deltaCelsius": -0.1
+   },
+   {
+    "time": 1793246400000,
+    "deltaCelsius": 0.35
+   }
+  ]
+ }
+]

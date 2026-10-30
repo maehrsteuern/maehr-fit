@@ -1,0 +1,256 @@
+/* shell/i18n/i18n.js – Texte der Oberfläche auf Deutsch und Englisch.
+ *
+ * Kernaussage: Jeder sichtbare Satz steht hier einmal auf Deutsch und einmal auf Englisch. Die Ansichten holen ihn mit
+ * t("schluessel", { platzhalter }). Fehlt ein Text in einer Sprache, gilt Englisch, dann Deutsch (tests/node/shell_i18n.test.mjs
+ * prüft, dass beide Sprachen vollständig sind). Ton: warm, „du“, keine medizinischen Aussagen – Messwerte und Tendenzen.
+ *
+ * Schnittstelle: t(schluessel, werte?, sprache?) · sprache() · setzeSprache(s) · locale(s?) · SPRACHEN · TEXTE
+ */
+export const SPRACHEN = [{ id: "de", name: "Deutsch", kurz: "DE", locale: "de-DE" }, { id: "en", name: "English", kurz: "EN", locale: "en-GB" }];
+let aktuell = "de";
+export const sprache = () => aktuell;
+export function setzeSprache(s) { if (SPRACHEN.some((x) => x.id === s)) aktuell = s; return aktuell; }
+export const locale = (s = aktuell) => (SPRACHEN.find((x) => x.id === s) || SPRACHEN[0]).locale;
+
+/** [deutsch, englisch] */
+export const TEXTE = {
+  // Rahmen
+  app_name: ["MAEHR FIT", "MAEHR FIT"],
+  marke_titel: ["MAEHR FIT – Startseite", "MAEHR FIT – home"],
+  reiter_heute: ["Heute", "Today"], reiter_schlaf: ["Schlaf", "Sleep"], reiter_belastung: ["Belastung", "Strain"], reiter_atem: ["Atem", "Breathe"], reiter_mehr: ["Mehr", "More"],
+  reiter_label: ["Hauptbereiche", "Main sections"],
+  tag_vorher: ["Tag davor", "Previous day"], tag_nachher: ["Tag danach", "Next day"], tag_heute: ["heute", "today"], tag_gestern: ["gestern", "yesterday"],
+  tag_waehlen: ["Tag: {tag}. Tippen springt zu heute.", "Day: {tag}. Tap to jump to today."],
+  thema: ["Hell oder dunkel umschalten (jetzt: {wert})", "Switch light or dark (now: {wert})"],
+  thema_auto: ["wie das Gerät", "like the device"], thema_hell: ["hell", "light"], thema_dunkel: ["dunkel", "dark"],
+  sprache_wechseln: ["Sprache wechseln (jetzt: Deutsch)", "Change language (now: English)"],
+  menue: ["Menü", "Menu"],
+  demo_chip: ["Demodaten der Musterperson – alle Werte sind erfunden.", "Demo data of the sample person – all values are made up."],
+  demo_verbinden: ["Eigene Daten verbinden", "Connect your own data"],
+  schliessen: ["Schließen", "Close"], zurueck: ["Zurück", "Back"],
+  laedt: ["Deine Werte werden geladen …", "Loading your values …"],
+  fehler_start: ["Beim Start ist etwas schiefgegangen: {text}. Lade die Seite bitte neu.", "Something went wrong at start: {text}. Please reload the page."],
+  zum_letzten_tag: ["Zum letzten Tag mit Messwerten", "Go to the last day with measurements"],
+  keine_daten_tag: ["Für diesen Tag liegen noch keine Messwerte vor.", "There are no measurements for this day yet."],
+  hinweis_medizin: ["MAEHR FIT zeigt Messwerte und Tendenzen. Es ist kein Medizinprodukt und ersetzt keinen ärztlichen Rat.", "MAEHR FIT shows measurements and trends. It is not a medical device and does not replace medical advice."],
+
+  // Einheiten und Vergleich
+  einheit_ms: ["ms", "ms"], einheit_bpm: ["S/min", "bpm"], einheit_von21: ["von 21", "of 21"], einheit_pro_min: ["/min", "/min"],
+  vgl_hoch: ["über deinem Mittel", "above your average"], vgl_runter: ["unter deinem Mittel", "below your average"], vgl_gleich: ["wie üblich", "as usual"],
+  vgl_neu: ["noch keine Basislinie", "no baseline yet"],
+  vgl_bedarf_unter: ["unter deinem Bedarf", "below your need"], vgl_bedarf_gedeckt: ["Bedarf gedeckt", "need covered"],
+  hrv_formel: ["HRV der Nacht = Mittel aller HRV-Messungen (RMSSD) während des Schlafs; verglichen mit dem Mittel deiner letzten 30 Tage.", "Night HRV = average of all HRV measurements (RMSSD) during sleep; compared with your average of the last 30 days."],
+  ruhepuls_formel: ["Ruhepuls laut Messung am Morgen; verglichen mit dem Mittel deiner letzten 30 Tage.", "Resting heart rate as measured in the morning; compared with your average of the last 30 days."],
+  basis_mittel: ["Mittel der letzten 30 Tage", "Average of the last 30 days"], basis_streuung: ["Streuung (üblicher Bereich ±)", "Spread (usual range ±)"], basis_n: ["Anzahl Tage", "Number of days"],
+  messwert: ["Messwert", "Measurement"],
+  vgl_aria: ["{name} {wert}, {vergleich} ({mittel})", "{name} {wert}, {vergleich} ({mittel})"],
+  mittel_text: ["Mittel {wert}", "average {wert}"],
+  stufe_gruen: ["grün", "green"], stufe_gelb: ["gelb", "yellow"], stufe_rot: ["rot", "red"],
+  stufe_text: ["Bereich {stufe}", "{stufe} zone"],
+
+  // Heute
+  heute_titel: ["Heute", "Today"],
+  heute_kern_gruen: ["Du bist heute gut erholt: {wert}.", "You are well recovered today: {wert}."],
+  heute_kern_gelb: ["Du bist heute mittel erholt: {wert}.", "You are moderately recovered today: {wert}."],
+  heute_kern_rot: ["Du bist heute wenig erholt: {wert}.", "You are not very recovered today: {wert}."],
+  tag_kern_gruen: ["Am {tag} warst du gut erholt: {wert}.", "On {tag} you were well recovered: {wert}."],
+  tag_kern_gelb: ["Am {tag} warst du mittel erholt: {wert}.", "On {tag} you were moderately recovered: {wert}."],
+  tag_kern_rot: ["Am {tag} warst du wenig erholt: {wert}.", "On {tag} you were not very recovered: {wert}."],
+  heute_kern_leer: ["Für diesen Tag fehlt noch die Nacht, darum gibt es keine Erholung.", "The night for this day is missing, so there is no recovery value."],
+  heute_nacht_kurz_ruhig: ["Die Nacht war kürzer als dein Bedarf, aber ruhig.", "The night was shorter than you need, but calm."],
+  heute_nacht_kurz_unruhig: ["Die Nacht war kürzer als dein Bedarf und etwas unruhig.", "The night was shorter than you need and a little restless."],
+  heute_nacht_lang_ruhig: ["Die Nacht hat deinen Bedarf gedeckt und war ruhig.", "The night covered your need and was calm."],
+  heute_nacht_lang_unruhig: ["Die Nacht hat deinen Bedarf gedeckt, war aber etwas unruhig.", "The night covered your need but was a little restless."],
+  erholung: ["Erholung", "Recovery"],
+  erholung_ring_desc: ["Der Bogen zeigt die Erholung von 0 bis 100 %.", "The arc shows recovery from 0 to 100 %."],
+  kachel_belastung: ["Belastung heute", "Strain today"], kachel_schlaf: ["Schlaf", "Sleep"], kachel_hrv: ["HRV", "HRV"], kachel_ruhepuls: ["Ruhepuls", "Resting HR"],
+  heute_gliederung: ["Woraus sich die Erholung zusammensetzt", "What recovery is made of"],
+  heute_gliederung_satz: ["50 Punkte sind ein für dich üblicher Morgen. Die Messwerte der Nacht schieben die Zahl mit festen Gewichten nach oben oder unten, auffällige Werte ziehen Punkte ab. Tippe einen Wert an, um seine Herkunft zu sehen.", "50 points is a usual morning for you. The overnight measurements move the number up or down with fixed weights; unusual values deduct points. Tap a value to see where it comes from."],
+  teil_hauttemp: ["Hauttemperatur", "Skin temperature"], teil_spo2: ["Sauerstoffsättigung", "Blood oxygen"],
+  punkte: ["{wert} Punkte", "{wert} points"], beitrag_text: ["Beitrag zur Erholung", "Contribution to recovery"], abzug: ["Abzug", "deduction"],
+  phase_nachatmen: ["Nachatmen", "Top up"],
+  teil_hrv: ["Herzratenvariabilität (HRV)", "Heart rate variability (HRV)"], teil_ruhepuls: ["Ruhepuls", "Resting heart rate"], teil_schlaf: ["Schlafleistung", "Sleep performance"], teil_atem: ["Atemfrequenz", "Respiratory rate"],
+  gewicht: ["Gewicht {wert}", "weight {wert}"],
+  heute_woche_titel: ["Erholung der letzten 7 Tage", "Recovery over the last 7 days"],
+  heute_woche_kern: ["An {n} von {gesamt} Tagen warst du im grünen Bereich.", "You were in the green zone on {n} of {gesamt} days."],
+  band_ueblich: ["dein üblicher Bereich", "your usual range"],
+
+  // Schlaf
+  schlaf_titel: ["Schlaf", "Sleep"],
+  schlaf_kern_weniger: ["Du hast {wert} weniger geschlafen, als du gebraucht hättest.", "You slept {wert} less than you needed."],
+  schlaf_kern_genug: ["Du hast so lange geschlafen, wie du gebraucht hast: {wert}.", "You slept as long as you needed: {wert}."],
+  schlaf_kern_leer: ["Für diese Nacht liegen keine Schlafdaten vor.", "There is no sleep data for this night."],
+  schlaf_bedarf_titel: ["Bedarf und geschlafene Zeit", "Need and time asleep"],
+  schlaf_bedarf_kern: ["Der Balken „Geschlafen“ zeigt, wie viel von deinem Bedarf die Nacht gedeckt hat.", "The “asleep” bar shows how much of your need the night covered."],
+  schlaf_bedarf: ["Bedarf", "Need"], schlaf_geschlafen: ["Geschlafen", "Asleep"],
+  schlaf_phasen_titel: ["Schlafphasen", "Sleep stages"],
+  schlaf_phasen_kern: ["Tief- und Traumschlaf machten zusammen {wert} der Nacht aus.", "Deep and REM sleep together made up {wert} of the night."],
+  phase_wach: ["Wach", "Awake"], phase_leicht: ["Leicht", "Light"], phase_tief: ["Tief", "Deep"], phase_rem: ["Traum (REM)", "REM"],
+  schlaf_kacheln: ["Regelmäßigkeit und Schuld", "Consistency and debt"],
+  kachel_konstanz: ["Regelmäßigkeit", "Consistency"], kachel_schuld: ["Schlafschuld", "Sleep debt"], kachel_leistung: ["Schlafleistung", "Sleep performance"], kachel_zeiten: ["Im Bett", "In bed"],
+  konstanz_satz: ["Einschlafzeit der letzten 7 Nächte", "Bedtime over the last 7 nights"],
+  schuld_satz: ["fehlt dir aus dieser Nacht", "missing from this night"],
+  leistung_satz: ["vom Bedarf gedeckt", "of your need covered"],
+  zeiten_satz: ["von {von} bis {bis}", "from {von} to {bis}"],
+  schlaf_bedarf_gliederung: ["Woraus sich dein Bedarf zusammensetzt", "What your need is made of"],
+  bedarf_basis: ["Grundbedarf", "Base need"], bedarf_belastung: ["Ausgleich für die Belastung von gestern", "Extra for yesterday’s strain"], bedarf_schuld: ["Anteil der Schlafschuld", "Share of sleep debt"], bedarf_nickerchen: ["Nickerchen", "Naps"],
+
+  // Belastung
+  belastung_titel: ["Belastung", "Strain"],
+  belastung_kern_mehr: ["Heute hast du {wert} von 21 Belastung gesammelt, mehr als an deinen üblichen Tagen.", "Today you collected {wert} of 21 strain, more than on your usual days."],
+  belastung_kern_weniger: ["Heute hast du {wert} von 21 Belastung gesammelt, weniger als an deinen üblichen Tagen.", "Today you collected {wert} of 21 strain, less than on your usual days."],
+  belastung_kern_gleich: ["Heute hast du {wert} von 21 Belastung gesammelt, so viel wie an deinen üblichen Tagen.", "Today you collected {wert} of 21 strain, about as much as on your usual days."],
+  belastung_tag_mehr: ["Am {tag} hast du {wert} von 21 Belastung gesammelt, mehr als an deinen üblichen Tagen.", "On {tag} you collected {wert} of 21 strain, more than on your usual days."],
+  belastung_tag_weniger: ["Am {tag} hast du {wert} von 21 Belastung gesammelt, weniger als an deinen üblichen Tagen.", "On {tag} you collected {wert} of 21 strain, less than on your usual days."],
+  belastung_tag_gleich: ["Am {tag} hast du {wert} von 21 Belastung gesammelt, so viel wie an deinen üblichen Tagen.", "On {tag} you collected {wert} of 21 strain, about as much as on your usual days."],
+  belastung_ring_desc: ["Der Bogen zeigt die Belastung auf der Skala von 0 bis 21.", "The arc shows strain on the scale from 0 to 21."],
+  belastung_label: ["Belastung", "Strain"],
+  zonen_titel: ["Zeit in den Pulszonen", "Time in heart rate zones"],
+  zonen_kern: ["Die meiste Zeit mit erhöhtem Puls lag in Zone {zone}.", "Most of your time with raised heart rate was in zone {zone}."],
+  zonen_kern_leer: ["Heute lag dein Puls nie in einer Belastungszone.", "Today your heart rate never reached a strain zone."],
+  zone_1: ["Zone 1 · sehr locker", "Zone 1 · very easy"], zone_2: ["Zone 2 · locker", "Zone 2 · easy"], zone_3: ["Zone 3 · mittel", "Zone 3 · moderate"], zone_4: ["Zone 4 · zügig", "Zone 4 · hard"], zone_5: ["Zone 5 · sehr zügig", "Zone 5 · very hard"],
+  trainings_titel: ["Trainings", "Workouts"],
+  trainings_leer: ["An diesem Tag ist kein Training aufgezeichnet.", "No workout was recorded on this day."],
+  training_zeile: ["{zeit} · {dauer}", "{zeit} · {dauer}"],
+  art_laufen: ["Laufen", "Running"], art_rad: ["Radfahren", "Cycling"], art_kraft: ["Krafttraining", "Strength training"], art_gehen: ["Gehen", "Walking"], art_sonst: ["Training", "Workout"],
+  training_kern: ["{art} von {von} bis {bis} brachte {wert} von 21 Belastung.", "{art} from {von} to {bis} brought {wert} of 21 strain."],
+  puls_titel: ["Puls während des Trainings", "Heart rate during the workout"],
+  puls_kern: ["Am höchsten lag dein Puls bei {wert} Schlägen pro Minute.", "Your heart rate peaked at {wert} beats per minute."],
+  training_nicht_gefunden: ["Dieses Training gibt es an diesem Tag nicht.", "This workout does not exist on this day."],
+  zonen_training_titel: ["Zonen in diesem Training", "Zones in this workout"],
+  zonen_training_kern: ["So verteilte sich die Zeit dieses Trainings auf die Zonen.", "This is how the workout time was spread over the zones."],
+  belastung_gliederung: ["Wie die Belastung entsteht", "How strain is built"],
+
+  // Atem
+  atem_titel: ["Atem", "Breathe"],
+  atem_kern: ["Ruhiges Atmen kann helfen, zur Ruhe zu kommen. Wähle eine Übung, folge dem Kreis und atme im Takt.", "Calm breathing can help you settle. Pick an exercise, follow the circle and breathe in time."],
+  atem_heute: ["Heute schon {wert} geatmet.", "Already {wert} of breathing today."],
+  "atem_vier-sieben-acht": ["4-7-8-Atmung", "4-7-8 breathing"], "atem_vier-sieben-acht_text": ["Vier Sekunden ein, sieben halten, acht aus. Das lange Ausatmen macht ruhig.", "Four seconds in, hold for seven, out for eight. The long exhale is calming."],
+  atem_kohaerenz: ["Gleichmäßig atmen", "Even breathing"], atem_kohaerenz_text: ["Gut fünf Sekunden ein und gut fünf aus, ohne Pause – etwa sechs Atemzüge pro Minute.", "Just over five seconds in and five out, no pause – about six breaths a minute."],
+  atem_seufzer: ["Seufzer-Atmung", "Sigh breathing"], atem_seufzer_text: ["Tief einatmen, kurz nachatmen, dann lange und langsam ausatmen.", "Breathe in deeply, top up briefly, then breathe out long and slowly."],
+  atem_entspannung: ["Lang ausatmen", "Long exhale"], atem_entspannung_text: ["Vier Sekunden ein, sechs aus. Einfach und gut für zwischendurch.", "Four seconds in, six out. Simple and good for a short break."],
+  atem_box: ["Box-Atmung", "Box breathing"], atem_box_text: ["Vier Sekunden ein, halten, aus, halten – wie die vier Seiten eines Quadrats.", "Four seconds in, hold, out, hold – like the four sides of a square."],
+  atem_dauer: ["{runden} Runden · etwa {dauer}", "{runden} rounds · about {dauer}"],
+  atem_sitzung_kern: ["Setz dich bequem hin. Atme ein, wenn der Kreis wächst, und aus, wenn er kleiner wird.", "Sit comfortably. Breathe in as the circle grows and out as it shrinks."],
+  phase_ein: ["Einatmen", "Breathe in"], phase_halten: ["Halten", "Hold"], phase_aus: ["Ausatmen", "Breathe out"], phase_halten2: ["Halten", "Hold"],
+  atem_bereit: ["Bereit", "Ready"], atem_pause_text: ["Pause", "Paused"], atem_fertig: ["Geschafft", "Done"],
+  runde: ["Runde {n} von {gesamt}", "Round {n} of {gesamt}"],
+  atem_start: ["Starten", "Start"], atem_pause: ["Pause", "Pause"], atem_weiter: ["Weiter", "Resume"], atem_stopp: ["Beenden", "Stop"], atem_nochmal: ["Noch einmal", "Again"],
+  atem_vibration: ["Vibration bei jedem Wechsel", "Vibrate at each change"], atem_vibration_text: ["nur auf Geräten, die das können", "only on devices that support it"],
+  atem_ton: ["Leiser Ton bei jedem Wechsel", "Soft tone at each change"], atem_ton_text: ["ein kurzer, weicher Klang", "a short, soft sound"],
+  atem_ergebnis: ["Du hast {dauer} ruhig geatmet. Das steht jetzt in deinem Tagebuch.", "You breathed calmly for {dauer}. It is now in your journal."],
+  atem_ergebnis_kurz: ["Die Übung war kürzer als zehn Sekunden und wurde nicht gespeichert.", "The exercise was shorter than ten seconds and was not saved."],
+  atem_fortschritt: ["Fortschritt der Phase", "Phase progress"],
+
+  // Tagebuch
+  tagebuch_titel: ["Tagebuch", "Journal"],
+  tagebuch_kern: ["Hake an, was heute zutraf. So siehst du mit der Zeit, was mit deiner Erholung am nächsten Morgen zusammenhängt.", "Tick what applied today. Over time you will see what goes along with your recovery the next morning."],
+  tagebuch_gespeichert: ["Gespeichert.", "Saved."], tagebuch_speichert: ["Wird gespeichert …", "Saving …"],
+  tagebuch_wirkung_link: ["Was hängt womit zusammen?", "What goes with what?"],
+  tb_alkohol: ["Alkohol getrunken", "Drank alcohol"], tb_alkohol_text: ["am Abend oder tagsüber", "in the evening or during the day"],
+  tb_koffein_spaet: ["Koffein am Nachmittag", "Caffeine in the afternoon"], tb_koffein_spaet_text: ["Kaffee, Tee, Cola, Energydrink", "coffee, tea, cola, energy drink"],
+  tb_bildschirm_spaet: ["Bildschirm im Bett", "Screen in bed"], tb_bildschirm_spaet_text: ["Handy, Tablet oder Fernseher", "phone, tablet or TV"],
+  tb_spaete_mahlzeit: ["Spät gegessen", "Ate late"], tb_spaete_mahlzeit_text: ["kurz vor dem Schlafengehen", "shortly before going to bed"],
+  tb_meditation: ["Meditiert", "Meditated"], tb_meditation_text: ["auch ein paar Minuten zählen", "a few minutes count too"],
+  tb_atemuebung: ["Atemübung gemacht", "Did a breathing exercise"], tb_atemuebung_text: ["wird nach einer Übung im Reiter Atem selbst gesetzt", "set automatically after an exercise in the Breathe tab"],
+  tb_kaltdusche: ["Kalt geduscht", "Cold shower"], tb_kaltdusche_text: ["oder kalt gebadet", "or a cold bath"],
+  tb_sauna: ["Sauna", "Sauna"], tb_sauna_text: ["mindestens ein Gang", "at least one round"],
+  tb_lesen: ["Vor dem Schlafen gelesen", "Read before sleep"], tb_lesen_text: ["auf Papier oder E-Reader", "on paper or an e-reader"],
+  tb_stress: ["Stressiger Tag", "Stressful day"], tb_stress_text: ["so, wie du ihn empfunden hast", "as you felt it"],
+  tb_krank: ["Unwohl gefühlt", "Felt unwell"], tb_krank_text: ["zum Beispiel erkältet", "for example a cold"],
+  tb_reisen: ["Unterwegs gewesen", "Travelled"], tb_reisen_text: ["Reise, anderes Bett, andere Zeitzone", "trip, other bed, other time zone"],
+  tb_atem: ["Atemübungen", "Breathing exercises"],
+  wirkung_titel: ["Was hängt womit zusammen?", "What goes with what?"],
+  wirkung_kern: ["An Tagen nach „{name}“ lag deine Erholung im Mittel {wert} Punkte {richtung}.", "On days after “{name}” your recovery was {wert} points {richtung} on average."],
+  wirkung_hoeher: ["höher", "higher"], wirkung_niedriger: ["niedriger", "lower"],
+  wirkung_kern_leer: ["Noch gibt es zu wenige Tage, um Zusammenhänge zu zeigen. Trag ein paar Tage lang ein, was zutraf.", "There are not enough days yet to show links. Log what applied for a few days."],
+  wirkung_frage: ["Erholung am nächsten Morgen", "Recovery the next morning"],
+  wirkung_chart_kern: ["Erholung am Morgen danach: mit {mit}, ohne {ohne}.", "Recovery the morning after: with {mit}, without {ohne}."],
+  wirkung_zeile: ["Unterschied {wert} Punkte · {nmit} Tage mit, {nohne} Tage ohne", "Difference {wert} points · {nmit} days with, {nohne} days without"],
+  wirkung_satz: ["mit: {mit} ({nmit} Tage) · ohne: {ohne} ({nohne} Tage)", "with: {mit} ({nmit} days) · without: {ohne} ({nohne} days)"],
+  wirkung_mit: ["mit", "with"], wirkung_ohne: ["ohne", "without"],
+  wirkung_tendenz: ["Eine Tendenz, kein Beweis: Auch andere Dinge können eine Rolle spielen.", "A trend, not proof: other things can play a part too."],
+  wirkung_zu_wenig: ["Noch zu wenige Tage für eine Aussage.", "Not enough days yet for a statement."],
+  wirkung_differenz: ["Unterschied", "Difference"],
+
+  // Trends
+  trends_titel: ["Trends", "Trends"],
+  trends_kern_drueber: ["Deine {feld} lag zuletzt über deinem üblichen Bereich.", "Your {feld} was recently above your usual range."],
+  trends_kern_drunter: ["Deine {feld} lag zuletzt unter deinem üblichen Bereich.", "Your {feld} was recently below your usual range."],
+  trends_kern_drin: ["Deine {feld} lag zuletzt in deinem üblichen Bereich.", "Your {feld} was recently within your usual range."],
+  trends_kern_leer: ["Für diesen Zeitraum gibt es noch zu wenige Werte.", "There are not enough values for this period yet."],
+  trends_feld: ["Messwert", "Measurement"], trends_fenster: ["Zeitraum", "Period"],
+  fenster_7: ["7 Tage", "7 days"], fenster_30: ["30 Tage", "30 days"],
+  feld_erholung: ["Erholung", "recovery"], feld_hrv: ["HRV", "HRV"], feld_ruhepuls: ["Ruhepuls", "resting heart rate"], feld_schlaf: ["Schlafdauer", "sleep duration"],
+  feld_erholung_titel: ["Erholung", "Recovery"], feld_hrv_titel: ["HRV", "HRV"], feld_ruhepuls_titel: ["Ruhepuls", "Resting heart rate"], feld_schlaf_titel: ["Schlafdauer", "Sleep duration"],
+  trends_chart_titel: ["{feld}, {fenster}", "{feld}, {fenster}"],
+  trends_chart_kern: ["Der helle Streifen ist dein üblicher Bereich aus den 30 Tagen davor.", "The light band is your usual range from the previous 30 days."],
+
+  // Mehr
+  mehr_titel: ["Mehr", "More"],
+  mehr_kern: ["Hier findest du dein Tagebuch, deine Trends und alles rund um deine Daten.", "Here you find your journal, your trends and everything about your data."],
+  mehr_tagebuch_text: ["Was heute zutraf und was es bewirkt", "What applied today and how it shows"],
+  mehr_trends_text: ["Woche und Monat im Verlauf", "Week and month over time"],
+  mehr_daten_text: ["Verbinden, einlesen, sichern, löschen", "Connect, import, back up, delete"],
+  mehr_einstellungen_text: ["Alter, Puls, Schlafbedarf, Sprache", "Age, heart rate, sleep need, language"],
+  daten_titel: ["Daten", "Data"], einstellungen_titel: ["Einstellungen", "Settings"],
+
+  // Daten
+  daten_kern_demo: ["Gerade siehst du erfundene Demodaten. Verbinde Health Connect oder lies eine CSV-Datei ein, um deine eigenen Werte zu sehen.", "You are looking at made-up demo data. Connect Health Connect or import a CSV file to see your own values."],
+  daten_kern_eigen: ["Deine Daten liegen nur auf diesem Gerät. Du kannst sie jederzeit sichern oder löschen.", "Your data stays on this device only. You can back it up or delete it at any time."],
+  hc_titel: ["Health Connect", "Health Connect"],
+  hc_text: ["Liest Puls, HRV, Schlaf und Trainings von deiner Uhr oder deinem Ring – nur lesen, nichts wird gesendet.", "Reads heart rate, HRV, sleep and workouts from your watch or ring – read only, nothing is sent."],
+  hc_verbinden: ["Verbinden", "Connect"],
+  hc_nur_android: ["Health Connect gibt es nur in der Android-App von MAEHR FIT. In dieser Datei kannst du stattdessen eine CSV-Datei einlesen.", "Health Connect is only available in the MAEHR FIT Android app. In this file you can import a CSV file instead."],
+  hc_ok: ["Verbunden: {n} Messwerte gelesen.", "Connected: {n} measurements read."],
+  hc_fehler: ["Das Verbinden hat nicht geklappt: {text}", "Connecting did not work: {text}"],
+  csv_titel: ["CSV-Datei einlesen", "Import a CSV file"],
+  csv_text: ["Zum Beispiel der Datenexport von WHOOP (ZIP oder einzelne CSV-Dateien). Die Dateien bleiben auf diesem Gerät.", "For example the WHOOP data export (ZIP or single CSV files). The files stay on this device."],
+  csv_waehlen: ["Datei wählen", "Choose file"],
+  csv_fehlt: ["Das Einlesen von CSV-Dateien ist in dieser Fassung noch nicht eingebaut.", "Importing CSV files is not built into this version yet."],
+  csv_ok: ["{n} Messwerte aus „{datei}“ eingelesen.", "{n} measurements imported from “{datei}”."],
+  csv_fehler: ["Die Datei ließ sich nicht einlesen: {text}", "The file could not be imported: {text}"],
+  export_titel: ["Eigene Daten sichern", "Back up your data"],
+  export_text: ["Lädt alles, was MAEHR FIT gespeichert hat, als JSON-Datei herunter.", "Downloads everything MAEHR FIT has stored as a JSON file."],
+  export_knopf: ["Als Datei sichern", "Save as file"], export_ok: ["Gesichert: {n} Einträge.", "Saved: {n} entries."],
+  loeschen_titel: ["Alle Daten löschen", "Delete all data"],
+  loeschen_text: ["Entfernt Tagebuch, Einstellungen und eingelesene Messwerte von diesem Gerät. Danach siehst du wieder die Demodaten.", "Removes journal, settings and imported measurements from this device. Afterwards you will see the demo data again."],
+  loeschen_knopf: ["Alles löschen …", "Delete everything …"],
+  loeschen_frage: ["Wirklich alles löschen? Das lässt sich nicht rückgängig machen.", "Really delete everything? This cannot be undone."],
+  loeschen_ja: ["Ja, alles löschen", "Yes, delete everything"], abbrechen: ["Abbrechen", "Cancel"],
+  loeschen_ok: ["Alles gelöscht.", "Everything deleted."],
+  quelle_demo: ["Demodaten", "Demo data"], quelle_eigen: ["Eigene Daten", "Own data"],
+  quelle_jetzt: ["Datenquelle: {quelle}", "Data source: {quelle}"],
+
+  // Einstellungen
+  einst_kern: ["Mit deinem Alter, deinem Höchstpuls und deinem Schlafbedarf werden Belastung und Schlaf genauer.", "Your age, maximum heart rate and sleep need make strain and sleep more precise."],
+  einst_alter: ["Alter", "Age"], einst_alter_hilfe: ["in Jahren", "in years"],
+  einst_maxpuls: ["Höchstpuls", "Maximum heart rate"], einst_maxpuls_hilfe: ["leer lassen: aus dem Alter geschätzt ({wert} S/min)", "leave empty: estimated from age ({wert} bpm)"],
+  einst_schlaf: ["Grundbedarf Schlaf", "Base sleep need"], einst_schlaf_hilfe: ["in Stunden, z. B. 8 oder 7,5", "in hours, e.g. 8 or 7.5"],
+  einst_sprache: ["Sprache", "Language"], einst_thema: ["Darstellung", "Appearance"],
+  einst_haptik: ["Vibration", "Vibration"], einst_haptik_text: ["kurzes Vibrieren bei Atemübungen", "short vibration during breathing exercises"],
+  einst_gespeichert: ["Einstellungen gespeichert.", "Settings saved."],
+
+  // Beleg
+  beleg_titel: ["Woher kommt diese Zahl?", "Where does this number come from?"],
+  beleg_formel: ["Rechenweg", "Calculation"], beleg_fundstelle: ["Fundstelle: {text}", "Source: {text}"],
+  beleg_pruefen: ["noch zu prüfen", "to be checked"],
+  beleg_teile: ["Bestandteile", "Components"], beleg_quellen: ["Messwerte dahinter", "Measurements behind it"],
+  beleg_art: ["Art", "Type"], beleg_kennung: ["Kennung", "ID"], beleg_ort: ["Datei / Zeile", "File / line"], beleg_name: ["Name", "Name"], beleg_wert: ["Wert", "Value"], beleg_gewicht: ["Gewicht", "Weight"],
+  beleg_weitere: ["… und {n} weitere Messwerte", "… and {n} more measurements"],
+  beleg_keine_quellen: ["Zu dieser Zahl gibt es keine einzelnen Messwerte.", "There are no individual measurements behind this number."],
+  beleg_unbekannt: ["Zu dieser Zahl ist kein Beleg hinterlegt.", "No record is stored for this number."],
+  art_healthconnect: ["Health Connect", "Health Connect"], art_csv: ["CSV-Datei", "CSV file"], art_demo: ["Demodaten", "Demo data"], art_hand: ["von Hand", "manual"],
+
+  // Diagramme
+  vz_tabelle: ["Werte als Tabelle", "Values as table"], vz_leer: ["Noch keine Werte für dieses Diagramm.", "No values for this chart yet."],
+  vz_quelle_oeffnen: ["{name}: {wert} – Herkunft öffnen", "{name}: {wert} – open source"],
+};
+
+/** Text holen; {platzhalter} werden ersetzt. Fehlt die Sprache: Englisch, dann Deutsch, dann der Schlüssel. */
+export function t(schluessel, werte = null, s = aktuell) {
+  const e = TEXTE[schluessel];
+  let text = e ? (s === "en" ? e[1] : e[0]) || e[1] || e[0] : schluessel;
+  if (werte) text = text.replace(/\{(\w+)\}/g, (m, k) => (werte[k] !== undefined && werte[k] !== null ? String(werte[k]) : m));
+  return text;
+}

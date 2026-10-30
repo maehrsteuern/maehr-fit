@@ -1,0 +1,23 @@
+[
+ {
+  "metadata": {
+   "id": "ex-29-lauf",
+   "dataOrigin": "com.whoop.android"
+  },
+  "startTime": 1793289600000,
+  "endTime": 1793292300000,
+  "startZoneOffsetSek": 3600,
+  "exerciseType": 56,
+  "title": "Abendlauf"
+ },
+ {
+  "metadata": {
+   "id": "ex-27-rest",
+   "dataOrigin": "com.whoop.android"
+  },
+  "startTime": 1793098800000,
+  "endTime": 1793100600000,
+  "startZoneOffsetSek": 3600,
+  "exerciseType": 999
+ }
+]

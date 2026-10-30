@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mf_hc_datenschutz_titel">MAEHR FIT – Datenschutz</string>
+    <string name="mf_hc_datenschutz_text">Was MAEHR FIT mit deinen Gesundheitsdaten macht:\n\n• MAEHR FIT liest aus Health Connect: Herzschlag, Herzratenvariabilität, Ruhepuls, Atemfrequenz, Sauerstoffsättigung, Hauttemperatur, Schlaf und Training.\n\n• Die Daten bleiben auf diesem Gerät. Die App sendet nichts ins Internet und gibt nichts an Dritte weiter.\n\n• MAEHR FIT schreibt nichts nach Health Connect.\n\n• Du kannst die Freigabe jederzeit in Health Connect zurücknehmen und alle Daten in der App unter „Daten“ löschen.\n\n• MAEHR FIT zeigt Messwerte und Tendenzen. Es ist kein Medizinprodukt und gibt keinen medizinischen Rat.</string>
+</resources>

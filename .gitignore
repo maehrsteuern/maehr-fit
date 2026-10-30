@@ -1,0 +1,19 @@
+# Abhängigkeiten und Bauergebnisse
+node_modules/
+dist/
+android/app/build/
+android/build/
+android/.gradle/
+android/plugins/healthconnect/build/
+android/local.properties
+android/.idea/
+*.apk
+*.aab
+
+# Eigene Gesundheitsdaten – nie einchecken
+eigene_daten/
+input/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db

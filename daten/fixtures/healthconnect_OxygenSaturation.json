@@ -1,0 +1,20 @@
+[
+ {
+  "metadata": {
+   "id": "spo2-28",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793165700000,
+  "zoneOffsetSek": 3600,
+  "percentage": 96.0
+ },
+ {
+  "metadata": {
+   "id": "spo2-29",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793253000000,
+  "zoneOffsetSek": 3600,
+  "percentage": 97.5
+ }
+]

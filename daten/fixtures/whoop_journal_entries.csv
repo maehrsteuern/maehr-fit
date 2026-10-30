@@ -1,0 +1,10 @@
+Cycle start time,Cycle end time,Cycle timezone,Question text,Answered yes,Notes
+2026-10-26 23:20:00,2026-10-27 23:05:00,UTC+01:00,Have any alcoholic drinks?,false,
+2026-10-26 23:20:00,2026-10-27 23:05:00,UTC+01:00,Read (non-screened device) while in bed?,true,"Roman, 20 Seiten"
+2026-10-26 23:20:00,2026-10-27 23:05:00,UTC+01:00,Consume caffeine?,true,"Espresso ""doppio"", 15 Uhr"
+2026-10-27 23:05:00,2026-10-28 23:10:00,UTC+01:00,Have any alcoholic drinks?,true,"Feier bei Freunden,
+zwei Gläser Wein"
+2026-10-27 23:05:00,2026-10-28 23:10:00,UTC+01:00,Read (non-screened device) while in bed?,false,
+2026-10-27 23:05:00,2026-10-28 23:10:00,UTC+01:00,Consume caffeine?,true,
+2026-10-28 23:10:00,2026-10-29 22:50:00,UTC+01:00,Have any alcoholic drinks?,false,
+2026-10-28 23:10:00,2026-10-29 22:50:00,UTC+01:00,Consume caffeine?,false,

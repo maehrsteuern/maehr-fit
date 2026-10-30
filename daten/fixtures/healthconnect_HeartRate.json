@@ -1,0 +1,80 @@
+[
+ {
+  "metadata": {
+   "id": "hr-0001",
+   "dataOrigin": "com.whoop.android"
+  },
+  "startTime": 1793239200000,
+  "endTime": 1793239320000,
+  "startZoneOffsetSek": 3600,
+  "samples": [
+   {
+    "time": 1793239200000,
+    "beatsPerMinute": 52
+   },
+   {
+    "time": 1793239260000,
+    "beatsPerMinute": 51
+   },
+   {
+    "time": 1793239320000,
+    "beatsPerMinute": 53
+   }
+  ]
+ },
+ {
+  "metadata": {
+   "id": "hr-0002",
+   "dataOrigin": "com.whoop.android"
+  },
+  "startTime": 1793289600000,
+  "endTime": 1793292300000,
+  "startZoneOffsetSek": 3600,
+  "samples": [
+   {
+    "time": 1793289600000,
+    "beatsPerMinute": 98
+   },
+   {
+    "time": 1793289900000,
+    "beatsPerMinute": 128
+   },
+   {
+    "time": 1793290200000,
+    "beatsPerMinute": 141
+   },
+   {
+    "time": 1793290500000,
+    "beatsPerMinute": 152
+   },
+   {
+    "time": 1793290800000,
+    "beatsPerMinute": 158
+   },
+   {
+    "time": 1793291100000,
+    "beatsPerMinute": 163
+   },
+   {
+    "time": 1793291400000,
+    "beatsPerMinute": 166
+   },
+   {
+    "time": 1793291700000,
+    "beatsPerMinute": 160
+   },
+   {
+    "time": 1793292000000,
+    "beatsPerMinute": 138
+   },
+   {
+    "time": 1793292300000,
+    "beatsPerMinute": 112
+   },
+   {
+    "time": 1793292600000,
+    "beatsPerMinute": 101
+   }
+  ]
+ }
+]

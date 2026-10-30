@@ -1,7 +1,7 @@
 # MAEHR FIT (MF) – Regeln für jede Sitzung
 
 - Start: `UEBERGABE.md` und `docs/STATUS.md` lesen, Loris sagen, was läuft und was offen ist.
-- **Mit Loris auf Deutsch reden.** Repo-Sprache Deutsch (Kommentare, Dateinamen, Commits). Oberfläche DE/EN über `kern/i18n.js`.
+- **Mit Loris auf Deutsch reden.** Repo-Sprache Deutsch (Kommentare, Dateinamen, Commits). Oberfläche DE/EN: Kerntexte (Zonen, Stufen, Tagebuch) in `kern/i18n.js`, Shell-Texte in `shell/i18n/i18n.js`.
 - **Erklären vor Fachsprache:** Jede Antwort und jede Sicht beginnt mit der Kernaussage in drei bis vier Sätzen ohne Jargon.
 - **UX wie MBS:** Ein Blick → Gliederung → Beleg (`docs/technik/ux_leitlinien.md`). Eine Kernaussage je Sicht, höchstens 4 Kacheln,
   höchstens ein Diagramm je Frage. Diagramme nur über `shell/viz/viz.js`. Geprüft von `tests/node/ruhe.test.mjs`.
@@ -13,7 +13,7 @@
 - **Daten bleiben beim Nutzer.** Keine fremden Adressen, kein Netz. Health Connect wird nur gelesen. Keine echten Gesundheitsdaten
   im Repo; Demodaten = erfundene „Musterperson“ (`kern/demo.js`).
 - **Kein medizinischer Rat.** Texte beschreiben Messwerte und Tendenzen, nie Diagnosen. Hinweis in `shell/i18n/`.
-- **Tests:** je Kernmodul ein von Hand nachgerechneter Fall mit Rechenweg als Kommentar plus Grenzfälle (`node --test tests/node`).
+- **Tests:** je Kernmodul ein von Hand nachgerechneter Fall mit Rechenweg als Kommentar plus Grenzfälle (`npm test` = `node --test tests/node/*.test.mjs`; ein Ordner als Argument geht unter Node 22 nicht).
 - **Bau:** `python3 bau.py` erzeugt `MF.html` (eine Datei, offline). Nach Änderungen an Kern oder Shell neu bauen und mitcommitten.
   Android-APK über Capacitor in `android/` (`docs/technik/android.md`), gebaut auf Loris' Rechner.
 - **Git:** deutsche Commit-Nachrichten. `docs/STATUS.md` nach jedem Schritt aktualisieren. Nie auf main pushen.

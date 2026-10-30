@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Einzige Farbangabe der Android-Hülle: MBS-Grün. Alles andere verweist hierauf. -->
+<resources>
+    <color name="mf_gruen">#0A6551</color>
+    <color name="colorPrimary">@color/mf_gruen</color>
+    <color name="colorPrimaryDark">@color/mf_gruen</color>
+    <color name="colorAccent">@color/mf_gruen</color>
+</resources>

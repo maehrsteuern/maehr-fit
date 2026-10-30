@@ -1,0 +1,46 @@
+/* shell/design/marke.css – die eine Farb- und Schriftquelle von MAEHR FIT (MF), angepasste Kopie von MBS shell/design/marke.css.
+
+   ============================================================================================
+   Kernaussage: Hier – und nur hier – stehen Farbwerte. Alle anderen Stylesheets (design.css, design_viz.css, design_atem.css,
+   design_mobil.css) verweisen nur auf diese Namen. Die Werte sind dieselben wie in der MAEHR BUSINESS SUITE (Kleid „Ruhe“),
+   damit MF und MBS wie aus einem Guss aussehen.
+   --------------------------------------------------------------------------------------------
+   Regeln:  Grün heißt weiter (Knopf, aktiver Reiter, Ring, Fokus) und „gut erholt“ (immer mit Wort, nie nur Farbe).
+            Bernstein heißt „mittel“ bzw. bitte hinsehen, Rot heißt „wenig erholt“ oder Fehler – je mit Wort oder Zeichen.
+            Fraunces für Titel und große Zahlen, Inter für Sätze.
+   Benennung: --m-… gilt hell und dunkel gleich, --m-h-… hell, --m-d-… dunkel. Die Verbraucher wählen in ihren drei Blöcken
+            (hell, @media dunkel, [data-theme="dark"]) den passenden Satz.
+   MF-Ergänzungen: --m-*-fehler-weich, --m-*-vz-… (Diagramme, Zonen, Schlafphasen) und --m-*-erholung-gruen/gelb/rot
+            (Verweise auf ok/bernstein/fehler).
+   Kontrast (WCAG 2.2 AA, gerechnet in tests/node/ruhe.test.mjs): Schrift ≥ 4,5:1 auf Papier und Grund, Grafik ≥ 3:1.
+   ============================================================================================ */
+:root {
+  /* Bühne Nachtgrün (hell und dunkel gleich) */
+  --m-nacht: #0b110e; --m-nacht-2: #153a31; --m-auf-nacht: #eaf1ec; --m-auf-nacht-neben: #a3b5ab; --m-minze: #53c3a2; --m-weiss: #ffffff;
+  /* Hell: Salbei-Flächen, Tinte, Grün = Aktion */
+  --m-h-papier: #ffffff; --m-h-grund: #f4f6f3; --m-h-flaeche2: #eaefeb; --m-h-linie: #dde4df; --m-h-linie-stark: #7c8a82; --m-h-leise: #5e6a63;
+  --m-h-tinte: #17201b; --m-h-tinte2: #36403b;
+  --m-h-gruen: #0a6551; --m-h-gruen-weich: #e4f1ec; --m-h-auf-gruen: #ffffff;
+  --m-h-ok: #1d7a45; --m-h-ok-weich: #e3f1e8;
+  /* Hell: Bernstein = hinsehen, Rot = Fehler */
+  --m-h-bernstein: #8f5a00; --m-h-bernstein-punkt: #b77c0e; --m-h-bernstein-weich: #fbf1dc;
+  --m-h-fehler: #b3261e; --m-h-fehler-weich: #fbe4e2;
+  /* Hell: Diagramme (MBS design_viz.css, Paletten-Prüfer bestanden) + Zone 1 leise */
+  --m-h-vz-k1: #13896b; --m-h-vz-k2: #2a78d6; --m-h-vz-k3: #e0662f; --m-h-vz-k4: #6250d6; --m-h-vz-k0: #6b7f76;
+  /* Dunkel */
+  --m-d-papier: #19211d; --m-d-grund: #111714; --m-d-flaeche2: #222b26; --m-d-linie: #2c3631; --m-d-linie-stark: #6a7971; --m-d-leise: #9aa79f;
+  --m-d-tinte: #eef2ef; --m-d-tinte2: #d0d9d3;
+  --m-d-gruen: #53c3a2; --m-d-gruen-weich: #173029; --m-d-auf-gruen: #0b110e;
+  --m-d-ok: #5cc98a; --m-d-ok-weich: #16291e;
+  --m-d-bernstein: #e6ab4f; --m-d-bernstein-punkt: #e6ab4f; --m-d-bernstein-weich: #33280f;
+  --m-d-fehler: #f08a83; --m-d-fehler-weich: #3a1613;
+  --m-d-vz-k1: #1f9c7c; --m-d-vz-k2: #3987e5; --m-d-vz-k3: #e0703f; --m-d-vz-k4: #9085e9; --m-d-vz-k0: #8a9c93;
+  /* Erholung: Verweise auf die Signale (MF) */
+  --m-h-erholung-gruen: var(--m-h-ok); --m-h-erholung-gelb: var(--m-h-bernstein-punkt); --m-h-erholung-rot: var(--m-h-fehler);
+  --m-d-erholung-gruen: var(--m-d-ok); --m-d-erholung-gelb: var(--m-d-bernstein-punkt); --m-d-erholung-rot: var(--m-d-fehler);
+  /* Abdunkeln hinter dem Belegfenster */
+  --m-h-abdunkeln: rgba(11, 17, 14, .32); --m-d-abdunkeln: rgba(0, 0, 0, .55);
+  /* Schriftpaar */
+  --m-schrift-titel: "Fraunces", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --m-schrift-text: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

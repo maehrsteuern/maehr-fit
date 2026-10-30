@@ -1,0 +1,27 @@
+// Health-Connect-Plugin für MAEHR FIT (nur Lesen).
+// connect-client 1.1.0-alpha08: letzte Fassung, die mit compileSdk 34 baut (ab alpha09 compileSdk 35,
+// ab 1.1.0-rc01/1.1.0 compileSdk 36 und AGP 8.9.1). Enthält SkinTemperatureRecord.
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    namespace "de.maehrsteuern.fit.healthconnect"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation project(':capacitor-android')
+    implementation "androidx.health.connect:connect-client:$healthConnectVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion"
+}

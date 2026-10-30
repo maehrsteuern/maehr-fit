@@ -1,0 +1,68 @@
+/* shell/design/design_viz.css – Diagramme aus shell/viz/viz.js (vz-…) und der Heldenring (rg-…), Stil wie MBS design_viz.css
+   und design_ruhig.css (Kleid „Ruhe“). Farben nur über Tokens aus design.css (dort Verweise auf marke.css), Texte nie in der
+   Serienfarbe, sondern in --tinte / --grau-5. */
+
+/* ---------- Ring (Heldenzahl): Spur Haarlinie, Bogen in der Farbe der Stufe, Zahl Fraunces 300 */
+.rg { --rg-d: var(--rg-groesse, 240px); position: relative; width: min(100%, var(--rg-d)); aspect-ratio: 1 / 1; margin: 0 auto; }
+.rg-bild { display: block; width: 100%; height: 100%; overflow: visible; }
+.rg-spur { stroke: var(--grau-3); }
+.rg-bogen { stroke: var(--akzent); transition: stroke-dashoffset var(--dauer-max) var(--kurve); }
+.rg-gruen .rg-bogen { stroke: var(--erholung-gruen); }
+.rg-gelb .rg-bogen { stroke: var(--erholung-gelb); }
+.rg-rot .rg-bogen { stroke: var(--erholung-rot); }
+.rg-leise .rg-bogen { stroke: var(--grau-4); }
+.rg-mitte { position: absolute; inset: 14%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; }
+.rg .rg-zahl { background: none; border: 0; padding: 2px 8px; margin: 0; border-radius: var(--radius-pille); cursor: pointer; white-space: nowrap; max-width: 100%;
+  font-family: var(--schrift-titel); font-weight: 300; letter-spacing: -0.02em; line-height: 1; color: var(--tinte);
+  font-size: min(var(--t-held), calc(var(--rg-d) * 1.1 / var(--rg-zeichen, 3))); }
+.rg .rg-zahl:hover .rg-ziffern { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; text-decoration-color: var(--grau-4); }
+.rg .rg-zahl:focus-visible { outline: 2px solid var(--marke); outline-offset: 4px; }
+.rg-nach { font-size: .38em; font-weight: 400; letter-spacing: 0; color: var(--tinte2); margin-left: 2px; }
+.rg-label { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); line-height: 1.3; }
+.rg-zweit { font-size: var(--t-2); color: var(--grau-5); }
+
+/* ---------- Diagramm-Hülle */
+.vz { margin: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--r3); }
+.vz-kopf { display: flex; flex-direction: column; gap: 4px; }
+.vz-titel { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
+.vz-kern { font-size: var(--t-4); line-height: 1.45; color: var(--tinte); }
+.vz-svg { display: block; width: 100%; max-width: 100%; height: auto; overflow: visible; }
+.vz-svg text { font-family: var(--schrift-text); font-size: 13px; fill: var(--tinte); }
+.vz-svg .vz-wert { font-variant-numeric: tabular-nums; fill: var(--tinte); }
+.vz-svg .vz-name, .vz-svg .vz-band-text { fill: var(--grau-5); }
+.vz-treffer { fill: transparent; }
+.vz-achse { stroke: var(--grau-3); stroke-width: 1; }
+.vz-raster { stroke: var(--grau-3); stroke-width: 1; stroke-dasharray: 2 4; }
+.vz-linie { fill: none; stroke: var(--vz-k1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.vz-punkt { fill: var(--vz-k1); stroke: var(--papier); stroke-width: 2; }
+.vz-band { fill: var(--vz-k1); opacity: .14; }
+.vz-spur { fill: var(--grau-3); }
+.vz-k0 { fill: var(--vz-k0); } .vz-k1 { fill: var(--vz-k1); } .vz-k2 { fill: var(--vz-k2); } .vz-k3 { fill: var(--vz-k3); } .vz-k4 { fill: var(--vz-k4); }
+.vz-gruen { fill: var(--erholung-gruen); } .vz-gelb { fill: var(--erholung-gelb); } .vz-rot { fill: var(--erholung-rot); }
+.vz-ziel { cursor: pointer; outline: none; }
+.vz-ziel:hover .vz-marke, .vz-ziel:focus-visible .vz-marke { stroke: var(--tinte); stroke-width: 2; }
+.vz-ziel:focus-visible .vz-treffer { stroke: var(--tinte); stroke-width: 2; stroke-dasharray: 4 3; }
+.vz-ziel:hover .vz-punkt, .vz-ziel:focus-visible .vz-punkt { stroke: var(--tinte); }
+.vz-ziel:hover .vz-name, .vz-ziel:focus-visible .vz-name { fill: var(--tinte); text-decoration: underline; }
+.vz-leer { color: var(--grau-5); font-size: var(--t-3); }
+.vz-tabelle { font-size: var(--t-2); }
+.vz-tabelle summary { cursor: pointer; color: var(--grau-5); min-height: 44px; display: inline-flex; align-items: center; }
+
+/* ---------- Kennzahl-Kachel, Fortschritt, Segmentbalken mit Legende */
+.vz-fortschritt-zeile { display: flex; align-items: center; gap: var(--r3); min-width: 0; }
+.vz-fortschritt-zeile .vz-fortschritt { flex: 1 1 auto; min-width: 0; height: 6px; }
+.vz-f-wert { flex: none; min-width: 4ch; text-align: right; font-variant-numeric: tabular-nums; font-size: var(--t-2); color: var(--tinte); }
+.vz-segment { height: 14px; }
+.vz-legende { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+.vz-legende li { display: flex; align-items: center; gap: var(--r2); min-width: 0; font-size: var(--t-3); color: var(--tinte2); min-height: 40px; border-top: 1px solid var(--grau-3); }
+.vz-legende li:first-child { border-top: 0; }
+.vz-legende li > span:first-of-type { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vz-legende .zahl { color: var(--tinte); font-weight: 500; }
+.vz-farbe { flex: none; width: 10px; height: 10px; border-radius: 3px; }
+.vz-farbe.vz-k0 { background: var(--vz-k0); } .vz-farbe.vz-k1 { background: var(--vz-k1); } .vz-farbe.vz-k2 { background: var(--vz-k2); }
+.vz-farbe.vz-k3 { background: var(--vz-k3); } .vz-farbe.vz-k4 { background: var(--vz-k4); }
+
+@media (max-width: 760px) { .vz-svg text { font-size: 15px; } }
+@media (forced-colors: active) { .vz-marke { stroke: CanvasText; stroke-width: 1; } }
+/* Schreibtisch: Diagramme mit fester viewBox wachsen nicht über 520 px, damit 13–15 px Schrift etwa so groß bleibt */
+.vz-svg.vz-balken, .vz-svg.vz-zeitreihe { max-width: 520px; }

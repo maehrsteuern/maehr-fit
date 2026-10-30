@@ -1,0 +1,20 @@
+[
+ {
+  "metadata": {
+   "id": "rr-28",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793165700000,
+  "zoneOffsetSek": 3600,
+  "rate": 14.6
+ },
+ {
+  "metadata": {
+   "id": "rr-29",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793253000000,
+  "zoneOffsetSek": 3600,
+  "rate": 14.9
+ }
+]

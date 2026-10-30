@@ -1,0 +1,29 @@
+[
+ {
+  "metadata": {
+   "id": "hrv-27",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793079600000,
+  "zoneOffsetSek": 3600,
+  "heartRateVariabilityMillis": 61.5
+ },
+ {
+  "metadata": {
+   "id": "hrv-28",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": 1793165700000,
+  "zoneOffsetSek": 3600,
+  "heartRateVariabilityMillis": 48.0
+ },
+ {
+  "metadata": {
+   "id": "hrv-29",
+   "dataOrigin": "com.whoop.android"
+  },
+  "time": "2026-10-29T05:50:00Z",
+  "zoneOffsetSek": 3600,
+  "heartRateVariabilityMillis": 55.2
+ }
+]

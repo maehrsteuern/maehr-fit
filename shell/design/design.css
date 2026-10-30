@@ -1,0 +1,234 @@
+/* shell/design/design.css – Tokens, Grundlage und Bausteine von MAEHR FIT im Kleid „Ruhe“ der MBS.
+
+   ============================================================================================
+   Kernaussage: MF trägt dasselbe ruhige Kleid wie die MAEHR BUSINESS SUITE: Salbei-Grund, weiße Karten mit feiner Linie,
+   keine Schatten, Fraunces für Zahlen und Titel, Inter für Sätze, Knöpfe als Pillen. Grün heißt „weiter“ oder „gut“,
+   Bernstein „hinsehen“, Rot „wenig“ bzw. Fehler – immer zusammen mit einem Wort.
+   --------------------------------------------------------------------------------------------
+   Token-Blöcke: hell (:root), dunkel zweimal mit denselben Werten – @media (prefers-color-scheme: dark) :root:not([data-theme="light"])
+            und :root[data-theme="dark"] (wie MBS; tests/node/ruhe.test.mjs prüft Gleichheit). Keine Hex-Farbe hier: alle Werte
+            verweisen auf shell/design/marke.css.
+   Abstände --r1..--r6 = 4/8/12/16/24/32 px · Radien 12/16/24, Pille 999 px · Schrift --t-1 12 … --t-6 22, --t-held 72/96.
+   Bewegung höchstens 450 ms, --kurve cubic-bezier(.33,1,.68,1), nur Deckkraft und Transform, aus bei prefers-reduced-motion.
+   ============================================================================================ */
+:root {
+  color-scheme: light;
+  --papier: var(--m-h-papier); --grau-1: var(--m-h-grund); --grau-2: var(--m-h-flaeche2); --grau-3: var(--m-h-linie); --grau-4: var(--m-h-linie-stark); --grau-5: var(--m-h-leise);
+  --tinte: var(--m-h-tinte); --tinte2: var(--m-h-tinte2);
+  --akzent: var(--m-h-gruen); --akzent-weich: var(--m-h-gruen-weich); --auf-akzent: var(--m-h-auf-gruen); --marke: var(--m-h-gruen);
+  --ok: var(--m-h-ok); --ok-weich: var(--m-h-ok-weich); --warn: var(--m-h-bernstein); --warn-punkt: var(--m-h-bernstein-punkt); --warn-weich: var(--m-h-bernstein-weich);
+  --fehler: var(--m-h-fehler); --fehler-weich: var(--m-h-fehler-weich);
+  --erholung-gruen: var(--m-h-erholung-gruen); --erholung-gelb: var(--m-h-erholung-gelb); --erholung-rot: var(--m-h-erholung-rot);
+  --vz-k0: var(--m-h-vz-k0); --vz-k1: var(--m-h-vz-k1); --vz-k2: var(--m-h-vz-k2); --vz-k3: var(--m-h-vz-k3); --vz-k4: var(--m-h-vz-k4);
+  --abdunkeln: var(--m-h-abdunkeln);
+  /* gleich in hell und dunkel */
+  --r1: 4px; --r2: 8px; --r3: 12px; --r4: 16px; --r5: 24px; --r6: 32px;
+  --radius-1: 12px; --radius-2: 16px; --radius-3: 24px; --radius-pille: 999px;
+  --dauer-kurz: 220ms; --dauer: 350ms; --dauer-max: 450ms; --kurve: cubic-bezier(.33,1,.68,1);
+  --schrift-titel: var(--m-schrift-titel); --schrift-text: var(--m-schrift-text);
+  --t-1: 12px; --t-2: 13px; --t-3: 15px; --t-4: 16px; --t-5: 17px; --t-6: 22px; --t-held: 72px; --t-anzeige: 32px;
+  --zeilenhoehe: 1.5; --beschriftung-abstand: .08em;
+  --fokus: 2px solid var(--marke);
+  --kopf-hoehe: 56px; --reiter-hoehe: 64px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  color-scheme: dark;
+  --papier: var(--m-d-papier); --grau-1: var(--m-d-grund); --grau-2: var(--m-d-flaeche2); --grau-3: var(--m-d-linie); --grau-4: var(--m-d-linie-stark); --grau-5: var(--m-d-leise);
+  --tinte: var(--m-d-tinte); --tinte2: var(--m-d-tinte2);
+  --akzent: var(--m-d-gruen); --akzent-weich: var(--m-d-gruen-weich); --auf-akzent: var(--m-d-auf-gruen); --marke: var(--m-d-gruen);
+  --ok: var(--m-d-ok); --ok-weich: var(--m-d-ok-weich); --warn: var(--m-d-bernstein); --warn-punkt: var(--m-d-bernstein-punkt); --warn-weich: var(--m-d-bernstein-weich);
+  --fehler: var(--m-d-fehler); --fehler-weich: var(--m-d-fehler-weich);
+  --erholung-gruen: var(--m-d-erholung-gruen); --erholung-gelb: var(--m-d-erholung-gelb); --erholung-rot: var(--m-d-erholung-rot);
+  --vz-k0: var(--m-d-vz-k0); --vz-k1: var(--m-d-vz-k1); --vz-k2: var(--m-d-vz-k2); --vz-k3: var(--m-d-vz-k3); --vz-k4: var(--m-d-vz-k4);
+  --abdunkeln: var(--m-d-abdunkeln);
+} }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --papier: var(--m-d-papier); --grau-1: var(--m-d-grund); --grau-2: var(--m-d-flaeche2); --grau-3: var(--m-d-linie); --grau-4: var(--m-d-linie-stark); --grau-5: var(--m-d-leise);
+  --tinte: var(--m-d-tinte); --tinte2: var(--m-d-tinte2);
+  --akzent: var(--m-d-gruen); --akzent-weich: var(--m-d-gruen-weich); --auf-akzent: var(--m-d-auf-gruen); --marke: var(--m-d-gruen);
+  --ok: var(--m-d-ok); --ok-weich: var(--m-d-ok-weich); --warn: var(--m-d-bernstein); --warn-punkt: var(--m-d-bernstein-punkt); --warn-weich: var(--m-d-bernstein-weich);
+  --fehler: var(--m-d-fehler); --fehler-weich: var(--m-d-fehler-weich);
+  --erholung-gruen: var(--m-d-erholung-gruen); --erholung-gelb: var(--m-d-erholung-gelb); --erholung-rot: var(--m-d-erholung-rot);
+  --vz-k0: var(--m-d-vz-k0); --vz-k1: var(--m-d-vz-k1); --vz-k2: var(--m-d-vz-k2); --vz-k3: var(--m-d-vz-k3); --vz-k4: var(--m-d-vz-k4);
+  --abdunkeln: var(--m-d-abdunkeln);
+}
+
+/* ---------- Grundlage */
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--grau-1); color: var(--tinte); }
+body { font: 400 var(--t-3)/var(--zeilenhoehe) var(--schrift-text); -webkit-font-smoothing: antialiased; font-synthesis-weight: none;
+  min-height: 100dvh; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+h1, h2, h3 { font-family: var(--schrift-titel); font-weight: 400; letter-spacing: -0.01em; margin: 0; color: var(--tinte); }
+h1 { font-size: 28px; line-height: 1.2; } h2 { font-size: var(--t-6); line-height: 1.25; } h3 { font-size: 18px; line-height: 1.3; }
+p { margin: 0; }
+a { color: var(--akzent); }
+:focus-visible { outline: var(--fokus); outline-offset: 2px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+.mf-zurueck svg { width: 20px; height: 20px; }
+.mf-versteckt { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ---------- Kopfleiste (≤ 6 Elemente): Wortmarke · Tag ‹ heute › · Thema · Sprache · Menü */
+.mf-kopf { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 2px; height: calc(var(--kopf-hoehe) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) max(var(--r4), env(safe-area-inset-right)) 0 max(var(--r4), env(safe-area-inset-left));
+  background: var(--grau-1); border-bottom: 1px solid var(--grau-3); }
+.mf-marke { font-family: var(--schrift-titel); font-weight: 400; font-size: 24px; letter-spacing: -0.02em; color: var(--marke); text-decoration: none; margin-right: auto; line-height: 1; padding: 8px 4px; }
+.mf-tagwahl { display: flex; align-items: center; gap: 0; min-width: 0; margin-right: 4px; }
+.mf-tagwahl .mf-tag-text { min-width: 0; max-width: 120px; padding: 0 4px; height: 44px; border: 0; background: none; border-radius: var(--radius-pille); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: var(--t-3); font-weight: 500; color: var(--tinte); }
+.mf-rund { flex: none; width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; background: none; border-radius: var(--radius-pille); color: var(--tinte2); }
+.mf-rund:hover, .mf-tagwahl .mf-tag-text:hover { background: var(--grau-2); }
+.mf-rund:disabled { color: var(--grau-4); cursor: default; background: none; }
+.mf-rund svg { width: 22px; height: 22px; }
+.mf-sprache-text { font-size: var(--t-2); font-weight: 500; letter-spacing: .04em; }
+.mf-menue { position: fixed; z-index: 30; top: calc(var(--kopf-hoehe) + env(safe-area-inset-top) + 4px); right: max(var(--r3), env(safe-area-inset-right)); min-width: 220px; max-width: calc(100vw - 24px);
+  display: flex; flex-direction: column; padding: var(--r2); background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-2); }
+.mf-menue[hidden] { display: none; }
+.mf-menue a, .mf-menue button { display: flex; align-items: center; min-height: 44px; padding: 0 var(--r3); border: 0; background: none; border-radius: var(--radius-1); text-align: left; color: var(--tinte); text-decoration: none; font-size: var(--t-3); }
+.mf-menue a:hover, .mf-menue button:hover { background: var(--grau-2); }
+
+/* ---------- Hauptbereich und untere Reiterleiste */
+.mf-haupt { max-width: 640px; margin: 0 auto; padding: var(--r4) max(var(--r4), env(safe-area-inset-right)) calc(var(--reiter-hoehe) + var(--r6) + env(safe-area-inset-bottom)) max(var(--r4), env(safe-area-inset-left)); }
+.mf-sicht { display: flex; flex-direction: column; gap: var(--r5); min-width: 0; }
+.mf-reiter { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  padding: 0 max(var(--r2), env(safe-area-inset-right)) env(safe-area-inset-bottom) max(var(--r2), env(safe-area-inset-left));
+  background: var(--papier); border-top: 1px solid var(--grau-3); }
+.mf-reiter a { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; height: var(--reiter-hoehe); min-width: 0;
+  color: var(--grau-5); text-decoration: none; font-size: var(--t-1); font-weight: 500; border-radius: var(--radius-1); }
+.mf-reiter a svg { width: 24px; height: 24px; }
+.mf-reiter a span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mf-reiter a[aria-current="page"] { color: var(--akzent); }
+.mf-reiter a[aria-current="page"] svg { stroke-width: 2.2; }
+
+/* ---------- Kernaussage, Titel, Abschnitte */
+.mf-titelzeile { display: flex; flex-direction: column; gap: var(--r2); }
+.mf-zurueck { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px 0 8px; margin-left: -8px; border: 0; background: none; border-radius: var(--radius-pille); color: var(--akzent); font-weight: 500; text-decoration: none; }
+.mf-zurueck:hover { background: var(--grau-2); }
+.mf-kern { font-size: var(--t-5); line-height: 1.5; color: var(--tinte); max-width: 40ch; }
+.mf-held .mf-kern { text-align: center; margin: 0 auto; }
+.mf-abschnitt { display: flex; flex-direction: column; gap: var(--r3); min-width: 0; }
+.mf-beschriftung, .mf-abschnitt > h2.mf-beschriftung { font-family: var(--schrift-text); font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); line-height: 1.4; }
+.mf-leise { color: var(--grau-5); font-size: var(--t-2); }
+.mf-held { display: flex; flex-direction: column; align-items: center; gap: var(--r4); text-align: center; }
+
+/* ---------- Karten und Kacheln */
+.mf-karte { background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-3); padding: var(--r4) var(--r5); min-width: 0; }
+.mf-kacheln { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--r3); }
+.mf-kachel { display: flex; flex-direction: column; gap: var(--r2); padding: var(--r4); background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-3); min-width: 0; }
+.mf-kachel-titel { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); line-height: 1.3; }
+.mf-kachel-wert { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.mf-kachel-wert .zahl { font-family: var(--schrift-titel); font-weight: 300; font-size: var(--t-anzeige); line-height: 1.1; letter-spacing: -0.02em; }
+.mf-einheit { font-size: var(--t-2); color: var(--tinte2); }
+.mf-vergleich { display: flex; align-items: center; gap: 6px; font-size: var(--t-2); color: var(--grau-5); line-height: 1.35; }
+.mf-pfeil { flex: none; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--grau-2); color: var(--tinte2); font-size: 12px; line-height: 1; }
+
+/* ---------- Zahlen als Knöpfe (Prüfpfad, data-q) */
+button.zahl { background: none; border: 0; padding: 0 2px; margin: 0; color: inherit; font: inherit; cursor: pointer; text-align: inherit; border-radius: var(--r1);
+  text-decoration: underline dotted transparent; text-underline-offset: 4px; font-variant-numeric: tabular-nums; }
+button.zahl:hover, button.zahl:focus-visible { text-decoration-color: var(--akzent); }
+.mf-kern button.zahl { font-weight: 500; text-decoration-color: var(--grau-4); }
+
+/* ---------- Knöpfe (Pillen) */
+.mf-knopf { display: inline-flex; align-items: center; justify-content: center; gap: var(--r2); min-height: 44px; padding: 0 var(--r5); border: 1px solid var(--grau-4); border-radius: var(--radius-pille);
+  background: var(--papier); color: var(--tinte); font-weight: 500; text-decoration: none; transition: background var(--dauer-kurz) var(--kurve); }
+.mf-knopf:hover { background: var(--grau-2); }
+.mf-knopf.primaer { background: var(--akzent); border-color: var(--akzent); color: var(--auf-akzent); }
+.mf-knopf.primaer:hover { background: var(--akzent); transform: translateY(-1px); transition: transform 150ms var(--kurve); }
+.mf-knopf.leise { border-color: transparent; background: none; color: var(--akzent); }
+.mf-knopf.leise:hover { background: var(--grau-2); }
+.mf-knopf.gefahr { border-color: var(--fehler); color: var(--fehler); }
+.mf-knopf:disabled { opacity: .55; cursor: default; transform: none; }
+.mf-knopfreihe { display: flex; flex-wrap: wrap; gap: var(--r2); }
+.mf-knopfreihe > .mf-knopf { flex: 1 1 140px; }
+
+/* ---------- Hinweis-Chip (Demo, nicht-medizinischer Hinweis) */
+.mf-chip { display: flex; align-items: center; flex-wrap: wrap; gap: var(--r2) var(--r3); padding: var(--r2) var(--r2) var(--r2) var(--r4); background: var(--akzent-weich); border-radius: var(--radius-2); font-size: var(--t-2); color: var(--tinte); }
+.mf-chip > span { flex: 1 1 160px; min-width: 0; }
+.mf-chip .mf-knopf { min-height: 40px; padding: 0 var(--r4); }
+.mf-hinweis { padding: var(--r3) var(--r4); border-radius: var(--radius-2); background: var(--grau-2); color: var(--tinte2); font-size: var(--t-2); }
+
+/* ---------- Status-Pille mit Punkt und Zeichen (nie nur Farbe) */
+.mf-pille { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: var(--radius-pille); font-size: var(--t-2); color: var(--tinte); background: var(--grau-2); }
+.mf-pille i { width: 16px; height: 16px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 10px; font-weight: 600; color: var(--papier); background: var(--grau-5); }
+.mf-pille.gruen { background: var(--ok-weich); } .mf-pille.gruen i { background: var(--erholung-gruen); }
+.mf-pille.gelb { background: var(--warn-weich); } .mf-pille.gelb i { background: var(--erholung-gelb); }
+.mf-pille.rot { background: var(--fehler-weich); } .mf-pille.rot i { background: var(--erholung-rot); }
+.mf-pruefen { display: inline-flex; padding: 1px 8px; border-radius: var(--radius-pille); background: var(--warn-weich); color: var(--warn); font-size: var(--t-1); font-weight: 500; }
+
+/* ---------- Gliederung (aufklappbar) und Listen */
+.mf-gliederung { background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-3); overflow: hidden; }
+.mf-gliederung > summary { display: flex; align-items: center; gap: var(--r3); min-height: 56px; padding: 0 var(--r5); cursor: pointer; list-style: none; font-weight: 500; }
+.mf-gliederung > summary::-webkit-details-marker { display: none; }
+.mf-gliederung > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 1.5px solid var(--grau-5); border-bottom: 1.5px solid var(--grau-5); transform: rotate(45deg); transition: transform var(--dauer-kurz) var(--kurve); }
+.mf-gliederung[open] > summary::after { transform: rotate(225deg); }
+.mf-gliederung > .mf-gl-inhalt { padding: 0 var(--r5) var(--r4); display: flex; flex-direction: column; }
+.mf-teil { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px var(--r3); align-items: center; padding: var(--r3) 0; border-top: 1px solid var(--grau-3); }
+.mf-teil:first-child { border-top: 0; }
+.mf-teil-name { min-width: 0; }
+.mf-teil-gewicht { font-size: var(--t-2); color: var(--grau-5); }
+.mf-teil .vz-fortschritt-zeile { grid-column: 1 / -1; }
+.mf-teil .zahl { font-weight: 500; }
+.mf-liste { list-style: none; margin: 0; padding: 0; background: var(--papier); border: 1px solid var(--grau-3); border-radius: var(--radius-3); overflow: hidden; }
+.mf-liste > li { border-top: 1px solid var(--grau-3); }
+.mf-liste > li:first-child { border-top: 0; }
+.mf-zeile { display: flex; align-items: center; gap: var(--r3); width: 100%; min-height: 64px; padding: var(--r3) var(--r5); border: 0; background: none; color: var(--tinte); text-align: left; text-decoration: none; }
+a.mf-zeile:hover, button.mf-zeile:hover { background: var(--grau-1); }
+.mf-zeile-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1 1 auto; }
+.mf-zeile-text strong { font-weight: 500; }
+.mf-zeile-text small { font-size: var(--t-2); color: var(--grau-5); }
+.mf-zeile-rechts { flex: none; display: flex; align-items: center; gap: var(--r2); color: var(--grau-5); font-size: var(--t-2); }
+.mf-zeile-rechts .zahl { color: var(--tinte); font-size: var(--t-3); font-weight: 500; }
+.mf-chevron { width: 18px; height: 18px; flex: none; color: var(--grau-4); }
+
+/* ---------- Formulare: ruhig, große Tippziele */
+.mf-formular { display: flex; flex-direction: column; gap: var(--r4); }
+.mf-feld { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mf-feld > span { font-size: var(--t-1); font-weight: 500; letter-spacing: var(--beschriftung-abstand); text-transform: uppercase; color: var(--grau-5); }
+.mf-feld input, .mf-feld select { width: 100%; max-width: 100%; min-height: 48px; padding: 8px 2px; border: 0; border-bottom: 1px solid var(--grau-5); border-radius: 0; background: transparent; font-size: 16px; color: var(--tinte); }
+.mf-feld input:focus, .mf-feld select:focus { outline: none; border-bottom: 2px solid var(--marke); }
+.mf-feld small { color: var(--grau-5); font-size: var(--t-2); }
+.mf-schalter { display: flex; align-items: center; gap: var(--r3); min-height: 64px; padding: var(--r2) var(--r5); cursor: pointer; }
+.mf-schalter-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mf-schalter-text small { color: var(--grau-5); font-size: var(--t-2); }
+.mf-schalter input { appearance: none; -webkit-appearance: none; flex: none; position: relative; width: 52px; height: 32px; margin: 0; border-radius: var(--radius-pille); background: var(--grau-2); border: 1px solid var(--grau-4); cursor: pointer; transition: background var(--dauer-kurz) var(--kurve); }
+.mf-schalter input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--grau-5); transition: transform var(--dauer-kurz) var(--kurve); }
+.mf-schalter input:checked { background: var(--akzent); border-color: var(--akzent); }
+.mf-schalter input:checked::after { transform: translateX(20px); background: var(--auf-akzent); }
+.mf-schalter input:focus-visible { outline: var(--fokus); outline-offset: 3px; }
+.mf-status { min-height: 20px; font-size: var(--t-2); color: var(--grau-5); }
+.mf-abschnitt > .mf-status:empty, .mf-sicht > .mf-status:empty { min-height: 0; margin-top: calc(-1 * var(--r3)); }
+.mf-wahl { display: flex; flex-wrap: wrap; gap: var(--r2); }
+.mf-wahl button { min-height: 44px; padding: 0 var(--r4); border: 1px solid var(--grau-4); border-radius: var(--radius-pille); background: var(--papier); color: var(--tinte); font-size: var(--t-3); }
+.mf-wahl button[aria-pressed="true"] { background: var(--akzent-weich); border-color: var(--akzent); color: var(--tinte); font-weight: 500; }
+
+/* ---------- Tabelle (Beleg, Diagramm-Tabellen) */
+table.mf-tab { width: 100%; border-collapse: collapse; font-size: var(--t-2); }
+table.mf-tab th { text-align: left; font-weight: 500; font-size: var(--t-1); letter-spacing: .04em; text-transform: uppercase; color: var(--grau-5); padding: 6px 8px 6px 0; border-bottom: 1px solid var(--grau-3); }
+table.mf-tab td { padding: 8px 8px 8px 0; border-bottom: 1px solid var(--grau-3); vertical-align: top; overflow-wrap: break-word; word-break: break-word; }
+table.mf-tab .rechts { text-align: right; white-space: nowrap; }
+
+/* ---------- Belegfenster (Prüfpfad) als Bogen von unten */
+dialog.mf-beleg { position: fixed; inset: auto 0 0 0; margin: 0 auto; width: 100%; max-width: 640px; max-height: 88dvh; padding: 0; border: 1px solid var(--grau-3); border-bottom: 0;
+  border-radius: var(--radius-3) var(--radius-3) 0 0; background: var(--papier); color: var(--tinte); overflow: hidden; }
+dialog.mf-beleg[open] { display: flex; flex-direction: column; animation: mf-bogen var(--dauer-max) var(--kurve); }
+dialog.mf-beleg::backdrop { background: var(--abdunkeln); }
+@keyframes mf-bogen { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mf-beleg-kopf { display: flex; align-items: flex-start; gap: var(--r3); padding: var(--r4) var(--r4) var(--r2) var(--r5); }
+.mf-beleg-kopf h2 { flex: 1 1 auto; min-width: 0; padding-top: 8px; }
+.mf-beleg-leib { overflow-y: auto; overscroll-behavior: contain; padding: 0 var(--r5) calc(var(--r5) + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: var(--r4); }
+.mf-beleg-wert { font-family: var(--schrift-titel); font-weight: 300; font-size: 40px; line-height: 1.1; letter-spacing: -0.02em; }
+.mf-formel { padding: var(--r3) var(--r4); background: var(--grau-1); border-radius: var(--radius-2); display: flex; flex-direction: column; gap: 4px; }
+.mf-formel code { font-family: inherit; font-size: var(--t-3); color: var(--tinte); white-space: normal; overflow-wrap: anywhere; }
+.mf-formel small { color: var(--grau-5); font-size: var(--t-2); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+@media (forced-colors: active) { .mf-pille i, .mf-schalter input { forced-color-adjust: none; border: 1px solid CanvasText; } }
+.mf-sicht-chip { margin-bottom: var(--r4); }
+.mf-pfeil-ikon { flex: none; width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--akzent-weich); color: var(--akzent); }
+.mf-pfeil-ikon svg { width: 22px; height: 22px; }
+.zahl-text { font-variant-numeric: tabular-nums; }
+.mf-zeile-rechts .zahl-text { color: var(--tinte); font-size: var(--t-3); font-weight: 500; }
+.mf-formular-liste .mf-schalter { min-height: 72px; }

@@ -1,0 +1,414 @@
+{
+  "stand": "2026-10-30",
+  "quelle": "Formeln und Konstanten von MAEHR FIT. Jeder Wert mit Fundstelle; \"pruefen\": true heißt: eigene Festlegung oder noch nicht am Originaltext bestätigt – Loris entscheidet. Texte beschreiben Messwerte und Tendenzen, keine Diagnosen.",
+  "eintraege": {
+    "rundung.kaufmaennisch": {
+      "wert": "halb_weg_von_null", "einheit": "verfahren",
+      "fundstelle": "DIN 1333:1992-02 Zahlenangaben, Abschnitt Runden (kaufmännisches Runden: ab 5 aufrunden, Betrag)",
+      "text": "Ab der Hälfte wird vom Betrag her aufgerundet (2,5 → 3; −2,5 → −3), darunter abgerundet.",
+      "erklaerung": "So wird überall gerundet, damit dieselbe Rechnung immer dieselbe Zahl ergibt.",
+      "pruefen": false
+    },
+    "einheit.hrv": {
+      "wert": 10, "einheit": "Zehntel je ms",
+      "fundstelle": "eigene Festlegung MF (Zahlendarstellung: RMSSD mit einer Nachkommastelle als ganze Zehntel-Millisekunden)",
+      "erklaerung": "HRV wird in Zehntel-Millisekunden gespeichert, z. B. 45,3 ms als 453. So entstehen keine Rundungsfehler.",
+      "pruefen": false
+    },
+    "einheit.atem": {
+      "wert": 10, "einheit": "Zehntel je Atemzug/min",
+      "fundstelle": "eigene Festlegung MF (Zahlendarstellung)",
+      "erklaerung": "Atemzüge pro Minute in Zehnteln, z. B. 14,6 als 146.",
+      "pruefen": false
+    },
+    "einheit.spo2": {
+      "wert": 10, "einheit": "Zehntel je Prozentpunkt",
+      "fundstelle": "eigene Festlegung MF (Zahlendarstellung)",
+      "erklaerung": "Sauerstoffsättigung in Zehntel-Prozent, z. B. 96,8 % als 968.",
+      "pruefen": false
+    },
+    "einheit.hauttemp": {
+      "wert": 100, "einheit": "Hundertstel je °C",
+      "fundstelle": "eigene Festlegung MF (Zahlendarstellung)",
+      "erklaerung": "Abweichung der Hauttemperatur in Hundertstel Grad, z. B. +0,35 °C als 35.",
+      "pruefen": false
+    },
+    "hrv.messgroesse": {
+      "wert": "rmssd", "einheit": "ms",
+      "fundstelle": "Task Force of the ESC and NASPE (1996): Heart rate variability – standards of measurement, physiological interpretation, and clinical use. Circulation 93(5):1043–1065",
+      "text": "RMSSD = Wurzel aus dem Mittel der quadrierten Unterschiede aufeinanderfolgender Herzschlagabstände.",
+      "erklaerung": "Die HRV misst, wie stark die Abstände zwischen zwei Herzschlägen schwanken. Mehr Schwankung in Ruhe gilt als Zeichen guter Erholung.",
+      "pruefen": false
+    },
+    "statistik.streuung": {
+      "wert": "stichprobe_n_minus_1", "einheit": "verfahren",
+      "fundstelle": "JCGM 100:2008 (GUM), Abschnitt 4.2.2, Gl. (4): experimentelle Standardabweichung mit n − 1",
+      "text": "Streuung = Wurzel aus (Summe der quadrierten Abstände zum Mittel ÷ (n − 1)).",
+      "erklaerung": "Die Streuung sagt, wie weit deine Werte üblicherweise vom Mittel abweichen.",
+      "pruefen": false
+    },
+    "statistik.z": {
+      "wert": "z_wert", "einheit": "Streuungen",
+      "fundstelle": "Bortz J, Schuster C (2010): Statistik für Human- und Sozialwissenschaftler, 7. Aufl., Springer, Kap. 2.5 (z-Transformation)",
+      "text": "z = (heutiger Wert − Mittel) ÷ Streuung.",
+      "erklaerung": "Der z-Wert sagt, wie ungewöhnlich ein Tag für dich ist: 0 = wie immer, +1 = eine übliche Schwankung besser, −1 = eine schlechter.",
+      "pruefen": false
+    },
+    "zeit.iso_woche": {
+      "wert": "montag", "einheit": "Wochenbeginn",
+      "fundstelle": "ISO 8601-1:2019, Abschnitt 3.1.1.23 und 5.2.3 (Kalenderwoche: Montag bis Sonntag, Woche 1 enthält den ersten Donnerstag)",
+      "text": "Kalenderwoche nach ISO 8601: beginnt Montag; Woche 1 ist die Woche mit dem ersten Donnerstag des Jahres.",
+      "erklaerung": "Wochen laufen von Montag bis Sonntag, wie im deutschen Kalender.",
+      "pruefen": false
+    },
+    "zeit.hauptschlaf_min": {
+      "wert": 10800000, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF (3 Stunden)",
+      "text": "Hauptschlaf = längster Schlaf, der an diesem Kalendertag endet und mindestens 3 Stunden dauert; kürzere Schlafphasen sind Nickerchen.",
+      "erklaerung": "Ein Tag beginnt mit dem Aufwachen aus dem Hauptschlaf. Was kürzer als drei Stunden ist, zählt als Nickerchen.",
+      "pruefen": true
+    },
+    "zeit.tagesgrenzen": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (Tag von Aufwachen bis Aufwachen; ohne Schlafdaten Mitternacht bis Mitternacht)",
+      "text": "Tag = vom Aufwachen aus dem Hauptschlaf bis zum Aufwachen am nächsten Morgen. Fehlt ein Hauptschlaf, gilt die örtliche Mitternacht.",
+      "erklaerung": "Dein Tag zählt vom Aufstehen bis zum nächsten Aufstehen – so gehört ein spätes Training noch zum selben Tag.",
+      "pruefen": false
+    },
+    "basis.fenster.kurz": {
+      "wert": 7, "einheit": "Tage",
+      "fundstelle": "Plews DJ, Laursen PB, Kilding AE, Buchheit M (2012): Heart rate variability in elite triathletes, is variation in variability the key to effective training? Eur J Appl Physiol 112(11):3729–3741 (gleitender 7-Tage-Mittelwert)",
+      "erklaerung": "Die letzten 7 Tage zeigen, wie es dir gerade geht.",
+      "pruefen": false
+    },
+    "basis.fenster.lang": {
+      "wert": 30, "einheit": "Tage",
+      "fundstelle": "eigene Festlegung MF (Monatsnormalbereich als Vergleich für die Erholung)",
+      "erklaerung": "Die letzten 30 Tage sind dein persönlicher Normalbereich. Mit ihm wird jeder Tag verglichen.",
+      "pruefen": true
+    },
+    "basis.min_n": {
+      "wert": 4, "einheit": "Tage",
+      "fundstelle": "eigene Festlegung MF, angelehnt an Plews DJ et al. (2014): Monitoring training with heart-rate variability: how much compliance is needed for valid assessment? Int J Sports Physiol Perform 9(5):783–790 (mindestens 3 Messungen je Woche)",
+      "erklaerung": "Erst ab 4 Tagen mit Messwerten wird ein Vergleich mit deinem Normalbereich gerechnet.",
+      "pruefen": true
+    },
+    "basis.hrv_ln": {
+      "wert": "ln", "einheit": "verfahren",
+      "fundstelle": "Shaffer F, Ginsberg JP (2017): An overview of heart rate variability metrics and norms. Front Public Health 5:258 (RMSSD ist schief verteilt, Logarithmus macht sie annähernd normalverteilt); Plews DJ et al. (2012), a. a. O. (ln RMSSD)",
+      "text": "Für HRV wird mit dem natürlichen Logarithmus ln(RMSSD in ms) gerechnet.",
+      "erklaerung": "HRV-Werte streuen nach oben stärker als nach unten. Mit dem Logarithmus werden Ausschläge in beide Richtungen vergleichbar.",
+      "pruefen": false
+    },
+    "basis.stellen": {
+      "wert": 4, "einheit": "Nachkommastellen",
+      "fundstelle": "eigene Festlegung MF (Zahlendarstellung für Mittel und Streuung)",
+      "erklaerung": "Mittelwert und Streuung werden auf 4 Nachkommastellen gerundet gespeichert.",
+      "pruefen": false
+    },
+    "basis.mittel": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "JCGM 100:2008 (GUM), Abschnitt 4.2.1 Gl. (3) (arithmetisches Mittel) und 4.2.2 Gl. (4) (Streuung)",
+      "text": "Basislinie = Mittelwert und Streuung der Werte aus den Tagen vor dem betrachteten Tag (der Tag selbst zählt nicht mit).",
+      "erklaerung": "Deine Basislinie ist dein persönlicher Normalwert aus den vergangenen Tagen.",
+      "pruefen": false
+    },
+    "erholung": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF; Bausteine: HRV (Task Force 1996; Shaffer & Ginsberg 2017), Ruhepuls und Atemfrequenz als Abweichung vom eigenen Normalbereich (Plews et al. 2012), z-Werte (Bortz & Schuster 2010)",
+      "text": "Erholung = {erholung.mitte} + {erholung.punkte_je_z} × (Anteil HRV × z HRV + Anteil Ruhepuls × (−z Ruhepuls) + Anteil Schlaf × z Schlaf) − Abzüge für auffällige Atemfrequenz, Hauttemperatur und Sauerstoffsättigung; begrenzt auf 0 bis 100. Gewichte HRV {erholung.gewicht.hrv|prozent}, Ruhepuls {erholung.gewicht.ruhepuls|prozent}, Schlaf {erholung.gewicht.schlaf|prozent}; fehlt ein Teil, werden die übrigen auf 100 % hochgerechnet.",
+      "erklaerung": "Die Erholung vergleicht die letzte Nacht mit deinem Normalbereich. 50 heißt: ein für dich üblicher Tag. Höhere HRV, niedrigerer Ruhepuls und genug Schlaf heben den Wert; auffällige Atmung, Temperatur oder Sättigung senken ihn.",
+      "pruefen": true
+    },
+    "erholung.mitte": {
+      "wert": 50, "einheit": "Punkte",
+      "fundstelle": "eigene Festlegung MF (ein für dich typischer Tag liegt in der Mitte der Skala)",
+      "erklaerung": "Ein ganz normaler Tag ergibt 50 Punkte.",
+      "pruefen": true
+    },
+    "erholung.punkte_je_z": {
+      "wert": 20, "einheit": "Punkte je Streuung",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Eine übliche Schwankung nach oben oder unten bewegt die Erholung um 20 Punkte.",
+      "pruefen": true
+    },
+    "erholung.z_grenze": {
+      "wert": 3, "einheit": "Streuungen",
+      "fundstelle": "eigene Festlegung MF (Ausreißer werden bei ±3 Streuungen abgeschnitten)",
+      "erklaerung": "Ein einzelner extremer Messwert zählt höchstens wie drei übliche Schwankungen.",
+      "pruefen": true
+    },
+    "erholung.gewicht.hrv": {
+      "wert": 500, "einheit": "Promille",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Die HRV zählt zur Hälfte.",
+      "pruefen": true
+    },
+    "erholung.gewicht.ruhepuls": {
+      "wert": 250, "einheit": "Promille",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Der Ruhepuls zählt zu einem Viertel. Niedriger als üblich hebt die Erholung.",
+      "pruefen": true
+    },
+    "erholung.gewicht.schlaf": {
+      "wert": 250, "einheit": "Promille",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Wie gut der Schlafbedarf gedeckt war, zählt zu einem Viertel.",
+      "pruefen": true
+    },
+    "erholung.schlaf.ziel": {
+      "wert": 85, "einheit": "Prozent Schlafleistung",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "z Schlaf = (Schlafleistung − {erholung.schlaf.ziel}) ÷ {erholung.schlaf.skala}.",
+      "erklaerung": "85 % des Schlafbedarfs gelten als neutral; mehr hebt, weniger senkt die Erholung.",
+      "pruefen": true
+    },
+    "erholung.schlaf.skala": {
+      "wert": 15, "einheit": "Prozentpunkte je Streuung",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "15 Prozentpunkte Schlafleistung wirken wie eine übliche Schwankung.",
+      "pruefen": true
+    },
+    "erholung.streuung_min": {
+      "wert": { "hrv": 0.05, "ruhepuls": 1, "atem": 3 }, "einheit": "ln-Einheiten | Schläge/min | Zehntel Atemzüge/min",
+      "fundstelle": "eigene Festlegung MF (Untergrenze, damit sehr gleichmäßige Wochen keine riesigen z-Werte erzeugen)",
+      "erklaerung": "Sind deine Werte ungewöhnlich gleichmäßig, wird mit einer Mindest-Schwankung gerechnet, damit kleine Ausschläge nicht übertrieben wirken.",
+      "pruefen": true
+    },
+    "erholung.atem.schwelle_z": {
+      "wert": 1, "einheit": "Streuungen",
+      "fundstelle": "eigene Festlegung MF; Hintergrund: Miller DJ et al. (2020): Analyzing changes in respiratory rate to predict the risk of COVID-19 infection. PLoS One 15(12):e0243693",
+      "erklaerung": "Weicht die nächtliche Atemfrequenz um mehr als eine übliche Schwankung ab, gibt es einen Abzug.",
+      "pruefen": true
+    },
+    "erholung.atem.strafe_je_z": {
+      "wert": 8, "einheit": "Punkte je Streuung über der Schwelle",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Je weitere übliche Schwankung Abweichung der Atemfrequenz: 8 Punkte Abzug.",
+      "pruefen": true
+    },
+    "erholung.hauttemp.schwelle": {
+      "wert": 50, "einheit": "Hundertstel °C",
+      "fundstelle": "eigene Festlegung MF; Hintergrund: Smarr BL et al. (2020): Feasibility of continuous fever monitoring using wearable devices. Sci Rep 10:21640",
+      "erklaerung": "Liegt die Hauttemperatur mehr als 0,5 °C neben deinem Normalwert, gibt es einen Abzug.",
+      "pruefen": true
+    },
+    "erholung.hauttemp.strafe_je_grad": {
+      "wert": 10, "einheit": "Punkte je °C über der Schwelle",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Je Grad über der Schwelle: 10 Punkte Abzug.",
+      "pruefen": true
+    },
+    "erholung.spo2.schwelle": {
+      "wert": 950, "einheit": "Zehntel Prozent",
+      "fundstelle": "World Health Organization (2011): Pulse Oximetry Training Manual, Genf (Normalbereich 95–100 %)",
+      "erklaerung": "Liegt die nächtliche Sauerstoffsättigung unter 95 %, gibt es einen Abzug.",
+      "pruefen": false
+    },
+    "erholung.spo2.strafe_je_prozent": {
+      "wert": 5, "einheit": "Punkte je Prozentpunkt unter der Schwelle",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Je Prozentpunkt unter 95 %: 5 Punkte Abzug.",
+      "pruefen": true
+    },
+    "erholung.stufe.gruen": {
+      "wert": 67, "einheit": "Punkte (ab)",
+      "fundstelle": "eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)",
+      "erklaerung": "Ab 67 Punkten: grün – deutlich besser erholt als üblich.",
+      "pruefen": true
+    },
+    "erholung.stufe.rot": {
+      "wert": 33, "einheit": "Punkte (bis)",
+      "fundstelle": "eigene Festlegung MF (verbreitete Drei-Band-Einteilung in Drittel)",
+      "erklaerung": "Bis 33 Punkte: rot – weniger erholt als üblich. Dazwischen gelb.",
+      "pruefen": true
+    },
+    "puls.max.tanaka": {
+      "wert": { "a_zehntel": 2080, "b_zehntel": 7 }, "einheit": "Zehntel Schläge/min | Zehntel Schläge/min je Lebensjahr",
+      "fundstelle": "Tanaka H, Monahan KD, Seals DR (2001): Age-predicted maximal heart rate revisited. J Am Coll Cardiol 37(1):153–156",
+      "text": "Maximalpuls = 208 − 0,7 × Alter (Schläge pro Minute), auf ganze Schläge gerundet.",
+      "erklaerung": "Wenn du deinen Maximalpuls nicht kennst, wird er aus dem Alter geschätzt. Du kannst ihn in den Einstellungen überschreiben.",
+      "pruefen": false
+    },
+    "belastung.karvonen": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "Karvonen MJ, Kentala E, Mustala O (1957): The effects of training on heart rate; a longitudinal study. Ann Med Exp Biol Fenn 35(3):307–315",
+      "text": "Zonengrenze = Ruhepuls + Prozentsatz × (Maximalpuls − Ruhepuls). Ein Schlag liegt in Zone k, wenn 100 × (Puls − Ruhepuls) ≥ Grenze k × (Maximalpuls − Ruhepuls).",
+      "erklaerung": "Die Zonen richten sich nach deinem Pulsspielraum zwischen Ruhe und Maximum – so passen sie zu deinem Körper.",
+      "pruefen": false
+    },
+    "belastung.zonen": {
+      "wert": [50, 60, 70, 80, 90], "einheit": "Prozent der Herzfrequenzreserve (Untergrenzen Zone 1–5)",
+      "fundstelle": "Methode: Karvonen et al. (1957), a. a. O.; 10-%-Stufen: verbreitete Praxiskonvention (Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento – dort bezogen auf den Maximalpuls)",
+      "erklaerung": "Zone 1 beginnt bei 50 % deines Pulsspielraums, Zone 5 bei 90 %. Darunter zählt nichts zur Belastung.",
+      "pruefen": true
+    },
+    "belastung.gewichte": {
+      "wert": [1, 2, 3, 4, 5], "einheit": "Faktor je Zone 1–5",
+      "fundstelle": "Edwards S (1993): The Heart Rate Monitor Book, Fleet Feet Press, Sacramento (Summated-Heart-Rate-Zone-TRIMP); Prinzip Trainingsimpuls: Banister EW (1991): Modeling elite athletic performance. In: MacDougall JD, Wenger HA, Green HJ (Hg.): Physiological testing of the high-performance athlete, 2. Aufl., Human Kinetics, S. 403–424",
+      "text": "Zonen-Minuten = Σ Minuten in Zone k × k.",
+      "erklaerung": "Eine Minute in Zone 5 zählt fünfmal so viel wie eine Minute in Zone 1.",
+      "pruefen": false
+    },
+    "belastung.luecke_max_ms": {
+      "wert": 60000, "einheit": "ms",
+      "fundstelle": "eigene Festlegung MF (Messlücken werden höchstens mit 60 Sekunden angerechnet)",
+      "text": "Jeder Pulswert gilt bis zum nächsten Messwert, höchstens 60 Sekunden; der letzte Wert einer Reihe zählt 0 Sekunden.",
+      "erklaerung": "Fehlen Messwerte, wird nicht geraten: eine Lücke zählt höchstens eine Minute.",
+      "pruefen": true
+    },
+    "belastung.skala_max": {
+      "wert": 21, "einheit": "Punkte",
+      "fundstelle": "eigene Festlegung MF (verbreitete Skala 0–21)",
+      "erklaerung": "Die Belastung reicht von 0 (keine) bis 21 (äußerst hoch).",
+      "pruefen": true
+    },
+    "belastung.kurve.b": {
+      "wert": 25, "einheit": "Zonen-Minuten",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Bestimmt, wie schnell die Kurve am Anfang steigt: 25 Zonen-Minuten ergeben schon gut 4 Punkte.",
+      "pruefen": true
+    },
+    "belastung.kurve.tmax": {
+      "wert": 700, "einheit": "Zonen-Minuten",
+      "fundstelle": "eigene Festlegung MF (etwa drei Stunden harter Ausdauer erreichen das Skalenende)",
+      "erklaerung": "Ab 700 Zonen-Minuten ist das Ende der Skala erreicht.",
+      "pruefen": true
+    },
+    "belastung": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF; Zonen nach Karvonen et al. (1957), Gewichtung nach Edwards (1993), Trainingsimpuls nach Banister (1991)",
+      "text": "Belastung = {belastung.skala_max} × ln(1 + T ÷ {belastung.kurve.b}) ÷ ln(1 + {belastung.kurve.tmax} ÷ {belastung.kurve.b}), höchstens {belastung.skala_max}, eine Nachkommastelle. T = Zonen-Minuten des Tages (alle Trainings plus Alltag, Alltag ohne Trainingszeit).",
+      "erklaerung": "Die Belastung zählt, wie lange und wie hoch dein Puls über den Tag war. Die Kurve steigt anfangs schnell und dann immer flacher: doppelt so viel Anstrengung bringt weniger als doppelt so viele Punkte.",
+      "pruefen": true
+    },
+    "schlaf.bedarf.basis": {
+      "wert": 28800000, "einheit": "ms",
+      "fundstelle": "Hirshkowitz M et al. (2015): National Sleep Foundation's sleep time duration recommendations: methodology and results summary. Sleep Health 1(1):40–43 (Erwachsene 18–64 Jahre: 7–9 Stunden; Mitte 8 Stunden gewählt)",
+      "erklaerung": "Grundbedarf 8 Stunden – die Mitte der Empfehlung für Erwachsene. Du kannst ihn in den Einstellungen ändern.",
+      "pruefen": false
+    },
+    "schlaf.bedarf.je_belastung": {
+      "wert": 60000, "einheit": "ms je Belastungspunkt",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Je Punkt Belastung am Vortag kommt eine Minute Schlafbedarf dazu.",
+      "pruefen": true
+    },
+    "schlaf.bedarf.schuld_anteil": {
+      "wert": 250, "einheit": "Promille",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Ein Viertel der aufgelaufenen Schlafschuld wird zum Bedarf der nächsten Nacht addiert.",
+      "pruefen": true
+    },
+    "schlaf.schuld.fenster": {
+      "wert": 7, "einheit": "Tage",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Schlafschuld = Summe (Bedarf ohne Schuld − geschlafene Zeit) der letzten 7 Nächte, nicht unter 0.",
+      "erklaerung": "Die Schlafschuld zählt, wie viel Schlaf dir in der letzten Woche gefehlt hat. Mehr Schlaf an einem Tag gleicht weniger an einem anderen aus.",
+      "pruefen": true
+    },
+    "schlaf.bedarf": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF; Grundbedarf nach Hirshkowitz et al. (2015)",
+      "text": "Schlafbedarf = Grundbedarf + {schlaf.bedarf.je_belastung|min} min je Belastungspunkt des Vortags + {schlaf.bedarf.schuld_anteil|prozent} der Schlafschuld − Nickerchen des Vortags; nicht unter 0.",
+      "erklaerung": "Wie viel Schlaf du heute Nacht brauchst: Grundbedarf, etwas mehr nach Anstrengung und nach zu kurzen Nächten, weniger nach einem Nickerchen.",
+      "pruefen": true
+    },
+    "schlaf.leistung": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (Verhältnis geschlafene Zeit zu Bedarf)",
+      "text": "Schlafleistung = geschlafene Zeit (ohne Wachphasen) ÷ Schlafbedarf × 100, höchstens 100, ganze Prozent.",
+      "erklaerung": "Wie viel von deinem Schlafbedarf du tatsächlich geschlafen hast.",
+      "pruefen": false
+    },
+    "schlaf.effizienz.gut": {
+      "wert": 850, "einheit": "Promille",
+      "fundstelle": "Ohayon M et al. (2017): National Sleep Foundation's sleep quality recommendations: first report. Sleep Health 3(1):6–19 (Schlafeffizienz ≥ 85 % = gute Schlafqualität)",
+      "text": "Schlafeffizienz = geschlafene Zeit ÷ Zeit im Bett (in Promille).",
+      "erklaerung": "Welcher Anteil der Zeit im Bett wirklich Schlaf war. Ab 85 % gilt das als gut.",
+      "pruefen": false
+    },
+    "schlaf.konsistenz.grenze": {
+      "wert": 120, "einheit": "Minuten",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Konsistenz = 100 − Abweichung der Einschlafzeit vom Mittel der letzten 7 Nächte (min) × 100 ÷ {schlaf.konsistenz.grenze}, nicht unter 0.",
+      "erklaerung": "Wie regelmäßig du ins Bett gehst. Zwei Stunden Abweichung von deiner üblichen Zeit ergeben 0 Punkte.",
+      "pruefen": true
+    },
+    "atem.dauer_standard": {
+      "wert": 300000, "einheit": "ms",
+      "fundstelle": "Balban MY et al. (2023): Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Rep Med 4(1):100895 (5 Minuten täglich)",
+      "erklaerung": "Eine Übung dauert ohne eigene Angabe etwa 5 Minuten.",
+      "pruefen": false
+    },
+    "atem.box": {
+      "wert": { "phasen": [ { "art": "ein", "ms": 4000 }, { "art": "halten", "ms": 4000 }, { "art": "aus", "ms": 4000 }, { "art": "halten2", "ms": 4000 } ] },
+      "einheit": "ms je Phase",
+      "fundstelle": "Balban MY et al. (2023), a. a. O. (Box Breathing: gleich lange Phasen Einatmen–Halten–Ausatmen–Halten)",
+      "erklaerung": "Box-Atmung: 4 Sekunden einatmen, 4 halten, 4 ausatmen, 4 halten – wie die vier Seiten eines Quadrats.",
+      "pruefen": false
+    },
+    "atem.vier-sieben-acht": {
+      "wert": { "phasen": [ { "art": "ein", "ms": 4000 }, { "art": "halten", "ms": 7000 }, { "art": "aus", "ms": 8000 } ], "runden": 4 },
+      "einheit": "ms je Phase",
+      "fundstelle": "Weil A (1999): Breathing: The Master Key to Self Healing. Sounds True, Boulder (4-7-8-Atmung, vier Atemzüge je Übung)",
+      "erklaerung": "4-7-8: 4 Sekunden durch die Nase einatmen, 7 halten, 8 durch den Mund ausatmen. Vier Runden.",
+      "pruefen": false
+    },
+    "atem.kohaerenz": {
+      "wert": { "phasen": [ { "art": "ein", "ms": 5500 }, { "art": "aus", "ms": 5500 } ] },
+      "einheit": "ms je Phase",
+      "fundstelle": "Lehrer PM, Gevirtz R (2014): Heart rate variability biofeedback: how and why does it work? Front Psychol 5:756 (Resonanzatmung um 0,1 Hz, etwa 4,5–7 Atemzüge je Minute)",
+      "erklaerung": "Kohärente Atmung: 5,5 Sekunden ein, 5,5 Sekunden aus – gut fünfeinhalb Atemzüge pro Minute, ruhig und gleichmäßig.",
+      "pruefen": false
+    },
+    "atem.seufzer": {
+      "wert": { "phasen": [ { "art": "ein", "ms": 2000 }, { "art": "ein", "ms": 1000, "label": "nachatmen" }, { "art": "aus", "ms": 6000 } ] },
+      "einheit": "ms je Phase",
+      "fundstelle": "Balban MY et al. (2023), a. a. O. (Cyclic Sighing: zweimal einatmen, lang ausatmen); Phasenlängen: eigene Festlegung MF",
+      "erklaerung": "Physiologischer Seufzer: tief einatmen, kurz nachatmen bis die Lunge ganz voll ist, dann lange und langsam ausatmen.",
+      "pruefen": true
+    },
+    "atem.entspannung": {
+      "wert": { "phasen": [ { "art": "ein", "ms": 4000 }, { "art": "aus", "ms": 6000 } ] },
+      "einheit": "ms je Phase",
+      "fundstelle": "Van Diest I et al. (2014): Inhalation/exhalation ratio modulates the effect of slow breathing on heart rate variability and relaxation. Appl Psychophysiol Biofeedback 39(3–4):171–180 (6 Atemzüge je Minute, Ausatmen länger als Einatmen)",
+      "erklaerung": "4 Sekunden ein, 6 Sekunden aus: das längere Ausatmen wird von vielen als beruhigend erlebt.",
+      "pruefen": false
+    },
+    "atem.plan": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF",
+      "text": "Runden ohne eigene Angabe = abgerundet ({atem.dauer_standard|min} min ÷ Dauer einer Runde). Zeitplan = Phasen nacheinander, Runde für Runde, in Millisekunden ab Start.",
+      "erklaerung": "Der Zeitplan sagt der Animation, wann welche Phase beginnt und endet.",
+      "pruefen": false
+    },
+    "tagebuch.min_n": {
+      "wert": 5, "einheit": "Tage je Gruppe",
+      "fundstelle": "eigene Festlegung MF",
+      "erklaerung": "Ein Vergleich wird erst ab 5 Tagen mit und 5 Tagen ohne das Verhalten als aussagekräftig angezeigt.",
+      "pruefen": true
+    },
+    "tagebuch.wirkung": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "eigene Festlegung MF (Mittelwertvergleich zweier Gruppen; Zusammenhang, kein Ursachennachweis)",
+      "text": "Differenz = mittlere Erholung an Tagen nach einem Tag MIT dem Verhalten − mittlere Erholung an Tagen nach einem Tag OHNE. Tage ohne Eintrag zählen nicht.",
+      "erklaerung": "Vergleicht deine Erholung am Morgen danach. Das zeigt einen Zusammenhang, keinen Beweis.",
+      "pruefen": false
+    },
+    "trend.band": {
+      "wert": 1, "einheit": "Streuungen",
+      "fundstelle": "eigene Festlegung MF; angelehnt an Plews et al. (2012), a. a. O. (Normalbereich um den gleitenden Mittelwert)",
+      "text": "Band = Mittel der Vortage ± {trend.band} × Streuung.",
+      "erklaerung": "Das graue Band zeigt deinen Normalbereich der letzten Tage.",
+      "pruefen": true
+    },
+    "zusammenfassung": {
+      "wert": null, "einheit": "formel",
+      "fundstelle": "JCGM 100:2008 (GUM), Abschnitt 4.2.1 (arithmetisches Mittel); Wochen nach ISO 8601-1:2019",
+      "text": "Je Woche (Montag bis Sonntag) bzw. Kalendermonat: Mittelwert, kleinster und größter Wert, Anzahl Tage je Erholungsstufe.",
+      "erklaerung": "Fasst Wochen und Monate zusammen, damit du Entwicklungen auf einen Blick siehst.",
+      "pruefen": false
+    }
+  }
+}
