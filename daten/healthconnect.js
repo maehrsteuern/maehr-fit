@@ -63,10 +63,14 @@ export const TRAININGSARTEN = {
   79: "gehen", 81: "gewichtheben", 83: "yoga",
 };
 
+/** Ein Tag in Millisekunden. */
+export const TAG_MS = 24 * 3600 * 1000;
+
 /**
  * Technische Vorgaben des Abgleichs (keine Rechenformeln, daher nicht in kern/formeln/formeln.json).
- * - ersterZeitraumMs: Wie weit der erste Abgleich zurückgreift. Health Connect gibt ohne Zusatzrecht
- *   (READ_HEALTH_DATA_HISTORY) ohnehin nur Daten bis 30 Tage vor der ersten Freigabe heraus.
+ * - rueckblickTage: Wie weit der allererste Abgleich zurückgreift (90 Tage, damit Basislinien und 30-Tage-Mittel gleich Futter
+ *   haben). Health Connect gibt ohne Zusatzrecht (READ_HEALTH_DATA_HISTORY) ohnehin nur Daten bis 30 Tage vor der ersten Freigabe
+ *   heraus; ältere Fenster kommen dann einfach leer zurück. Wer `ersterZeitraumMs` übergibt, überschreibt die Tage.
  * - ueberlappungMs: Jeder weitere Abgleich beginnt so viel früher als der letzte endete, weil WHOOP
  *   Daten verzögert nach Health Connect schreibt. Doppelte fängt der Abgleich über quelle.id ab.
  * - fensterMs: Größe eines Lesefensters. Ein Tag Herzschlag im Sekundentakt sind rund 86 400 Werte.
@@ -78,9 +82,9 @@ export const TRAININGSARTEN = {
  *   statt endlos zu hängen (Lesen bzw. Rechte-Dialog).
  */
 export const VORGABEN = {
-  ersterZeitraumMs: 30 * 24 * 3600 * 1000,
+  rueckblickTage: 90,
   ueberlappungMs: 48 * 3600 * 1000,
-  fensterMs: 24 * 3600 * 1000,
+  fensterMs: TAG_MS,
   kleinsterFensterMs: 3 * 3600 * 1000,
   wiederholungen: 1,
   wartenMs: 1500,
@@ -99,6 +103,12 @@ export function mitZeitgrenze(promise, ms, text) {
   let uhr;
   const grenze = new Promise((_, nein) => { uhr = setTimeout(() => nein(Object.assign(new Error(text), { code: "zeitgrenze" })), ms); });
   return Promise.race([promise, grenze]).finally(() => clearTimeout(uhr));
+}
+
+/** Beginn des allerersten Abgleichs in ms vor `jetzt` (aus den Vorgaben, s. o.). */
+export function ersterZeitraumMs(vorgaben = VORGABEN) {
+  const v = { ...VORGABEN, ...vorgaben };
+  return Number.isFinite(v.ersterZeitraumMs) ? v.ersterZeitraumMs : v.rueckblickTage * TAG_MS;
 }
 
 export const SYNC_PRAEFIX = "sync:healthconnect:";
@@ -309,6 +319,22 @@ export async function berechtigungen(bruecke, arten = RECORD_TYPEN, zeitgrenzeMs
 const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehler);
 
 /**
+ * Schon erteilte Leserechte abfragen, ohne einen Dialog zu öffnen → { erteilt, fehlend }, oder null, wenn die Brücke das nicht kann
+ * (ältere App-Fassung ohne Plugin-Methode „erteilt“) oder die Abfrage scheitert. Für den Abgleich beim Start der App.
+ */
+export async function erteilteRechte(bruecke, arten = RECORD_TYPEN) {
+  if (!bruecke || typeof bruecke.erteilt !== "function") return null;
+  try {
+    // Zeitgrenze wie beim Lesen: hängt die Abfrage, darf der Abgleich beim Start nicht für immer „läuft“ bleiben
+    const r = (await mitZeitgrenze(Promise.resolve(bruecke.erteilt(arten)), VORGABEN.lesenZeitgrenzeMs, "Health Connect: Rechte-Abfrage ohne Antwort.")) || {};
+    if (!Array.isArray(r.erteilt)) return null;
+    return { erteilt: r.erteilt, fehlend: arten.filter((a) => !r.erteilt.includes(a)) };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Inkrementeller Abgleich: je Datenart ab dem letzten Stand (minus Überlappung) bis jetzt lesen, in Tagesfenstern
  * (damit die Brücke nie zu große Antworten liefern muss), zuordnen, ablegen und nach jedem Fenster den Stand merken
  * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }).
@@ -337,7 +363,9 @@ export async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), a
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
     const stand = await speicher.lies(SYNC_PRAEFIX + typ);
-    const von = stand && typeof stand.bisMs === "number" ? stand.bisMs - v.ueberlappungMs : jetzt - v.ersterZeitraumMs;
+    // Weiter ab dem letzten Stand (minus Überlappung) bis jetzt; ohne Stand: erster Abgleich, rueckblickTage zurück.
+    // Leere Fenster (Tage ohne Werte) beenden die Schleife nicht; gescheiterte werden halbiert, wiederholt oder als Lücke gemeldet (s. u.).
+    const von = stand && typeof stand.bisMs === "number" ? Math.min(stand.bisMs, jetzt) - v.ueberlappungMs : jetzt - ersterZeitraumMs(v);
     const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0, luecken: [] };
     ergebnis.arten[typ] = bericht;
     const mfArt = ART_ZU_PAKET[typ];

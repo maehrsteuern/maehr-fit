@@ -7,7 +7,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { importiereWhoop, erkenneDatei } from "../../daten/csv_import.js";
 import { erzeugeDaten } from "../../daten/verbinden.js";
-import { synchronisieren, mitZeitgrenze, berechtigungen, VORGABEN, SYNC_PRAEFIX } from "../../daten/healthconnect.js";
+import { synchronisieren, mitZeitgrenze, berechtigungen, VORGABEN, SYNC_PRAEFIX, ersterZeitraumMs } from "../../daten/healthconnect.js";
 import { leseMessungen, ARTEN } from "../../daten/ablage.js";
 import { speicherMap } from "../../kern/speicher.js";
 import { berechne } from "../../shell/kern_echt.js";
@@ -142,9 +142,14 @@ test("csvImport (deutsch, beide Varianten): landet in der Ablage, Zeitraum und A
 // Health Connect: nichts mehr still abbrechen
 // ---------------------------------------------------------------------------------------------------
 const MIN = 60000, H = 3600000;
-const JETZT = new Date(2026, 9, 30, 23, 50).getTime();
+// Feste Zeitpunkte in UTC (Versatz +1 h wie OFFSET), damit der Test in jeder Gerätezeitzone gleich rechnet: 30.10. 23:50 (+1 h)
+const JETZT = Date.UTC(2026, 9, 30, 22, 50);
 const OFFSET = 3600;
 const keinWarten = { warte: async () => {} };
+// Die Fälle vom 30.10.2026 liefen mit 30 Tagen Rückblick; seit dem selbsttätigen Abgleich greift der erste Lauf 90 Tage zurück
+const v30 = { ...keinWarten, rueckblickTage: 30 };
+// Health Connect gibt ohne Verlaufsrecht nichts heraus, was älter als 30 Tage ist (ältere Fenster kommen leer zurück)
+const HC_GRENZE = JETZT - 30 * 24 * H;
 
 /** WHOOP-ähnlich: Herzschlag je Minute, ein Schlaf je Nacht, ein Training je Tag – kein HRV, kein Ruhepuls. */
 function whoopBruecke(fehlerBei = () => null) {
@@ -156,8 +161,10 @@ function whoopBruecke(fehlerBei = () => null) {
       const f = fehlerBei(typ, von, bis, aufrufe.length);
       if (f) throw f;
       const aus = [];
+      if (bis <= HC_GRENZE) return aus;
+      von = Math.max(von, HC_GRENZE);
       if (typ === "HeartRate") for (let t = Math.ceil(von / MIN) * MIN; t < bis; t += MIN) aus.push({ metadata: { id: `hr${t}`, dataOrigin: "com.whoop.android" }, startTime: t, endTime: t + MIN, startZoneOffsetSek: OFFSET, samples: [{ time: t, beatsPerMinute: 55 + (t / MIN) % 30 }] });
-      if (typ === "SleepSession") for (let d = -31; d <= 0; d++) { const w = new Date(2026, 9, 30 + d, 6, 30).getTime(), s = w - 8 * H; if (s < bis && w > von) aus.push({ metadata: { id: `sl${w}` }, startTime: s, endTime: w, startZoneOffsetSek: OFFSET, stages: [{ startTime: s, endTime: w, stage: 4 }] }); }
+      if (typ === "SleepSession") for (let d = -31; d <= 0; d++) { const w = Date.UTC(2026, 9, 30 + d, 5, 30), s = w - 8 * H; if (s < bis && w > von) aus.push({ metadata: { id: `sl${w}` }, startTime: s, endTime: w, startZoneOffsetSek: OFFSET, stages: [{ startTime: s, endTime: w, stage: 4 }] }); }
       return aus;
     },
   };
@@ -166,14 +173,14 @@ const ablage = async (sp) => Object.fromEntries(await Promise.all(ARTEN.map(asyn
 
 test("Abgleich: ein einmal gescheitertes Tagesfenster (wie am 30.10.2026) wird halbiert und gelesen – alle Tage kommen an", async () => {
   const sp = speicherMap();
-  const beginn = JETZT - VORGABEN.ersterZeitraumMs;
+  const beginn = JETZT - ersterZeitraumMs(v30);
   let schonGescheitert = false;
   const b = whoopBruecke((typ, von, bis) => {
     if (typ === "HeartRate" && !schonGescheitert && von >= beginn + 9 * VORGABEN.fensterMs && bis - von === VORGABEN.fensterMs) { schonGescheitert = true; return new Error("Zeitüberschreitung"); }
     return null;
   });
   const gemeldet = [];
-  const r = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate", "SleepSession"], vorgaben: keinWarten, fortschritt: (i) => gemeldet.push(i) });
+  const r = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate", "SleepSession"], vorgaben: v30, fortschritt: (i) => gemeldet.push(i) });
   assert.ok(schonGescheitert);
   assert.deepEqual(r.fehler, []);
   assert.deepEqual(r.luecken, []);
@@ -193,11 +200,11 @@ test("Abgleich: ein einmal gescheitertes Tagesfenster (wie am 30.10.2026) wird h
 
 test("Abgleich: Lücke mitten drin – spätere Tage werden trotzdem gelesen, Stand bleibt vor der Lücke, nächster Lauf füllt sie", async () => {
   const sp = speicherMap();
-  const beginn = JETZT - VORGABEN.ersterZeitraumMs;
+  const beginn = JETZT - ersterZeitraumMs(v30);
   const lueckeVon = beginn + 9 * VORGABEN.fensterMs, lueckeBis = lueckeVon + VORGABEN.fensterMs;
   let kaputt = true;
   const b = whoopBruecke((typ, von, bis) => (kaputt && typ === "HeartRate" && von < lueckeBis && bis > lueckeVon ? new Error("Health Connect: Quote überschritten") : null));
-  const r1 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate"], vorgaben: keinWarten });
+  const r1 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate"], vorgaben: v30 });
   assert.match(r1.fehler[0], /^HeartRate: .*Quote überschritten/);
   assert.equal(r1.luecken.length, 8); // 24 h in 3-Stunden-Stücken
   assert.equal(r1.luecken[0].vonMs, lueckeVon);
@@ -207,7 +214,7 @@ test("Abgleich: Lücke mitten drin – spätere Tage werden trotzdem gelesen, St
   assert.ok(erg.tage.size >= 29);
   // Lücke behoben → nächster Lauf liest ab Stand (minus Überlappung) und schließt sie
   kaputt = false;
-  const r2 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate"], vorgaben: keinWarten });
+  const r2 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["HeartRate"], vorgaben: v30 });
   assert.deepEqual(r2.luecken, []);
   assert.equal((await sp.lies(SYNC_PRAEFIX + "HeartRate")).bisMs, JETZT);
   assert.ok(r2.neu > 1000);

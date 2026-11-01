@@ -21,6 +21,7 @@ function nativesCapacitor(aufrufe) {
   const antwort = {
     verfuegbar: { verfuegbar: true, status: "verfuegbar", hauttemp: true, verlauf: true },
     berechtigungen: { erteilt: ["HeartRate", "SleepSession"] },
+    erteilt: { erteilt: ["HeartRate"] },
     lesen: { datensaetze: [{ metadata: { id: "x1" } }] },
     einstellungen: {},
   };
@@ -55,6 +56,10 @@ test("Android-App: Rechte und Lesen laufen mit den Namen und Formen des Kotlin-P
     assert.deepEqual(await b.lesen("HeartRate", 1000.4, 2000.6), [{ metadata: { id: "x1" } }]);
     const l = aufrufe.find((a) => a.methode === "lesen");
     assert.deepEqual(l.optionen, { art: "HeartRate", vonMs: 1000, bisMs: 2001 }); // ganze Millisekunden (Kotlin: getLong)
+    // erteilt({ arten }) → { erteilt } ohne Dialog (Abgleich beim App-Start, shell/abgleich.js); eine Brücke für alles (daten/verbinden.js)
+    assert.deepEqual((await daten.healthConnect.erteilt()).erteilt, ["HeartRate"]);
+    assert.equal(aufrufe.at(-1).methode, "erteilt");
+    assert.equal(globalThis.MF.native.healthConnect, b);
   });
 });
 

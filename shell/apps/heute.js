@@ -41,7 +41,9 @@ function abstand(wert, mittel, fmt) {
 
 export function ansicht(ctx) {
   const { bild, tag, erg } = ctx, B = beleg(ctx.register);
-  if (!bild) return leererTag(ctx, t("heute_titel"), "keine_daten_tag", "heute");
+  // Überschrift: „Heute“ nur am Kalendertag heute, sonst der gewählte Tag („Fr., 30. Okt.“) – auch auf dem leeren Tag
+  const istHeute = !ctx.heute || tag === ctx.heute, titel = istHeute ? t("heute_titel") : tagLang(tag);
+  if (!bild) return leererTag(ctx, titel, "keine_daten_tag", "heute");
   belegeTag(B, bild);
   const e = bild.erholung, hatErholung = e && e.wert !== null && e.wert !== undefined;
 
@@ -72,10 +74,10 @@ export function ansicht(ctx) {
   const kacheln = [
     // Ohne Pulswerte und ohne Training (Ruhetag im WHOOP-Export) steht ein Strich statt einer Null als Messwert
     bel.gemessen
-      ? kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
+      ? kennzahlKachel({ titel: t(istHeute ? "kachel_belastung" : "kachel_belastung_tag"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
         bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
         vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } })
-      : kennzahlKachel({ titel: t("kachel_belastung"), wert: "–", q: "" }),
+      : kennzahlKachel({ titel: t(istHeute ? "kachel_belastung" : "kachel_belastung_tag"), wert: "–", q: "" }),
     kennzahlKachel({ titel: t("kachel_schlaf"), wert: bild.schlafRoh ? dauerKurz(s.dauerMs) : "–", q: bild.schlafRoh ? `schlaf-dauer:${tag}` : "",
       bild: ph ? streifen({ segmente: ["tief", "rem", "leicht", "wach"].map((a) => ({ wert: ph[a] || 0, klasse: PHASEN_KLASSE[a], name: t("phase_" + a), text: dauer(ph[a] || 0) })) }).svg : "",
       vergleich: bild.schlafRoh ? (s.dauerMs < s.bedarfMs ? { richtung: "runter", text: t("vgl_bedarf_unter") } : { richtung: "gleich", text: t("vgl_bedarf_gedeckt") }) : null,
@@ -94,8 +96,8 @@ export function ansicht(ctx) {
   const gliederung = hatErholung ? `<details class="mf-gliederung"><summary>${esc(t("heute_gliederung"))}</summary><div class="mf-gl-inhalt"><p class="mf-leise">${esc(t("heute_gliederung_satz"))}</p>${teile}</div></details>` : "";
 
   return `<div class="mf-sicht" data-sicht="heute">
-    ${kopf(t("heute_titel"))}
-    <div class="mf-held mf-held-heute">${kernaussage(kernsatz(bild, tag === ctx.heute))}${held}</div>
+    ${kopf(titel)}
+    <div class="mf-held mf-held-heute">${kernaussage(kernsatz(bild, istHeute))}${held}</div>
     <div class="mf-kacheln mf-vier">${kacheln}</div>
     ${gliederung}
     ${bild.fremd ? `<p class="mf-vgl-link" data-heute-vergleich><a class="mf-link" href="#/vergleich?feld=erholung&amp;tag=${esc(tag)}">${esc(t("heute_vgl_link"))}</a></p>` : ""}

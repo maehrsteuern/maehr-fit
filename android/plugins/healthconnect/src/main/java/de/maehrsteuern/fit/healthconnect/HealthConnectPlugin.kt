@@ -43,6 +43,7 @@ import kotlinx.coroutines.withContext
  * Methoden:
  *   verfuegbar()                       → { verfuegbar, status, hauttemp, verlauf }
  *   berechtigungen({ arten })          → { erteilt: [Art] }   (öffnet den Freigabe-Dialog, wenn etwas fehlt)
+ *   erteilt({ arten })                 → { erteilt: [Art] }   (nur nachsehen, nie ein Dialog – für den Abgleich beim App-Start)
  *   lesen({ art, vonMs, bisMs })       → { datensaetze: [...] } im Brückenformat (docs/technik/healthconnect.md)
  *   einstellungen()                    → öffnet Health Connect
  * Art = Health-Connect-Datenart ohne "Record": HeartRate, HeartRateVariabilityRmssd, RestingHeartRate,
@@ -160,6 +161,23 @@ class HealthConnectPlugin : Plugin() {
                 }
             } catch (e: Exception) {
                 call.reject(e.message ?: "Freigabe fehlgeschlagen", "fehler", e)
+            }
+        }
+    }
+
+    /** Schon erteilte Leserechte, ohne Dialog (die App gleicht beim Start damit nur freigegebene Arten ab). */
+    @PluginMethod
+    fun erteilt(call: PluginCall) {
+        if (sdkStatus() != HealthConnectClient.SDK_AVAILABLE) {
+            call.reject("Health Connect ist auf diesem Gerät nicht verfügbar.", "nicht_verfuegbar")
+            return
+        }
+        val liste = gewuenschteArten(call)
+        bereich.launch {
+            try {
+                call.resolve(erteilteArten(liste, client().permissionController.getGrantedPermissions()))
+            } catch (e: Exception) {
+                call.reject(e.message ?: "Abfrage fehlgeschlagen", "fehler", e)
             }
         }
     }

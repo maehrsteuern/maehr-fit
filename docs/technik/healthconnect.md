@@ -78,13 +78,36 @@ Beispiele: `daten/fixtures/healthconnect_*.json` (erfunden).
 
 ## Abgleich
 
-- Erster Abgleich: 30 Tage zurück. Danach ab dem letzten Stand minus 48 Stunden, weil WHOOP verzögert schreibt.
-  Doppelte fängt `quelle.id` ab.
+> **Kurz:** Die App holt neue Werte von selbst – beim Start und jedes Mal, wenn du sie wieder öffnest, höchstens einmal pro Minute.
+> „Aktualisieren“ (oder oben herunterziehen) holt sofort. **WHOOP schreibt erst nach Health Connect, wenn die WHOOP-App selbst
+> abgeglichen hat** – fehlen die Werte von heute, zuerst die WHOOP-App öffnen und warten, bis sie fertig ist, dann MAEHR FIT.
+
+- Erster Abgleich: 90 Tage zurück (`VORGABEN.rueckblickTage`). Ohne `READ_HEALTH_DATA_HISTORY` gibt Health Connect höchstens 30 Tage
+  vor der ersten Freigabe heraus; ältere Fenster kommen leer zurück. Danach ab dem letzten Stand minus 48 Stunden bis jetzt, weil
+  WHOOP verzögert schreibt. Doppelte fängt `quelle.id` ab (Test: `tests/node/daten_healthconnect.test.mjs`, „zweiter Lauf“).
 - Gelesen wird in Tagesfenstern. Nach jedem Fenster wird der Stand gemerkt (`sync:healthconnect:<Art>` → `{ bisMs, zeitpunktMs, anzahl }`).
-  Bricht etwas ab, setzt der nächste Lauf dort an.
+  Leere Tage beenden die Schleife nicht. Scheitert ein Fenster, wird es halbiert und wiederholt (bis 3 Stunden); was dann noch scheitert,
+  wird als Lücke gemeldet, der Stand bleibt vor der ersten Lücke und der nächste Lauf liest sie wieder; drei Lücken hintereinander beenden
+  die Art für diesen Lauf (`kleinsterFensterMs`, `wiederholungen`, `luckenSerieMax`, Zeitgrenzen für Lesen und Rechte-Dialog).
+- Die Brücke zum Plugin richtet allein die Datenschicht ein (`daten/verbinden.js` `sucheBruecke`, bei jedem Zugriff); die Shell ruft
+  `installiereBruecke` nicht selbst auf.
 - Fehlt ein Recht für eine Art, wird nur diese übersprungen und gemeldet.
-- Die Vorgaben (30 Tage, 48 Stunden, 1 Tag) sind technische Einstellungen des Lesens, keine Rechenformeln; sie stehen in
+- Die Vorgaben (90 Tage, 48 Stunden, 1 Tag) sind technische Einstellungen des Lesens, keine Rechenformeln; sie stehen in
   `VORGABEN` in `daten/healthconnect.js` und lassen sich je Aufruf überschreiben.
+
+### Wann die App abgleicht (`shell/abgleich.js`, `shell/shell.js`)
+
+| Anlass | Bedingung |
+|---|---|
+| Start der App | nach dem ersten Bild, im Hintergrund |
+| Rückkehr in die App | `visibilitychange` → sichtbar, Capacitor-Ereignis `resume`, App-Plugin `appStateChange` (falls eingebaut) |
+| Knopf „Aktualisieren“ / „Jetzt abgleichen“, Herunterziehen > 80 px | sofort (erzwungen) |
+
+Immer nur ein Abgleich gleichzeitig; selbsttätig höchstens einer pro 60 s. Voraussetzung: schon einmal verbunden – Merkzeichen
+`hc:verbunden` (beim Verbinden gesetzt), ein Stand `sync:healthconnect:…` oder erteilte Rechte (Plugin-Methode `erteilt`, ohne Dialog).
+Gelesen werden nur freigegebene Arten. Zeit des letzten Abgleichs: `hc:letzter_abgleich` (ms). Danach rechnet die Shell neu, zeichnet
+die Ansicht neu und meldet leise „12 neue Messwerte“ (bei 0 nichts); ein Fehler steht nur in der Zeile „Abgleich hat nicht geklappt“.
+Stand die Ansicht nur mangels Werten auf dem letzten Tag mit Werten, springt sie auf heute, sobald es heute Werte gibt.
 
 ## Was WHOOP nach Health Connect schreibt
 

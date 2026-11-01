@@ -4,7 +4,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   zuordnen, schlafAus, trainingAus, herzschlaegeAus, synchronisieren, verfuegbar, berechtigungen,
-  RECORD_TYPEN, VORGABEN, SYNC_PRAEFIX,
+  RECORD_TYPEN, VORGABEN, SYNC_PRAEFIX, TAG_MS, ersterZeitraumMs, erteilteRechte,
 } from "../../daten/healthconnect.js";
 import { speichereMessungen, leseMessungen, leeresPaket } from "../../daten/ablage.js";
 import { erzeugeDaten, installiere } from "../../daten/verbinden.js";
@@ -161,12 +161,16 @@ test("Ablage: Tag nach Zeitzone des Datensatzes, nicht des Testrechners", async 
   assert.deepEqual(r.schluessel, ["messung:ruhepuls:2026-10-28", "messung:ruhepuls:2026-10-29"]);
 });
 
-test("Abgleich: erster Lauf 30 Tage zurück, zweiter ab letztem Stand minus Überlappung, keine Doppelten", async () => {
+// Erster Abgleich: rueckblickTage (90) × 86 400 000 ms = 7 776 000 000 ms vor jetzt
+const ERSTER = 90 * 24 * 3600 * 1000;
+
+test("Abgleich: erster Lauf 90 Tage zurück, zweiter ab letztem Stand minus Überlappung, keine Doppelten", async () => {
   const sp = mapSpeicher();
   const b = fixtureBruecke();
   const r1 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT });
   assert.equal(b.aufrufe[0].art, "HeartRate");
-  assert.equal(b.aufrufe[0].von, JETZT - VORGABEN.ersterZeitraumMs);
+  assert.equal(ersterZeitraumMs(), ERSTER);
+  assert.equal(b.aufrufe[0].von, JETZT - ERSTER);
   // 14 Herzschläge + 3 HRV + 3 Ruhepuls + 2 Atem + 2 SpO2 + 3 Hauttemp + 2 Schlaf + 2 Training = 31
   assert.equal(r1.neu, 31);
   assert.equal(r1.ersetzt, 0);
@@ -191,7 +195,7 @@ test("Abgleich: fehlendes Recht für eine Art stoppt die anderen nicht", async (
   // Training ohne Herzschlag-Recht: ohne Kurve, aber vorhanden
   const lauf = (await sp.lies("messung:training:2026-10-29"))[0];
   assert.deepEqual(lauf.herzschlaege, []);
-  // Kein Stand für die fehlgeschlagene Art → nächster Lauf versucht wieder 30 Tage
+  // Kein Stand für die fehlgeschlagene Art → nächster Lauf versucht wieder 90 Tage
   assert.equal(await sp.lies(SYNC_PRAEFIX + "HeartRate"), null);
 });
 
@@ -263,7 +267,7 @@ test("Abgleich: liest in Tagesfenstern; dauerhaft gescheiterte Fenster werden L�
   const sp = mapSpeicher();
   const b = fixtureBruecke();
   const tag = VORGABEN.fensterMs;
-  const beginn = JETZT - VORGABEN.ersterZeitraumMs;
+  const beginn = JETZT - ERSTER;
   // ab dem dritten Tag liefert Health Connect nur noch Fehler (wie die Zeitüberschreitung vom 30.10.2026)
   const wackelig = {
     ...b,
@@ -283,8 +287,71 @@ test("Abgleich: liest in Tagesfenstern; dauerhaft gescheiterte Fenster werden L�
   assert.match(r.fehler[0], /^RestingHeartRate: .*unterbrochen/);
   assert.ok(r.luecken.length >= 3); // drei Tagesfenster, je in 3-Stunden-Stücke zerlegt
   assert.equal(r.luecken[0].vonMs, beginn + 2 * tag);
-  // 30 Tage = 30 Fenster je Art beim ersten Lauf
+  // 90 Tage = 90 Fenster je Art beim ersten Lauf; Tage ohne Werte (hier 88 von 90) beenden die Schleife nicht
   b.aufrufe.length = 0;
-  await synchronisieren({ bruecke: b, speicher: mapSpeicher(), jetzt: JETZT, arten: ["OxygenSaturation"] });
-  assert.equal(b.aufrufe.length, 30);
+  const leer = await synchronisieren({ bruecke: b, speicher: mapSpeicher(), jetzt: JETZT, arten: ["OxygenSaturation"] });
+  assert.equal(b.aufrufe.length, 90);
+  assert.equal(b.aufrufe.at(-1).bis, JETZT);
+  assert.equal(leer.arten.OxygenSaturation.bisMs, JETZT);
+  assert.equal(leer.arten.OxygenSaturation.neu, 2);
+  // Vorgabe überschreibbar: 7 Tage zurück = 7 Fenster
+  b.aufrufe.length = 0;
+  await synchronisieren({ bruecke: b, speicher: mapSpeicher(), jetzt: JETZT, arten: ["OxygenSaturation"], vorgaben: { rueckblickTage: 7 } });
+  assert.equal(b.aufrufe.length, 7);
+  assert.equal(b.aufrufe[0].von, JETZT - 7 * TAG_MS);
+});
+
+test("Abgleich: zweiter Lauf holt neue Datensätze bis jetzt, die Überlappung verdoppelt nichts", async () => {
+  // Brücke mit veränderlichem Bestand: erst die Fixture, dann schreibt „WHOOP“ zwei neue Ruhepuls-Werte nach.
+  const bestand = [...hcFixture("RestingHeartRate")];
+  const aufrufe = [];
+  const b = {
+    verfuegbar: async () => ({ verfuegbar: true }),
+    berechtigungen: async (arten) => ({ erteilt: arten }),
+    lesen: async (art, von, bis) => {
+      aufrufe.push({ von, bis });
+      const zeit = (r) => (typeof r.time === "number" ? r.time : Date.parse(r.time));
+      return bestand.filter((r) => zeit(r) >= von && zeit(r) <= bis);
+    },
+  };
+  const sp = mapSpeicher();
+  const r1 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: JETZT, arten: ["RestingHeartRate"] });
+  assert.equal(r1.neu, 3); // drei Ruhepuls-Werte der Fixture
+
+  // Zwei Tage später: ein Wert im Überlappungsfenster (verspätet geschrieben, 31.10. 06:00 UTC) und einer von heute früh.
+  // Rechenweg: JETZT = 30.10. 12:00 UTC; zweiter Lauf um 01.11. 12:00 UTC; Beginn = JETZT − 48 h = 28.10. 12:00 UTC.
+  const spaeter = JETZT + 2 * TAG_MS;
+  bestand.push(
+    { metadata: { id: "rhr-neu-1", dataOrigin: "com.whoop.android" }, time: Date.UTC(2026, 9, 31, 6, 0), zoneOffsetSek: 3600, beatsPerMinute: 50 },
+    { metadata: { id: "rhr-neu-2", dataOrigin: "com.whoop.android" }, time: Date.UTC(2026, 10, 1, 6, 0), zoneOffsetSek: 3600, beatsPerMinute: 49 },
+  );
+  aufrufe.length = 0;
+  const r2 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: spaeter, arten: ["RestingHeartRate"] });
+  assert.equal(aufrufe[0].von, JETZT - VORGABEN.ueberlappungMs);
+  assert.equal(aufrufe.at(-1).bis, spaeter); // liest bis jetzt
+  assert.equal(r2.neu, 2);
+  assert.deepEqual(r2.paket.ruhepuls.map((x) => x.bpm), [50, 49]);
+  // Werte der Fixture, die im Überlappungsfenster liegen, kommen erneut und werden ersetzt, nicht verdoppelt
+  assert.ok(r2.ersetzt >= 1);
+  assert.equal((await leseMessungen(sp, "ruhepuls")).length, 5);
+  assert.equal((await leseMessungen(sp, "ruhepuls", "2026-11-01", "2026-11-01")).length, 1);
+  assert.equal((await sp.lies(SYNC_PRAEFIX + "RestingHeartRate")).bisMs, spaeter);
+  // Dritter Lauf ohne Neues: nichts neu, Bestand bleibt bei 5
+  const r3 = await synchronisieren({ bruecke: b, speicher: sp, jetzt: spaeter + 3600 * 1000, arten: ["RestingHeartRate"] });
+  assert.equal(r3.neu, 0);
+  assert.equal((await leseMessungen(sp, "ruhepuls")).length, 5);
+});
+
+test("Erteilte Rechte ohne Dialog: Brücke mit und ohne Methode „erteilt“", async () => {
+  assert.equal(await erteilteRechte(null), null);
+  assert.equal(await erteilteRechte(fixtureBruecke()), null); // alte App-Fassung: Methode fehlt → unbekannt
+  const b = { ...fixtureBruecke(), erteilt: async () => ({ erteilt: ["SleepSession", "RestingHeartRate"] }) };
+  const r = await erteilteRechte(b, RECORD_TYPEN);
+  assert.deepEqual(r.erteilt, ["SleepSession", "RestingHeartRate"]);
+  assert.equal(r.fehlend.length, RECORD_TYPEN.length - 2);
+  const kaputt = { ...fixtureBruecke(), erteilt: async () => { throw new Error("not implemented"); } };
+  assert.equal(await erteilteRechte(kaputt), null);
+  // über MF.daten
+  const d = erzeugeDaten({ speicher: mapSpeicher(), bruecke: b, jetzt: () => JETZT });
+  assert.deepEqual((await d.healthConnect.erteilt()).erteilt, ["SleepSession", "RestingHeartRate"]);
 });

@@ -570,6 +570,23 @@ table.mf-tab.mf-vgl-tab td { vertical-align: middle; }
 .mf-vgl-stat .mf-beschriftung { font-size: var(--t-1); overflow-wrap: anywhere; }
 .mf-vgl-stat-wert { display: flex; flex-direction: column; align-items: flex-start; font-size: var(--t-3); font-weight: 500; }
 .mf-vgl-stat-wert small { font-size: var(--t-1); font-weight: 400; }
+
+/* ---------- Abgleich mit Health Connect (shell/abgleich.js): leise Zeile, Meldung unten, Anzeige beim Herunterziehen */
+.mf-abgleich { display: flex; flex-wrap: wrap; align-items: center; gap: 0 var(--r2); min-height: 44px; margin: calc(-1 * var(--r3)) 0 var(--r2); font-size: var(--t-2); color: var(--grau-5); line-height: 1.35; }
+.mf-abgleich-punkt { color: var(--grau-4); }
+.mf-abgleich-knopf { display: inline-flex; align-items: center; min-height: 44px; padding: 0 var(--r2); margin: 0 calc(-1 * var(--r2)); border: 0; background: none; border-radius: var(--radius-pille);
+  color: var(--akzent); font-size: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; }
+.mf-abgleich-knopf:hover { background: var(--flaeche-3); }
+.mf-toast { position: fixed; left: 50%; bottom: calc(var(--reiter-hoehe) + var(--r4) + env(safe-area-inset-bottom)); z-index: 30; max-width: calc(100vw - 2 * var(--r4)); padding: 10px var(--r4);
+  border: 1px solid var(--haarlinie); border-radius: var(--radius-pille); background: var(--flaeche-3); color: var(--tinte); font-size: var(--t-2); text-align: center; overflow-wrap: anywhere;
+  pointer-events: none; opacity: 0; transform: translate(-50%, 8px); transition: opacity var(--dauer-kurz) var(--kurve), transform var(--dauer-kurz) var(--kurve); }
+.mf-toast.an { opacity: 1; transform: translate(-50%, 0); }
+.mf-zug { position: fixed; top: calc(var(--kopf-hoehe) + env(safe-area-inset-top) - 40px); left: 50%; z-index: 19; display: grid; place-items: center; width: 40px; height: 40px;
+  border-radius: 50%; background: var(--flaeche-3); border: 1px solid var(--haarlinie); color: var(--grau-5); pointer-events: none;
+  opacity: 0; transform: translate(-50%, 0); transition: opacity var(--dauer-kurz) var(--kurve), transform var(--dauer-kurz) var(--kurve); }
+.mf-zug svg { width: 20px; height: 20px; }
+.mf-zug.zieht { transition: none; }
+.mf-zug.bereit { color: var(--akzent); }
 </style>
 <style>
 /* shell/design/design_viz.css – Diagramme aus shell/viz/viz.js (vz-…) und der Heldenring (rg-…), im Kleid „Nacht“
@@ -1322,6 +1339,28 @@ Object.assign(TEXTE, {
   atem_puls_vor: ["Puls zu Beginn", "Heart rate at start"], atem_puls_nach: ["Puls am Ende", "Heart rate at end"], atem_hrv_mittel: ["Kurz-HRV der Übung", "Short HRV of the exercise"],
   atem_puls_gespeichert: ["Die Pulswerte stehen mit im Tagebuch.", "The heart rate values are also saved in your journal."],
   atem_puls_demo: ["Erfundene Werte (Demo-Puls) – nicht gespeichert.", "Made-up values (demo heart rate) – not saved."],
+});
+
+// ------------------------------------------------------------------ Abgleich mit Health Connect beim Start und bei Rückkehr (shell/abgleich.js)
+// Angehängt am 01.11.2026; eigener Block wie oben.
+Object.assign(TEXTE, {
+  abgleich_zuletzt: ["Zuletzt abgeglichen: {wann}", "Last synced: {wann}"],
+  abgleich_gerade: ["gerade eben", "just now"],
+  abgleich_minute: ["vor 1 Minute", "1 minute ago"], abgleich_minuten: ["vor {n} Minuten", "{n} minutes ago"],
+  abgleich_stunde: ["vor 1 Stunde", "1 hour ago"], abgleich_stunden: ["vor {n} Stunden", "{n} hours ago"],
+  abgleich_tag: ["vor 1 Tag", "1 day ago"], abgleich_tage: ["vor {n} Tagen", "{n} days ago"],
+  abgleich_nie: ["Noch nicht abgeglichen", "Not synced yet"],
+  abgleich_aktualisieren: ["Aktualisieren", "Refresh"],
+  abgleich_laeuft: ["Neue Werte werden geholt …", "Fetching new values …"],
+  abgleich_nicht_verbunden: ["Health Connect nicht verbunden", "Health Connect not connected"],
+  abgleich_verbinden: ["Verbinden", "Connect"],
+  abgleich_neu_eins: ["1 neuer Messwert", "1 new measurement"], abgleich_neu: ["{n} neue Messwerte", "{n} new measurements"],
+  abgleich_nichts_neu: ["Keine neuen Messwerte.", "No new measurements."],
+  abgleich_fehler: ["Abgleich hat nicht geklappt", "Sync did not work"], abgleich_erneut: ["Erneut versuchen", "Try again"],
+  abgleich_jetzt: ["Jetzt abgleichen", "Sync now"],
+  abgleich_whoop_hinweis: ["Neue Werte erscheinen, nachdem die WHOOP-App ihre Daten geholt hat.", "New values appear after the WHOOP app has fetched its data."],
+  abgleich_ziehen: ["Zum Aktualisieren loslassen", "Release to refresh"],
+  kachel_belastung_tag: ["Belastung", "Strain"],
 });
 return { SPRACHEN, sprache, setzeSprache, locale, TEXTE, t };
 })();
@@ -3851,6 +3890,94 @@ function ansicht(ctx = {}) {
 return { EINTRAEGE, ansicht };
 })();
 
+// ===== shell/abgleich.js
+const __m_shell_abgleich_js = (() => {
+/* shell/abgleich.js – Regeln für den selbsttätigen Health-Connect-Abgleich (rein, ohne DOM, testbar in Node).
+ *
+ * Kernaussage: Die App holt neue Werte von selbst – beim Start und jedes Mal, wenn du sie wieder öffnest. Damit das Handy nicht
+ * ständig liest, läuft immer nur ein Abgleich gleichzeitig und höchstens einer pro Minute; nur „Aktualisieren“ (Knopf oder
+ * Herunterziehen) darf früher. Nach dem Abgleich springt die Ansicht auf heute, wenn du vorher nur mangels Werten auf dem letzten
+ * Tag mit Werten standest.
+ *
+ * Schnittstelle:
+ *   ABGLEICH_ABSTAND_MS, ZUG_SCHWELLE_PX, SCHLUESSEL       technische Vorgaben (keine Rechenformeln, daher nicht in formeln.json)
+ *   neuerAbgleicher({ ausfuehren, jetzt, abstandMs })      → { anstossen({ erzwingen, grund }), laeuft() }
+ *   istVerbunden({ flag, standSchluessel, erteilt })      → true, wenn Health Connect schon einmal freigegeben wurde
+ *   zuletzt(ms, jetzt)                                     → { einheit: "nie"|"gerade"|"minuten"|"stunden"|"tage", n }
+ *   zugAuswerten({ startY, y, scrollTop, schwelle })       → { abstand, bereit } fürs Herunterziehen
+ *   tagWaehlen({ tag, modus, heute, erster, letzter, hatHeute }) → { tag, modus } (modus: "heute" | "letzter" | "hand")
+ */
+
+/** Frühestens so viele Millisekunden nach dem letzten Start beginnt ein selbsttätiger Abgleich (technische Vorgabe). */
+const ABGLEICH_ABSTAND_MS = 60 * 1000;
+/** So weit (CSS-Pixel) muss man oben auf der Seite herunterziehen, damit „Aktualisieren“ ausgelöst wird. */
+const ZUG_SCHWELLE_PX = 80;
+/** Speicher-Schlüssel der Shell zum Abgleich (der Stand je Datenart liegt in der Datenschicht unter sync:healthconnect:…). */
+const SCHLUESSEL = { verbunden: "hc:verbunden", letzter: "hc:letzter_abgleich" };
+
+/**
+ * Abgleicher: bündelt Anstöße (Start, Rückkehr in die App, Knopf). Läuft schon einer, bekommt jeder weitere Anstoß dessen Ergebnis
+ * (nie zwei gleichzeitig). Ohne `erzwingen` wird ein Anstoß innerhalb von `abstandMs` nach dem letzten Start übersprungen.
+ * @param {{ ausfuehren: (info:{grund?:string}) => Promise<any>, jetzt?: () => number, abstandMs?: number }} p
+ */
+function neuerAbgleicher({ ausfuehren, jetzt = () => Date.now(), abstandMs = ABGLEICH_ABSTAND_MS }) {
+  let laufend = null, letzterStart = null;
+  return {
+    /** → Promise mit dem Ergebnis von ausfuehren, oder { uebersprungen: "zu_frueh" }. */
+    anstossen({ erzwingen = false, grund = "" } = {}) {
+      if (laufend) return laufend;
+      const t = jetzt();
+      if (!erzwingen && letzterStart !== null && t - letzterStart < abstandMs) return Promise.resolve({ uebersprungen: "zu_frueh" });
+      letzterStart = t;
+      laufend = (async () => {
+        try { return await ausfuehren({ grund }); } finally { laufend = null; }
+      })();
+      return laufend;
+    },
+    laeuft: () => laufend !== null,
+  };
+}
+
+/** Schon einmal verbunden? Merkzeichen der Shell, ein Stand der Datenschicht (= es wurde schon gelesen) oder erteilte Rechte. */
+function istVerbunden({ flag = null, standSchluessel = [], erteilt = null } = {}) {
+  return !!flag || (Array.isArray(standSchluessel) && standSchluessel.length > 0) || (Array.isArray(erteilt) && erteilt.length > 0);
+}
+
+/** Abstand seit dem letzten Abgleich in Worten-Bausteinen: unter 1 min „gerade“, dann Minuten, Stunden, Tage (abgerundet). */
+function zuletzt(ms, jetzt = Date.now()) {
+  if (!Number.isFinite(ms) || ms <= 0) return { einheit: "nie", n: 0 };
+  const d = Math.max(0, jetzt - ms), min = Math.floor(d / 60000);
+  if (min < 1) return { einheit: "gerade", n: 0 };
+  if (min < 60) return { einheit: "minuten", n: min };
+  const std = Math.floor(min / 60);
+  if (std < 24) return { einheit: "stunden", n: std };
+  return { einheit: "tage", n: Math.floor(std / 24) };
+}
+
+/**
+ * Herunterziehen oben auf der Seite: zählt nur, solange die Seite ganz oben steht (scrollTop 0) und nach unten gezogen wird.
+ * Der sichtbare Ausschlag ist gedämpft (halber Weg, höchstens 1,5 × Schwelle); ausgelöst wird ab `schwelle` Pixel echtem Zug.
+ */
+function zugAuswerten({ startY, y, scrollTop = 0, schwelle = ZUG_SCHWELLE_PX }) {
+  if (!Number.isFinite(startY) || !Number.isFinite(y) || scrollTop > 0) return { abstand: 0, ausschlag: 0, bereit: false };
+  const abstand = Math.max(0, y - startY);
+  return { abstand, ausschlag: Math.min(abstand / 2, schwelle * 0.75), bereit: abstand > schwelle };
+}
+
+/**
+ * Welcher Tag wird gezeigt? (gleiche Regel beim Start, nach dem Einlesen und nach jedem Abgleich)
+ * - modus "hand": du hast selbst geblättert → der Tag bleibt, solange er im Bereich [erster, heute] liegt.
+ * - sonst: heute, wenn es heute Werte gibt (oder gar keine Werte); sonst der letzte Tag mit Werten (modus "letzter").
+ *   Kommen später Werte für heute dazu, springt die Ansicht von "letzter" auf "heute".
+ */
+function tagWaehlen({ tag = null, modus = null, heute, erster = null, letzter = null, hatHeute = false }) {
+  if (modus === "hand" && tag && tag <= heute && (!erster || tag >= erster)) return { tag, modus };
+  if (hatHeute || !letzter) return { tag: heute, modus: "heute" };
+  return { tag: letzter, modus: "letzter" };
+}
+return { ABGLEICH_ABSTAND_MS, ZUG_SCHWELLE_PX, SCHLUESSEL, neuerAbgleicher, istVerbunden, zuletzt, zugAuswerten, tagWaehlen };
+})();
+
 // ===== shell/rahmen.js
 const __m_shell_rahmen_js = (() => {
 /* shell/rahmen.js – Kopfleiste, Menü und Reiterleiste als reines Markup (ohne DOM, testbar).
@@ -3859,13 +3986,19 @@ const __m_shell_rahmen_js = (() => {
  * sechs, tests/node/ruhe.test.mjs). Unten stehen fünf Reiter: Heute · Schlaf · Belastung · Atem · Mehr. Alles sind echte Knöpfe
  * oder Links mit mindestens 44 px Tippfläche und einer Beschriftung für Screenreader.
  *
+ * Unter der Kopfleiste steht in den Tagesansichten eine leise Zeile zum Abgleich mit Health Connect: „Zuletzt abgeglichen:
+ * vor 3 Minuten · Aktualisieren“ (oder „Health Connect nicht verbunden · Verbinden“). Der Knopf trägt data-aktion="abgleich".
+ *
  * Schnittstelle: kopfHtml({ tag, heute, erster, thema }) · menueHtml() · reiterHtml(aktiv) · REITER
+ *   · zuletztText(ms, jetzt) · abgleichText(a, jetzt) · abgleichZeileHtml(a, jetzt)
+ *   a = { hcVerfuegbar, bekannt, verbunden, laeuft, fehler, letzterMs } (Zustand der Shell, shell/shell.js)
  */
 const { t, sprache, SPRACHEN } = __m_shell_i18n_i18n_js;
 const { esc, tagName } = __m_shell_format_js;
 const { IKON } = __m_shell_ui_js;
 const { tagPlus } = __m_shell_kern_js;
 const { EINTRAEGE } = __m_shell_apps_mehr_js;
+const { zuletzt } = __m_shell_abgleich_js;
 
 const REITER = ["heute", "schlaf", "belastung", "atem", "mehr"];
 
@@ -3882,7 +4015,32 @@ function menueHtml() {
 function reiterHtml(aktiv) {
   return `<nav class="mf-reiter" aria-label="${esc(t("reiter_label"))}">${REITER.map((r) => `<a href="#/${r}"${r === aktiv ? ' aria-current="page"' : ""}><span class="mf-reiter-ikon">${IKON[r]}</span><span class="mf-reiter-text">${esc(t("reiter_" + r))}</span></a>`).join("")}</nav>`;
 }
-return { REITER, kopfHtml, menueHtml, reiterHtml };
+
+/** „vor 3 Minuten“, „gerade eben“, „vor 2 Tagen“ – Abstand zum letzten Abgleich in Worten. */
+function zuletztText(ms, jetzt = Date.now()) {
+  const z = zuletzt(ms, jetzt);
+  if (z.einheit === "nie") return t("abgleich_nie");
+  if (z.einheit === "gerade") return t("abgleich_gerade");
+  const einzahl = { minuten: "abgleich_minute", stunden: "abgleich_stunde", tage: "abgleich_tag" }[z.einheit];
+  return z.n === 1 ? t(einzahl) : t("abgleich_" + z.einheit, { n: z.n });
+}
+
+/** Text der Abgleich-Zeile ohne Knopf: läuft, Fehler, zuletzt oder noch nie. */
+function abgleichText(a, jetzt = Date.now()) {
+  if (a?.laeuft) return t("abgleich_laeuft");
+  if (a?.fehler) return t("abgleich_fehler");
+  return a?.letzterMs ? t("abgleich_zuletzt", { wann: zuletztText(a.letzterMs, jetzt) }) : t("abgleich_nie");
+}
+
+/** Leise Zeile über der Tagesansicht; leer, solange Health Connect fehlt (Browser) oder der Zustand noch geladen wird. */
+function abgleichZeileHtml(a, jetzt = Date.now()) {
+  if (!a?.hcVerfuegbar || !a.bekannt) return "";
+  const punkt = '<span class="mf-abgleich-punkt" aria-hidden="true">·</span>';
+  if (!a.verbunden) return `<p class="mf-abgleich" data-abgleich-zeile><span>${esc(t("abgleich_nicht_verbunden"))}</span>${punkt}<a class="mf-abgleich-knopf" href="#/daten">${esc(t("abgleich_verbinden"))}</a></p>`;
+  const knopf = a.laeuft ? "" : `${punkt}<button type="button" class="mf-abgleich-knopf" data-aktion="abgleich">${esc(t(a.fehler ? "abgleich_erneut" : "abgleich_aktualisieren"))}</button>`;
+  return `<p class="mf-abgleich" data-abgleich-zeile${a.laeuft ? ' aria-busy="true"' : ""}><span>${esc(abgleichText(a, jetzt))}</span>${knopf}</p>`;
+}
+return { REITER, kopfHtml, menueHtml, reiterHtml, zuletztText, abgleichText, abgleichZeileHtml };
 })();
 
 // ===== shell/viz/viz.js
@@ -4670,7 +4828,8 @@ function paketeVereinen(...pakete) {
   const ziel = leeresPaket();
   for (const p of pakete) {
     if (!p) continue;
-    for (const a of ARTEN) if (Array.isArray(p[a])) ziel[a].push(...p[a]);
+    // Schleife statt push(...p[a]): ein Abgleich über 90 Tage Herzschlag sprengt sonst den Aufrufstapel (> 100 000 Argumente)
+    for (const a of ARTEN) if (Array.isArray(p[a])) for (const d of p[a]) ziel[a].push(d);
   }
   return ziel;
 }
@@ -4830,10 +4989,14 @@ const TRAININGSARTEN = {
   79: "gehen", 81: "gewichtheben", 83: "yoga",
 };
 
+/** Ein Tag in Millisekunden. */
+const TAG_MS = 24 * 3600 * 1000;
+
 /**
  * Technische Vorgaben des Abgleichs (keine Rechenformeln, daher nicht in kern/formeln/formeln.json).
- * - ersterZeitraumMs: Wie weit der erste Abgleich zurückgreift. Health Connect gibt ohne Zusatzrecht
- *   (READ_HEALTH_DATA_HISTORY) ohnehin nur Daten bis 30 Tage vor der ersten Freigabe heraus.
+ * - rueckblickTage: Wie weit der allererste Abgleich zurückgreift (90 Tage, damit Basislinien und 30-Tage-Mittel gleich Futter
+ *   haben). Health Connect gibt ohne Zusatzrecht (READ_HEALTH_DATA_HISTORY) ohnehin nur Daten bis 30 Tage vor der ersten Freigabe
+ *   heraus; ältere Fenster kommen dann einfach leer zurück. Wer `ersterZeitraumMs` übergibt, überschreibt die Tage.
  * - ueberlappungMs: Jeder weitere Abgleich beginnt so viel früher als der letzte endete, weil WHOOP
  *   Daten verzögert nach Health Connect schreibt. Doppelte fängt der Abgleich über quelle.id ab.
  * - fensterMs: Größe eines Lesefensters. Ein Tag Herzschlag im Sekundentakt sind rund 86 400 Werte.
@@ -4845,9 +5008,9 @@ const TRAININGSARTEN = {
  *   statt endlos zu hängen (Lesen bzw. Rechte-Dialog).
  */
 const VORGABEN = {
-  ersterZeitraumMs: 30 * 24 * 3600 * 1000,
+  rueckblickTage: 90,
   ueberlappungMs: 48 * 3600 * 1000,
-  fensterMs: 24 * 3600 * 1000,
+  fensterMs: TAG_MS,
   kleinsterFensterMs: 3 * 3600 * 1000,
   wiederholungen: 1,
   wartenMs: 1500,
@@ -4866,6 +5029,12 @@ function mitZeitgrenze(promise, ms, text) {
   let uhr;
   const grenze = new Promise((_, nein) => { uhr = setTimeout(() => nein(Object.assign(new Error(text), { code: "zeitgrenze" })), ms); });
   return Promise.race([promise, grenze]).finally(() => clearTimeout(uhr));
+}
+
+/** Beginn des allerersten Abgleichs in ms vor `jetzt` (aus den Vorgaben, s. o.). */
+function ersterZeitraumMs(vorgaben = VORGABEN) {
+  const v = { ...VORGABEN, ...vorgaben };
+  return Number.isFinite(v.ersterZeitraumMs) ? v.ersterZeitraumMs : v.rueckblickTage * TAG_MS;
 }
 
 const SYNC_PRAEFIX = "sync:healthconnect:";
@@ -5076,6 +5245,22 @@ async function berechtigungen(bruecke, arten = RECORD_TYPEN, zeitgrenzeMs = VORG
 const text = (fehler) => String(fehler && fehler.message ? fehler.message : fehler);
 
 /**
+ * Schon erteilte Leserechte abfragen, ohne einen Dialog zu öffnen → { erteilt, fehlend }, oder null, wenn die Brücke das nicht kann
+ * (ältere App-Fassung ohne Plugin-Methode „erteilt“) oder die Abfrage scheitert. Für den Abgleich beim Start der App.
+ */
+async function erteilteRechte(bruecke, arten = RECORD_TYPEN) {
+  if (!bruecke || typeof bruecke.erteilt !== "function") return null;
+  try {
+    // Zeitgrenze wie beim Lesen: hängt die Abfrage, darf der Abgleich beim Start nicht für immer „läuft“ bleiben
+    const r = (await mitZeitgrenze(Promise.resolve(bruecke.erteilt(arten)), VORGABEN.lesenZeitgrenzeMs, "Health Connect: Rechte-Abfrage ohne Antwort.")) || {};
+    if (!Array.isArray(r.erteilt)) return null;
+    return { erteilt: r.erteilt, fehlend: arten.filter((a) => !r.erteilt.includes(a)) };
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Inkrementeller Abgleich: je Datenart ab dem letzten Stand (minus Überlappung) bis jetzt lesen, in Tagesfenstern
  * (damit die Brücke nie zu große Antworten liefern muss), zuordnen, ablegen und nach jedem Fenster den Stand merken
  * ("sync:healthconnect:<Datenart>" → { bisMs, zeitpunktMs, anzahl gelesen in diesem Lauf }).
@@ -5104,7 +5289,9 @@ async function synchronisieren({ bruecke, speicher, jetzt = Date.now(), arten = 
   const reihenfolge = RECORD_TYPEN.filter((t) => arten.includes(t));
   for (const typ of reihenfolge) {
     const stand = await speicher.lies(SYNC_PRAEFIX + typ);
-    const von = stand && typeof stand.bisMs === "number" ? stand.bisMs - v.ueberlappungMs : jetzt - v.ersterZeitraumMs;
+    // Weiter ab dem letzten Stand (minus Überlappung) bis jetzt; ohne Stand: erster Abgleich, rueckblickTage zurück.
+    // Leere Fenster (Tage ohne Werte) beenden die Schleife nicht; gescheiterte werden halbiert, wiederholt oder als Lücke gemeldet (s. u.).
+    const von = stand && typeof stand.bisMs === "number" ? Math.min(stand.bisMs, jetzt) - v.ueberlappungMs : jetzt - ersterZeitraumMs(v);
     const bericht = { vonMs: von, bisMs: von, gelesen: 0, neu: 0, ersetzt: 0, luecken: [] };
     ergebnis.arten[typ] = bericht;
     const mfArt = ART_ZU_PAKET[typ];
@@ -5214,7 +5401,7 @@ async function herzschlaegeFuer(bruecke, sitzungen) {
   }
   return { herzschlaege };
 }
-return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, VORGABEN, mitZeitgrenze, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, hatSchlafphasen, quellenAnzeige, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, synchronisieren };
+return { RECORD_TYPEN, ART_ZU_PAKET, SCHLAFSTUFEN, TRAININGSARTEN, TAG_MS, VORGABEN, mitZeitgrenze, ersterZeitraumMs, SYNC_PRAEFIX, herzschlaegeAus, hauttempAus, schlafAus, hatSchlafphasen, quellenAnzeige, trainingAus, zuordnen, findeBruecke, verfuegbar, berechtigungen, erteilteRechte, synchronisieren };
 })();
 
 // ===== daten/bruecke_capacitor.js
@@ -5241,6 +5428,7 @@ function plugin(ziel) {
  * Brücke einrichten. Methoden:
  *   verfuegbar()                 → { verfuegbar, status, hauttemp, verlauf }
  *   berechtigungen(arten)        → { erteilt: string[] }   (öffnet den Health-Connect-Dialog, wenn nötig)
+ *   erteilt(arten)               → { erteilt: string[] }   (nur nachsehen, nie ein Dialog; für den Abgleich beim Start)
  *   lesen(art, vonMs, bisMs)     → Datensätze im Brückenformat (docs/technik/healthconnect.md)
  *   einstellungen()              → öffnet die Health-Connect-Einstellungen
  * @returns {object|null} die Brücke oder null, wenn kein Plugin da ist
@@ -5251,6 +5439,7 @@ function installiereBruecke(ziel = globalThis) {
   const bruecke = {
     verfuegbar: () => p.verfuegbar(),
     berechtigungen: (arten) => p.berechtigungen({ arten }),
+    erteilt: (arten) => p.erteilt({ arten }),
     lesen: async (art, vonMs, bisMs) => {
       const r = await p.lesen({ art, vonMs: Math.round(vonMs), bisMs: Math.round(bisMs) });
       return (r && r.datensaetze) || [];
@@ -5800,6 +5989,7 @@ const __m_daten_verbinden_js = (() => {
 //       herkunft ({ hrv: { "com.whoop.android": 12 }, … } schreibende Apps je MF-Art), schlafPhasen ({ mit, ohne } Nächte mit/ohne echte Schlafstufen) }
 //     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
+//   MF.daten.healthConnect.erteilt()           → { erteilt, fehlend } | null (nur nachsehen, ohne Dialog; null = unbekannt)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
 //   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, zeitraum, hinweise, dateien }
 //     arten = Anzahl eingelesener Datensätze je Art ({ schlaf: 7, training: 5, … }, nur Arten > 0, Summe = neu + ersetzt),
@@ -5897,6 +6087,8 @@ function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis), jetz
       },
       /** Leserechte nur anfragen, ohne abzugleichen. */
       berechtigungen: (arten = hc.RECORD_TYPEN) => hc.berechtigungen(holeBruecke(), arten),
+      /** Schon erteilte Rechte nachsehen, ohne Dialog (null, wenn die App-Fassung das nicht kann). */
+      erteilt: (arten = hc.RECORD_TYPEN) => hc.erteilteRechte(holeBruecke(), arten),
       synchronisieren: abgleichen,
     },
 
@@ -6164,7 +6356,9 @@ function abstand(wert, mittel, fmt) {
 
 function ansicht(ctx) {
   const { bild, tag, erg } = ctx, B = beleg(ctx.register);
-  if (!bild) return leererTag(ctx, t("heute_titel"), "keine_daten_tag", "heute");
+  // Überschrift: „Heute“ nur am Kalendertag heute, sonst der gewählte Tag („Fr., 30. Okt.“) – auch auf dem leeren Tag
+  const istHeute = !ctx.heute || tag === ctx.heute, titel = istHeute ? t("heute_titel") : tagLang(tag);
+  if (!bild) return leererTag(ctx, titel, "keine_daten_tag", "heute");
   belegeTag(B, bild);
   const e = bild.erholung, hatErholung = e && e.wert !== null && e.wert !== undefined;
 
@@ -6195,10 +6389,10 @@ function ansicht(ctx) {
   const kacheln = [
     // Ohne Pulswerte und ohne Training (Ruhetag im WHOOP-Export) steht ein Strich statt einer Null als Messwert
     bel.gemessen
-      ? kennzahlKachel({ titel: t("kachel_belastung"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
+      ? kennzahlKachel({ titel: t(istHeute ? "kachel_belastung" : "kachel_belastung_tag"), wert: belastungText(bel.wert), einheit: t("einheit_von21"), q: `belastung:${tag}`,
         bild: minibogen({ anteilBp: Math.round((bel.wert / 210) * 10000), klasse: "vz-akzent" }).svg,
         vergleich: vergleich(bel.wert, bild.basis.belastung, belastungText), delta: { text: abstand(bel.wert, bild.basis.belastung?.n ? bild.basis.belastung.mittel : NaN, belastungText), q: `belastung:${tag}` } })
-      : kennzahlKachel({ titel: t("kachel_belastung"), wert: "–", q: "" }),
+      : kennzahlKachel({ titel: t(istHeute ? "kachel_belastung" : "kachel_belastung_tag"), wert: "–", q: "" }),
     kennzahlKachel({ titel: t("kachel_schlaf"), wert: bild.schlafRoh ? dauerKurz(s.dauerMs) : "–", q: bild.schlafRoh ? `schlaf-dauer:${tag}` : "",
       bild: ph ? streifen({ segmente: ["tief", "rem", "leicht", "wach"].map((a) => ({ wert: ph[a] || 0, klasse: PHASEN_KLASSE[a], name: t("phase_" + a), text: dauer(ph[a] || 0) })) }).svg : "",
       vergleich: bild.schlafRoh ? (s.dauerMs < s.bedarfMs ? { richtung: "runter", text: t("vgl_bedarf_unter") } : { richtung: "gleich", text: t("vgl_bedarf_gedeckt") }) : null,
@@ -6217,8 +6411,8 @@ function ansicht(ctx) {
   const gliederung = hatErholung ? `<details class="mf-gliederung"><summary>${esc(t("heute_gliederung"))}</summary><div class="mf-gl-inhalt"><p class="mf-leise">${esc(t("heute_gliederung_satz"))}</p>${teile}</div></details>` : "";
 
   return `<div class="mf-sicht" data-sicht="heute">
-    ${kopf(t("heute_titel"))}
-    <div class="mf-held mf-held-heute">${kernaussage(kernsatz(bild, tag === ctx.heute))}${held}</div>
+    ${kopf(titel)}
+    <div class="mf-held mf-held-heute">${kernaussage(kernsatz(bild, istHeute))}${held}</div>
     <div class="mf-kacheln mf-vier">${kacheln}</div>
     ${gliederung}
     ${bild.fremd ? `<p class="mf-vgl-link" data-heute-vergleich><a class="mf-link" href="#/vergleich?feld=erholung&amp;tag=${esc(tag)}">${esc(t("heute_vgl_link"))}</a></p>` : ""}
@@ -7262,6 +7456,8 @@ const __m_shell_apps_daten_js = (() => {
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
  * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls, herkunft, schlafPhasen }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Health Connect: neben „Verbinden“ steht, sobald verbunden, „Jetzt abgleichen“ (data-aktion="abgleich", fängt die Shell) und darunter
+ * „Zuletzt abgeglichen: vor 3 Minuten“ (ctx.abgleich, data-abgleich-zeit) mit dem Hinweis, dass WHOOP erst selbst abgleichen muss.
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -7274,6 +7470,7 @@ const { maxPulsAus, schlafBasisStandardMs } = __m_shell_kern_js;
 // Beschriftung „Ruhepuls“ steht in kern/i18n.js (shell/i18n wird parallel umgebaut)
 const { kernText } = __m_shell_kern_echt_js;
 const { ARTEN } = __m_daten_ablage_js;
+const { abgleichText } = __m_shell_rahmen_js;
 
 /** „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, … Zeitraum: … bis ….“ – reiner Text für die Statuszeile. */
 function importText(r, dateien = []) {
@@ -7329,8 +7526,11 @@ function kopfDetails(hinweise = []) {
 const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p><div class="mf-details" data-details="${id}"></div></section>`;
 
 function daten(ctx) {
+  const ab = ctx.abgleich || {}, verbunden = !!ab.verbunden;
   const hc = ctx.hcVerfuegbar
-    ? `<div class="mf-knopfreihe"><button type="button" class="mf-knopf primaer" data-aktion="hc">${esc(t("hc_verbinden"))}</button></div>`
+    ? `<div class="mf-knopfreihe"><button type="button" class="mf-knopf${verbunden ? "" : " primaer"}" data-aktion="hc">${esc(t("hc_verbinden"))}</button>${verbunden ? `<button type="button" class="mf-knopf primaer" data-aktion="abgleich"${ab.laeuft ? " disabled" : ""}>${esc(t("abgleich_jetzt"))}</button>` : ""}</div>
+      ${verbunden ? `<p class="mf-leise" data-abgleich-zeit>${esc(abgleichText(ab))}</p>` : ""}
+      <p class="mf-leise">${esc(t("abgleich_whoop_hinweis"))}</p>`
     : `<p class="mf-hinweis">${esc(t("hc_nur_android"))}</p>`;
   const csv = ctx.csvVerfuegbar
     ? `<div class="mf-knopfreihe"><label class="mf-knopf"><input type="file" accept=".csv,.zip,text/csv,application/zip" multiple class="mf-versteckt" data-aktion="csv">${esc(t("csv_waehlen"))}</label></div>`
@@ -8494,13 +8694,21 @@ const __m_shell_shell_js = (() => {
  *       · #/daten · #/einstellungen · #/vergleich?feld=&tag= · #/mehr/pruefen
  * Speicher-Schlüssel: einstellungen · tagebuch:<JJJJ-MM-TT> (eigene Einträge) · messung:<art>:<JJJJ-MM-TT> (eigene Messwerte, abgelegt von
  *   der Datenschicht daten/ablage.js) · sync:… (Stand des Health-Connect-Abgleichs, daten/healthconnect.js)
- * Datenschicht: daten/verbinden.js installiert window.MF.daten (healthConnect.verfuegbar/verbinden, csvImport) auf demselben Speicher;
+ *   · hc:verbunden ({ zeitpunktMs, erteilt }) · hc:letzter_abgleich (ms) – Merkzeichen der Shell zum selbsttätigen Abgleich
+ * Datenschicht: daten/verbinden.js installiert window.MF.daten (healthConnect.verfuegbar/verbinden/erteilt/synchronisieren, csvImport) auf demselben Speicher
+ *   und richtet in der Android-App bei jedem Zugriff selbst die Health-Connect-Brücke ein (sucheBruecke → window.MF.native.healthConnect);
  *   nach jedem Einlesen liest die Shell die Messwerte neu aus dem Speicher.
+ * Abgleich (shell/abgleich.js): Ist Health Connect schon einmal verbunden (hc:verbunden, ein Stand sync:healthconnect:… oder erteilte
+ *   Rechte), holt die Shell nach dem ersten Bild im Hintergrund neue Werte – beim Start, bei Rückkehr in die App (visibilitychange,
+ *   Capacitor „resume“, App-Plugin appStateChange) und auf Knopfdruck/Herunterziehen. Nie zwei gleichzeitig, selbsttätig höchstens
+ *   einmal pro Minute. Danach: neu rechnen, Ansicht neu zeichnen, leise Meldung „12 neue Messwerte“ (bei 0 keine). hc:letzter_abgleich = ms.
+ * Tag: tagWaehlen() (shell/abgleich.js) – „heute“, „letzter“ (heute noch ohne Werte) oder „hand“ (selbst geblättert); nur „hand“ bleibt stehen.
  */
 const { t, setzeSprache, sprache } = __m_shell_i18n_i18n_js;
-const { esc } = __m_shell_format_js;
-const { neuesRegister } = __m_shell_ui_js;
-const { kopfHtml, menueHtml, reiterHtml, REITER } = __m_shell_rahmen_js;
+const { esc, zahl } = __m_shell_format_js;
+const { neuesRegister, IKON } = __m_shell_ui_js;
+const { kopfHtml, menueHtml, reiterHtml, abgleichZeileHtml, abgleichText, REITER } = __m_shell_rahmen_js;
+const { neuerAbgleicher, istVerbunden, tagWaehlen, zugAuswerten, ZUG_SCHWELLE_PX, SCHLUESSEL: ABGLEICH } = __m_shell_abgleich_js;
 const { vizTastatur } = __m_shell_viz_viz_js;
 const { speicherServer } = __m_shell_speicher_server_js;
 const { sprite } = __m_shell_icons_js;
@@ -8536,7 +8744,10 @@ function wegLesen(hash) {
   return { teile, abfrage };
 }
 
-const Z = { hcVerfuegbar: false, speicher: null, einst: {}, messwerte: null, demo: true, tagebuchEigen: {}, erg: null, tag: null, heute: null, register: neuesRegister(), aufraeumen: () => {} };
+const Z = { hcVerfuegbar: false, speicher: null, einst: {}, messwerte: null, demo: true, tagebuchEigen: {}, erg: null, tag: null, tagModus: null, heute: null, kalender: null,
+  abgleich: { bekannt: false, verbunden: false, laeuft: false, fehler: false, letzterMs: null, arten: null }, register: neuesRegister(), aufraeumen: () => {} };
+// Tagesansichten mit der leisen Abgleich-Zeile oben (shell/rahmen.js abgleichZeileHtml)
+const MIT_ABGLEICH = new Set(["heute", "schlaf", "belastung"]);
 const anzahl = (d) => DATEN_ARTEN.reduce((s, k) => s + (Array.isArray(d?.[k]) ? d[k].length : 0), 0);
 
 function themaAnwenden() {
@@ -8556,9 +8767,12 @@ async function ladeAlles() {
   for (const k of await Z.speicher.liste("tagebuch:")) { const e = await Z.speicher.lies(k); if (e?.tag) Z.tagebuchEigen[e.tag] = e; }
   rechnen();
   const kalender = tagIso(Date.now());
+  Z.kalender = kalender;
   Z.heute = Z.demo ? (Z.erg.letzter || kalender) : (Z.erg.letzter && Z.erg.letzter > kalender ? Z.erg.letzter : kalender);
-  // Startet heute ohne Messwerte (Uhr noch nicht abgeglichen), zeigt die Shell den letzten Tag mit Werten
-  if (!Z.tag || Z.tag > Z.heute || (Z.erg.erster && Z.tag < Z.erg.erster)) Z.tag = Z.erg.tage.has(Z.heute) || !Z.erg.letzter ? Z.heute : Z.erg.letzter;
+  // Startet heute ohne Messwerte (Uhr noch nicht abgeglichen), zeigt die Shell den letzten Tag mit Werten (modus „letzter“);
+  // kommen später Werte für heute (Abgleich), springt sie auf heute. Selbst geblätterte Tage (modus „hand“) bleiben stehen.
+  const w = tagWaehlen({ tag: Z.tag, modus: Z.tagModus, heute: Z.heute, erster: Z.erg.erster, letzter: Z.erg.letzter, hatHeute: Z.erg.tage.has(Z.heute) });
+  Z.tag = w.tag; Z.tagModus = w.modus;
 }
 /** Einstellungen für den Kern: bei Demodaten gelten die der Musterperson, soweit du nichts eingetragen hast. */
 const einstFuerKern = () => ({ ...(Z.demo ? Z.messwerte.einstellungen || {} : {}), ...Object.fromEntries(Object.entries(Z.einst).filter(([, w]) => w !== null && w !== undefined && w !== "")) });
@@ -8580,7 +8794,7 @@ function herunterladen(name, text) {
 /** Die Datenschicht hat schon in den Speicher geschrieben (messung:…); die Shell liest neu und rechnet. */
 async function eigeneDatenUebernehmen(ergebnis) {
   if (!ergebnis || typeof ergebnis !== "object") throw new Error("keine Messwerte");
-  Z.tag = null; await ladeAlles(); zeichnen();
+  Z.tag = null; Z.tagModus = null; await ladeAlles(); zeichnen();
   return Number.isFinite(ergebnis.neu) ? ergebnis.neu + (ergebnis.ersetzt || 0) : anzahl(ergebnis);
 }
 
@@ -8588,6 +8802,11 @@ const aktionen = {
   /** fortschritt({ art, nr, von, gelesen }) kommt vor jedem Lesefenster (daten/healthconnect.js); Rückgabe wie bei csvEinlesen. */
   async hcVerbinden(fortschritt) {
     const r = await window.MF.daten.healthConnect.verbinden(undefined, { fortschritt });
+    // Merken: verbunden (für den Abgleich beim nächsten Start) und wann zuletzt abgeglichen
+    const jetzt = Date.now();
+    await Z.speicher.schreib(ABGLEICH.verbunden, { zeitpunktMs: jetzt, erteilt: Array.isArray(r?.erteilt) ? r.erteilt : [] });
+    await Z.speicher.schreib(ABGLEICH.letzter, jetzt);
+    Object.assign(Z.abgleich, { bekannt: true, verbunden: true, fehler: false, letzterMs: jetzt, arten: Array.isArray(r?.erteilt) && r.erteilt.length ? r.erteilt : Z.abgleich.arten });
     const n = await eigeneDatenUebernehmen(r);
     const leer = (k) => !(Z.messwerte?.[k]?.length > 0);
     return {
@@ -8616,7 +8835,8 @@ const aktionen = {
   async allesLoeschen() {
     if (Z.speicher.loescheAlles) await Z.speicher.loescheAlles();
     else for (const k of await Z.speicher.liste("")) await Z.speicher.schreib(k, undefined);
-    Z.tag = null; await ladeAlles(); themaAnwenden(); spracheAnwenden();
+    Z.tag = null; Z.tagModus = null; await ladeAlles(); themaAnwenden(); spracheAnwenden();
+    Object.assign(Z.abgleich, { verbunden: false, letzterMs: null, fehler: false, arten: null });
     location.hash = "#/heute"; zeichnen();
   },
   async einstellungenSetzen(teil) {
@@ -8633,7 +8853,7 @@ function kontext(weg) {
   return {
     demoEinstellungen: Z.demo ? Z.messwerte.einstellungen || null : null, tag: Z.tag, heute: Z.heute, bild: Z.erg.tage.get(Z.tag) || null, erg: Z.erg, einst: Z.einst, demo: Z.demo, route: weg, register: Z.register,
     tagebuchEigen: Z.tagebuchEigen, atemHeuteMs: Number(Z.tagebuchEigen[Z.heute]?.eintraege?.atem) || 0,
-    hcVerfuegbar: Z.hcVerfuegbar, csvVerfuegbar: typeof window.MF?.daten?.csvImport === "function",
+    hcVerfuegbar: Z.hcVerfuegbar, abgleich: { ...Z.abgleich }, csvVerfuegbar: typeof window.MF?.daten?.csvImport === "function",
     aktionen,
     tagebuchSetzen: (tag, k, w) => tagebuchSchreiben(tag, (e) => ({ ...e, [k]: w })),
     atemSpeichern: (ms) => tagebuchSchreiben(Z.heute, (e) => ({ ...e, atem: (Number(e.atem) || 0) + ms, atemuebung: true })),
@@ -8652,7 +8872,8 @@ function zeichnen() {
   const chip = Z.demo && !["daten", "einstellungen", "atem", "mehr", "sync"].includes(id) ? `<div class="mf-chip" data-demo><i aria-hidden="true"></i><span>${esc(t("demo_chip"))}</span><a class="mf-knopf" href="#/daten">${esc(t("demo_verbinden"))}</a></div>` : "";
   let inhalt;
   try { inhalt = app.ansicht(kontext(weg)); } catch (e) { console.error(e); inhalt = `<p class="mf-hinweis">${esc(t("fehler_start", { text: e?.message || e }))}</p>`; }
-  wurzel.innerHTML = `${kopfHtml({ tag: Z.tag, heute: Z.heute, erster: Z.erg.erster, thema: Z.einst.thema })}${menueHtml()}<main class="mf-haupt" id="mf-haupt" tabindex="-1">${chip ? `<div class="mf-sicht-chip">${chip}</div>` : ""}${inhalt}</main>${reiterHtml(aktiv)}`;
+  const zeile = MIT_ABGLEICH.has(id) ? abgleichZeileHtml({ hcVerfuegbar: Z.hcVerfuegbar, ...Z.abgleich }) : "";
+  wurzel.innerHTML = `${kopfHtml({ tag: Z.tag, heute: Z.heute, erster: Z.erg.erster, thema: Z.einst.thema })}${menueHtml()}<main class="mf-haupt" id="mf-haupt" tabindex="-1">${zeile}${chip ? `<div class="mf-sicht-chip">${chip}</div>` : ""}${inhalt}</main>${reiterHtml(aktiv)}`;
   document.body.dataset.reiter = aktiv;
   if (typeof app.binde === "function") Z.aufraeumen = app.binde(wurzel.querySelector("#mf-haupt"), kontext(weg)) || (() => {});
   // Reiter merken sich die Stelle: zurück zu einer Ansicht = dieselbe Scrollhöhe; neue Ansichten tauchen gestaffelt auf
@@ -8681,11 +8902,14 @@ function klicks() {
       Z.tag = w === "heute" ? Z.heute : w === "letzter" ? (Z.erg.letzter || Z.heute) : tagPlus(Z.tag, Number(w));
       if (Z.tag > Z.heute) Z.tag = Z.heute;
       if (Z.erg.erster && Z.tag < Z.erg.erster) Z.tag = Z.erg.erster;
+      // „Zum letzten Tag“ folgt neuen Werten (modus letzter), heute bleibt heute, sonst bleibt der Tag stehen (hand)
+      Z.tagModus = w === "letzter" ? "letzter" : Z.tag === Z.heute ? "heute" : "hand";
       const weg = wegLesen(location.hash);
       if (weg.teile[0] === "belastung" && weg.teile[1] === "training") location.hash = "#/belastung"; else zeichnen();
       document.querySelector(`[data-tag="${w}"]:not(:disabled)`)?.focus();
       return;
     }
+    if (ev.target.closest('[data-aktion="abgleich"]')) { ev.preventDefault(); abgleichStarten({ erzwingen: true, grund: "knopf" }); return; }
     const kopfK = ev.target.closest("[data-kopf]");
     if (kopfK) {
       const a = kopfK.dataset.kopf;
@@ -8698,6 +8922,146 @@ function klicks() {
   dialog.addEventListener("click", (ev) => { if (ev.target === dialog) dialog.close?.(); });
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") menueSchalten(false); });
   window.addEventListener("hashchange", () => { menueSchalten(false); if (dialog.open) dialog.close?.(); zeichnen(); });
+}
+
+// ------------------------------------------------------------------ Abgleich mit Health Connect (Start, Rückkehr, Knopf, Herunterziehen)
+const hcDaten = () => window.MF?.daten?.healthConnect;
+
+async function abgleichAusfuehren() {
+  Object.assign(Z.abgleich, { laeuft: true, fehler: false }); abgleichAnzeigen();
+  try {
+    const hc = hcDaten();
+    // Nur freigegebene Arten lesen: erst ohne Dialog nachsehen, sonst die beim Verbinden gemerkten, sonst alle
+    let arten = null;
+    try { arten = (await hc.erteilt?.())?.erteilt || null; } catch { arten = null; }
+    if (!arten?.length) arten = Z.abgleich.arten;
+    const r = await hc.synchronisieren(arten?.length ? { arten } : {});
+    const berichte = Object.values(r?.arten || {});
+    if (berichte.length && berichte.every((b) => b.fehler)) throw new Error(berichte[0].fehler);
+    Z.abgleich.letzterMs = Date.now();
+    await Z.speicher.schreib(ABGLEICH.letzter, Z.abgleich.letzterMs);
+    return { neu: Number(r?.neu) || 0 };
+  } finally {
+    Z.abgleich.laeuft = false;
+  }
+}
+const abgleicher = neuerAbgleicher({ ausfuehren: abgleichAusfuehren });
+
+/** Abgleich anstoßen; nur der erste von gleichzeitigen Anstößen zeichnet danach neu. */
+async function abgleichStarten({ erzwingen = false, grund = "" } = {}) {
+  if (!Z.hcVerfuegbar || !Z.abgleich.verbunden || typeof hcDaten()?.synchronisieren !== "function") return null;
+  const schonLaufend = abgleicher.laeuft();
+  let erg;
+  try { erg = await abgleicher.anstossen({ erzwingen, grund }); } catch (e) {
+    if (!schonLaufend) { console.warn("Abgleich:", e); Z.abgleich.fehler = true; abgleichAnzeigen(); }
+    return null;
+  }
+  if (schonLaufend || erg?.uebersprungen) return erg;
+  if (erg.neu > 0) {
+    await ladeAlles();
+    // Nicht mitten ins Tippen oder in ein offenes Belegfenster zeichnen; die Werte sind trotzdem schon neu gerechnet
+    const dialogOffen = document.getElementById("mf-beleg")?.open;
+    const tippt = document.activeElement?.matches?.("#mf-haupt input, #mf-haupt select, #mf-haupt textarea");
+    if (dialogOffen || tippt) abgleichAnzeigen(); else zeichnen();
+    meldung(erg.neu === 1 ? t("abgleich_neu_eins") : t("abgleich_neu", { n: zahl(erg.neu) }));
+  } else abgleichAnzeigen();
+  return erg;
+}
+
+/** Zeile „Zuletzt abgeglichen …“ und die Zeit in Daten auffrischen, ohne die Ansicht neu zu zeichnen. */
+function abgleichAnzeigen() {
+  const a = { hcVerfuegbar: Z.hcVerfuegbar, ...Z.abgleich };
+  for (const el of document.querySelectorAll("[data-abgleich-zeile]")) { const html = abgleichZeileHtml(a); if (html) el.outerHTML = html; else el.remove(); }
+  for (const el of document.querySelectorAll("[data-abgleich-zeit]")) el.textContent = abgleichText(a);
+  for (const el of document.querySelectorAll('button.mf-knopf[data-aktion="abgleich"]')) el.disabled = !!a.laeuft;
+}
+
+let meldungZeit = 0;
+/** Leise Meldung unten (verschwindet nach 3 s); kein Fenster, nichts zu bestätigen. */
+function meldung(text) {
+  let el = document.querySelector(".mf-toast");
+  if (!el) { el = Object.assign(document.createElement("div"), { className: "mf-toast" }); el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite"); document.body.append(el); }
+  el.textContent = text;
+  requestAnimationFrame(() => el.classList.add("an"));
+  clearTimeout(meldungZeit);
+  meldungZeit = setTimeout(() => el.classList.remove("an"), 3000);
+}
+
+/** Zurück in der App: neuer Kalendertag → neu rechnen; dann abgleichen (höchstens einmal pro Minute). */
+async function beiRueckkehr(grund) {
+  if (tagIso(Date.now()) !== Z.kalender) { await ladeAlles(); zeichnen(); }
+  else abgleichAnzeigen();
+  abgleichStarten({ grund });
+}
+
+/** Herunterziehen oben auf der Seite (> 80 px) = Aktualisieren; die Anzeige bewegt sich nur per transform. */
+function zugEinrichten() {
+  const anzeige = Object.assign(document.createElement("div"), { className: "mf-zug", innerHTML: IKON.sync });
+  anzeige.setAttribute("aria-hidden", "true");
+  document.body.append(anzeige);
+  let startY = null, bereit = false;
+  const oben = () => (document.scrollingElement || document.documentElement).scrollTop;
+  const ende = (ev) => {
+    if (startY === null) return;
+    startY = null;
+    anzeige.classList.remove("zieht", "bereit"); anzeige.style.transform = ""; anzeige.style.opacity = "";
+    if (bereit && ev.type === "touchend") abgleichStarten({ erzwingen: true, grund: "ziehen" });
+    bereit = false;
+  };
+  document.addEventListener("touchstart", (ev) => {
+    startY = null;
+    if (ev.touches.length !== 1 || oben() > 0 || !Z.hcVerfuegbar || !Z.abgleich.verbunden || document.getElementById("mf-beleg")?.open) return;
+    if (!document.querySelector("[data-abgleich-zeile]")) return;   // nur in den Tagesansichten
+    startY = ev.touches[0].clientY; bereit = false;
+  }, { passive: true });
+  document.addEventListener("touchmove", (ev) => {
+    if (startY === null) return;
+    const z = zugAuswerten({ startY, y: ev.touches[0].clientY, scrollTop: oben() });
+    bereit = z.bereit;
+    anzeige.classList.add("zieht"); anzeige.classList.toggle("bereit", bereit);
+    anzeige.style.transform = `translate(-50%, ${Math.round(z.ausschlag)}px) rotate(${Math.round(z.abstand * 2)}deg)`;
+    anzeige.style.opacity = String(Math.min(1, z.abstand / ZUG_SCHWELLE_PX));
+  }, { passive: true });
+  document.addEventListener("touchend", ende, { passive: true });
+  document.addEventListener("touchcancel", ende, { passive: true });
+}
+
+let uhr = 0;
+/** „vor 3 Minuten“ weiterzählen, solange die App sichtbar ist (eine Auffrischung je Minute, kein Neuzeichnen). */
+function uhrStellen() {
+  clearTimeout(uhr);
+  uhr = setTimeout(() => { if (document.visibilityState !== "hidden") abgleichAnzeigen(); uhrStellen(); }, 60 * 1000);
+}
+
+async function abgleichEinrichten() {
+  try {
+    if (Z.hcVerfuegbar) {
+      const flag = await Z.speicher.lies(ABGLEICH.verbunden);
+      const stand = await Z.speicher.liste("sync:healthconnect:");
+      let erteilt = null;
+      if (!flag && !stand.length) { try { erteilt = (await hcDaten()?.erteilt?.())?.erteilt || null; } catch { erteilt = null; } }
+      Object.assign(Z.abgleich, {
+        verbunden: istVerbunden({ flag, standSchluessel: stand, erteilt }),
+        arten: Array.isArray(flag?.erteilt) && flag.erteilt.length ? flag.erteilt : erteilt?.length ? erteilt : null,
+        letzterMs: Number(await Z.speicher.lies(ABGLEICH.letzter)) || null,
+      });
+    }
+    Z.abgleich.bekannt = true;
+    // Zeile nachtragen (das erste Bild kam ohne sie, damit der Start nicht wartet)
+    if (MIT_ABGLEICH.has(wegLesen(location.hash).teile[0]) && !document.querySelector("[data-abgleich-zeile]")) {
+      const html = abgleichZeileHtml({ hcVerfuegbar: Z.hcVerfuegbar, ...Z.abgleich });
+      if (html) document.getElementById("mf-haupt")?.insertAdjacentHTML("afterbegin", html);
+    }
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") beiRueckkehr("sichtbar"); });
+    document.addEventListener("resume", () => beiRueckkehr("resume"));   // Capacitor meldet die Rückkehr auch als Dokument-Ereignis
+    const app = window.Capacitor?.Plugins?.App;
+    if (app && typeof app.addListener === "function") {
+      Promise.resolve().then(() => app.addListener("appStateChange", (s) => { if (s?.isActive) beiRueckkehr("app"); })).catch(() => {});
+    }
+    zugEinrichten();
+    uhrStellen();
+    await abgleichStarten({ grund: "start" });
+  } catch (e) { console.warn("Abgleich einrichten:", e); }
 }
 
 async function start() {
@@ -8714,6 +9078,8 @@ async function start() {
     window.MF = Object.assign(window.MF || {}, { shell: { neuLaden: async () => { await ladeAlles(); zeichnen(); }, speicher: Z.speicher } });
     klicks();
     zeichnen();
+    // Erst das Bild, dann im Hintergrund abgleichen (blockiert nie den Start)
+    abgleichEinrichten();
   } catch (e) {
     console.error(e);
     const w = document.getElementById("mf-wurzel");

@@ -415,3 +415,25 @@ Object.assign(TEXTE, {
   atem_puls_gespeichert: ["Die Pulswerte stehen mit im Tagebuch.", "The heart rate values are also saved in your journal."],
   atem_puls_demo: ["Erfundene Werte (Demo-Puls) – nicht gespeichert.", "Made-up values (demo heart rate) – not saved."],
 });
+
+// ------------------------------------------------------------------ Abgleich mit Health Connect beim Start und bei Rückkehr (shell/abgleich.js)
+// Angehängt am 01.11.2026; eigener Block wie oben.
+Object.assign(TEXTE, {
+  abgleich_zuletzt: ["Zuletzt abgeglichen: {wann}", "Last synced: {wann}"],
+  abgleich_gerade: ["gerade eben", "just now"],
+  abgleich_minute: ["vor 1 Minute", "1 minute ago"], abgleich_minuten: ["vor {n} Minuten", "{n} minutes ago"],
+  abgleich_stunde: ["vor 1 Stunde", "1 hour ago"], abgleich_stunden: ["vor {n} Stunden", "{n} hours ago"],
+  abgleich_tag: ["vor 1 Tag", "1 day ago"], abgleich_tage: ["vor {n} Tagen", "{n} days ago"],
+  abgleich_nie: ["Noch nicht abgeglichen", "Not synced yet"],
+  abgleich_aktualisieren: ["Aktualisieren", "Refresh"],
+  abgleich_laeuft: ["Neue Werte werden geholt …", "Fetching new values …"],
+  abgleich_nicht_verbunden: ["Health Connect nicht verbunden", "Health Connect not connected"],
+  abgleich_verbinden: ["Verbinden", "Connect"],
+  abgleich_neu_eins: ["1 neuer Messwert", "1 new measurement"], abgleich_neu: ["{n} neue Messwerte", "{n} new measurements"],
+  abgleich_nichts_neu: ["Keine neuen Messwerte.", "No new measurements."],
+  abgleich_fehler: ["Abgleich hat nicht geklappt", "Sync did not work"], abgleich_erneut: ["Erneut versuchen", "Try again"],
+  abgleich_jetzt: ["Jetzt abgleichen", "Sync now"],
+  abgleich_whoop_hinweis: ["Neue Werte erscheinen, nachdem die WHOOP-App ihre Daten geholt hat.", "New values appear after the WHOOP app has fetched its data."],
+  abgleich_ziehen: ["Zum Aktualisieren loslassen", "Release to refresh"],
+  kachel_belastung_tag: ["Belastung", "Strain"],
+});

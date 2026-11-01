@@ -57,6 +57,7 @@ Hinweis: `node --test tests/node` (Ordner als Argument) funktioniert ab Node 22 
 3. **Spaltennamen des WHOOP-Exports** mit einem echten Export abgleichen (`docs/technik/daten.md`, „Was bestätigt ist“).
 4. **Auslegungen** (Loris): Tag eines Tagebucheintrags, Basis der Hauttemperatur aus CSV, Schlaf ohne Stufenangabe
    (`docs/technik/daten.md`, letzter Abschnitt).
-5. **Shell ↔ Datenschicht**: Die Shell muss `installiereBruecke(window)` und `installiere(window, { speicher })` beim Start
-   aufrufen und die Arten `spo2`, `hauttemp`, `fremdwerte` mit übernehmen.
+5. ~~**Shell ↔ Datenschicht**~~: erledigt 01.11.2026 – die Shell ruft `installiere(window, { speicher })` beim Start auf; die
+   Health-Connect-Brücke richtet die Datenschicht selbst ein (`daten/verbinden.js` `sucheBruecke`). Die Shell gleicht selbsttätig ab
+   (`shell/abgleich.js`, `docs/technik/healthconnect.md` „Abgleich“).
 6. **Play Store** (später): verlangt targetSdk 35 → Wechsel auf Capacitor 7/8 und connect-client 1.1.0.

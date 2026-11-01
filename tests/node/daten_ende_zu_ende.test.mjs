@@ -117,9 +117,9 @@ for (const opt of [
     assert.doesNotMatch(html, /NaN|undefined|\bnull\b/);
     for (const q of alleKnoepfe(html)) assert.ok(c.register.has(q), "Beleg " + q);
     assert.ok(html.includes("61") || html.includes("HRV"), "HRV-Kachel");
-    // Ruhetag: Belastungskachel zeigt einen Strich statt 0
+    // Ruhetag: Belastungskachel zeigt einen Strich statt 0; an einem anderen Tag als heute heißt sie nur „Belastung“ (Überschrift = Datum)
     const ruhe = heute.ansicht(ctx(L, "2026-10-28", ["heute"]));
-    assert.match(ruhe, /Belastung heute<\/span><span class="mf-kachel-wert"><span class="zahl-text">–/);
+    assert.match(ruhe, /<span class="mf-kachel-titel">Belastung<\/span><span class="mf-kachel-wert"><span class="zahl-text">–/);
   });
 
   test(`Ende zu Ende (${name}): Schlaf-, Belastungs-, Atem-, Trends-, Tagebuch-, Vergleichs-Ansicht und Belege`, async () => {

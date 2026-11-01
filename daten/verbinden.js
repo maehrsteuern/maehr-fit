@@ -7,6 +7,7 @@
 //       herkunft ({ hrv: { "com.whoop.android": 12 }, … } schreibende Apps je MF-Art), schlafPhasen ({ mit, ohne } Nächte mit/ohne echte Schlafstufen) }
 //     fortschritt({ typ, art, nr, von, gelesen, phase }) wird vor jedem Lesefenster gerufen (Anzeige „Lese Daten …“)
 //   MF.daten.healthConnect.berechtigungen()    → { erteilt, fehlend }      (nur Rechte, ohne Abgleich)
+//   MF.daten.healthConnect.erteilt()           → { erteilt, fehlend } | null (nur nachsehen, ohne Dialog; null = unbekannt)
 //   MF.daten.healthConnect.synchronisieren()   → { …Messpaket, arten: {…}, neu, ersetzt }
 //   MF.daten.csvImport(datei | dateien)        → { …Messpaket, neu, ersetzt, arten, zeitraum, hinweise, dateien }
 //     arten = Anzahl eingelesener Datensätze je Art ({ schlaf: 7, training: 5, … }, nur Arten > 0, Summe = neu + ersetzt),
@@ -104,6 +105,8 @@ export function erzeugeDaten({ speicher, bruecke = () => sucheBruecke(globalThis
       },
       /** Leserechte nur anfragen, ohne abzugleichen. */
       berechtigungen: (arten = hc.RECORD_TYPEN) => hc.berechtigungen(holeBruecke(), arten),
+      /** Schon erteilte Rechte nachsehen, ohne Dialog (null, wenn die App-Fassung das nicht kann). */
+      erteilt: (arten = hc.RECORD_TYPEN) => hc.erteilteRechte(holeBruecke(), arten),
       synchronisieren: abgleichen,
     },
 

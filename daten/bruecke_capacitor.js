@@ -20,6 +20,7 @@ function plugin(ziel) {
  * Brücke einrichten. Methoden:
  *   verfuegbar()                 → { verfuegbar, status, hauttemp, verlauf }
  *   berechtigungen(arten)        → { erteilt: string[] }   (öffnet den Health-Connect-Dialog, wenn nötig)
+ *   erteilt(arten)               → { erteilt: string[] }   (nur nachsehen, nie ein Dialog; für den Abgleich beim Start)
  *   lesen(art, vonMs, bisMs)     → Datensätze im Brückenformat (docs/technik/healthconnect.md)
  *   einstellungen()              → öffnet die Health-Connect-Einstellungen
  * @returns {object|null} die Brücke oder null, wenn kein Plugin da ist
@@ -30,6 +31,7 @@ export function installiereBruecke(ziel = globalThis) {
   const bruecke = {
     verfuegbar: () => p.verfuegbar(),
     berechtigungen: (arten) => p.berechtigungen({ arten }),
+    erteilt: (arten) => p.erteilt({ arten }),
     lesen: async (art, vonMs, bisMs) => {
       const r = await p.lesen({ art, vonMs: Math.round(vonMs), bisMs: Math.round(bisMs) });
       return (r && r.datensaetze) || [];

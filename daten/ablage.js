@@ -20,7 +20,8 @@ export function paketeVereinen(...pakete) {
   const ziel = leeresPaket();
   for (const p of pakete) {
     if (!p) continue;
-    for (const a of ARTEN) if (Array.isArray(p[a])) ziel[a].push(...p[a]);
+    // Schleife statt push(...p[a]): ein Abgleich über 90 Tage Herzschlag sprengt sonst den Aufrufstapel (> 100 000 Argumente)
+    for (const a of ARTEN) if (Array.isArray(p[a])) for (const d of p[a]) ziel[a].push(d);
   }
   return ziel;
 }

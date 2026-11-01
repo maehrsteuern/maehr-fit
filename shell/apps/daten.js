@@ -6,6 +6,8 @@
  *
  * Routen: #/daten · #/einstellungen. Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx).
  * Aktionen kommen von der Shell (ctx.aktionen): hcVerbinden(fortschritt) → { n, arten, zeitraum, fehler, gespeichert, ohneHrvRuhepuls, herkunft, schlafPhasen }, csvEinlesen(datei), exportieren, allesLoeschen, einstellungenSetzen(teil).
+ * Health Connect: neben „Verbinden“ steht, sobald verbunden, „Jetzt abgleichen“ (data-aktion="abgleich", fängt die Shell) und darunter
+ * „Zuletzt abgeglichen: vor 3 Minuten“ (ctx.abgleich, data-abgleich-zeit) mit dem Hinweis, dass WHOOP erst selbst abgleichen muss.
  * Health Connect und CSV liefert die Datenschicht als window.MF.daten.healthConnect.verbinden() und window.MF.daten.csvImport(datei).
  * Nach dem Einlesen steht unter der CSV-Karte, was ankam: „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, …“ und der Zeitraum
  * (csvEinlesen liefert { n, arten, zeitraum, hinweise }). Das Alter schätzt den Höchstpuls (Kern maxPulsAus, Tanaka 2001), solange
@@ -18,6 +20,7 @@ import { maxPulsAus, schlafBasisStandardMs } from "../kern.js";
 // Beschriftung „Ruhepuls“ steht in kern/i18n.js (shell/i18n wird parallel umgebaut)
 import { kernText } from "../kern_echt.js";
 import { ARTEN } from "../../daten/ablage.js";
+import { abgleichText } from "../rahmen.js";
 
 /** „55 Messwerte eingelesen: 7 Schlaf, 5 Trainings, … Zeitraum: … bis ….“ – reiner Text für die Statuszeile. */
 export function importText(r, dateien = []) {
@@ -73,8 +76,11 @@ export function kopfDetails(hinweise = []) {
 const karte = (titel, text, inhalt, id) => `<section class="mf-karte mf-abschnitt" data-karte="${id}"><h2>${esc(titel)}</h2><p class="mf-leise">${esc(text)}</p>${inhalt}<p class="mf-status" role="status" aria-live="polite" data-status="${id}"></p><div class="mf-details" data-details="${id}"></div></section>`;
 
 function daten(ctx) {
+  const ab = ctx.abgleich || {}, verbunden = !!ab.verbunden;
   const hc = ctx.hcVerfuegbar
-    ? `<div class="mf-knopfreihe"><button type="button" class="mf-knopf primaer" data-aktion="hc">${esc(t("hc_verbinden"))}</button></div>`
+    ? `<div class="mf-knopfreihe"><button type="button" class="mf-knopf${verbunden ? "" : " primaer"}" data-aktion="hc">${esc(t("hc_verbinden"))}</button>${verbunden ? `<button type="button" class="mf-knopf primaer" data-aktion="abgleich"${ab.laeuft ? " disabled" : ""}>${esc(t("abgleich_jetzt"))}</button>` : ""}</div>
+      ${verbunden ? `<p class="mf-leise" data-abgleich-zeit>${esc(abgleichText(ab))}</p>` : ""}
+      <p class="mf-leise">${esc(t("abgleich_whoop_hinweis"))}</p>`
     : `<p class="mf-hinweis">${esc(t("hc_nur_android"))}</p>`;
   const csv = ctx.csvVerfuegbar
     ? `<div class="mf-knopfreihe"><label class="mf-knopf"><input type="file" accept=".csv,.zip,text/csv,application/zip" multiple class="mf-versteckt" data-aktion="csv">${esc(t("csv_waehlen"))}</label></div>`
