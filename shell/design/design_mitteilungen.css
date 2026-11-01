@@ -1,0 +1,18 @@
+/* shell/design/design_mitteilungen.css – „Mitteilungen & Widgets“ (shell/apps/mitteilungen.js).
+   Kernaussage: Dieselben ruhigen Karten wie „Sync“ und „Daten“ – Symbol-Kachel vor dem Titel, Schalter über die ganze Breite,
+   Auswahlfelder mit großer Tippfläche, Fakten als leise Zeilen. Ein Hinweis (Mitteilungen nicht erlaubt) steht auf weicher
+   Bernstein-Fläche. Im Browser nur eine Karte mit drei Punkten. Nur Tokens aus design.css, keine Farbwerte. */
+.mt-titel { display: flex; align-items: center; gap: var(--r3); font-size: 19px; line-height: 1.2; }
+.mt-titel .mf-pfeil-ikon { width: 38px; height: 38px; border-radius: 12px; flex: none; }
+.mt-karte > .mf-leise { max-width: 60ch; }
+.mt-liste .mt-schalter { padding-left: var(--r3); padding-right: var(--r3); }
+.mt-feld select:disabled { opacity: .55; }
+.mt-fakten .mt-fakt { min-height: 56px; }
+.mt-fakten .mf-zeile-text small { overflow-wrap: anywhere; }
+.mt-hinweis { display: flex; flex-direction: column; gap: var(--r3); padding: var(--r4); border-radius: var(--radius-2); background: var(--warn-weich); color: var(--tinte); }
+.mt-hinweis p { margin: 0; }
+.mt-status:empty { display: none; }
+.mt-punkte { margin: 0; padding-left: 1.2em; display: flex; flex-direction: column; gap: var(--r2); color: var(--tinte2); }
+.mt-karte .mf-knopfreihe { flex-wrap: wrap; }
+/* Knöpfe brechen lieber in eine eigene Zeile um, als ihre Beschriftung dreizeilig zu quetschen */
+.mt-karte .mf-knopfreihe .mf-knopf { flex: 1 1 12rem; }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vorschau „Erholung“ (bis Android 11): Fläche, Ring 71 %, angedeutete Zahl. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <path android:pathData="M20,0h80a20,20 0,0 1,20 20v80a20,20 0,0 1,-20 20h-80a20,20 0,0 1,-20 -20v-80a20,20 0,0 1,20 -20z" android:fillColor="@color/mf_hg_flaeche" />
+    <path android:pathData="M60,22 A34,34 0 1,1 59.99,22" android:strokeColor="@color/mf_hg_spur" android:strokeWidth="7" android:fillColor="#00000000" />
+    <path android:pathData="M60,22 A34,34 0 1,1 27.07,64.44" android:strokeColor="@color/mf_hg_erholung_gruen" android:strokeWidth="7" android:strokeLineCap="round" android:fillColor="#00000000" />
+    <path android:pathData="M50,50h20v14h-20z" android:fillColor="@color/mf_hg_tinte" />
+    <path android:pathData="M48,100h24v4h-24z" android:fillColor="@color/mf_hg_erholung_gruen" />
+</vector>

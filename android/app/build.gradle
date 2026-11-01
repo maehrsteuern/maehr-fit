@@ -41,6 +41,8 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-core:$androidxEspressoCoreVersion"
     implementation project(':capacitor-cordova-android-plugins')
     implementation project(':healthconnect') // MAEHR FIT: Health Connect lesen
+    implementation project(':hintergrund') // MAEHR FIT: Abgleich im Hintergrund, Mitteilungen, Widgets
+    implementation "androidx.work:work-runtime-ktx:$workVersion" // WorkManager (Standard-Initialisierung im App-Prozess)
 }
 
 apply from: 'capacitor.build.gradle'

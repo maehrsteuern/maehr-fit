@@ -5,20 +5,8 @@ import androidx.activity.result.ActivityResult
 import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.HealthConnectFeatures
 import androidx.health.connect.client.PermissionController
-import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import androidx.health.connect.client.permission.HealthPermission
-import androidx.health.connect.client.records.ExerciseSessionRecord
-import androidx.health.connect.client.records.HeartRateRecord
-import androidx.health.connect.client.records.HeartRateVariabilityRmssdRecord
-import androidx.health.connect.client.records.OxygenSaturationRecord
-import androidx.health.connect.client.records.Record
-import androidx.health.connect.client.records.RespiratoryRateRecord
-import androidx.health.connect.client.records.RestingHeartRateRecord
-import androidx.health.connect.client.records.SkinTemperatureRecord
-import androidx.health.connect.client.records.SleepSessionRecord
-import androidx.health.connect.client.records.metadata.Metadata
-import androidx.health.connect.client.request.ReadRecordsRequest
-import androidx.health.connect.client.time.TimeRangeFilter
+import androidx.health.connect.client.feature.ExperimentalFeatureAvailabilityApi
 import com.getcapacitor.JSArray
 import com.getcapacitor.JSObject
 import com.getcapacitor.Plugin
@@ -26,9 +14,6 @@ import com.getcapacitor.PluginCall
 import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.ActivityCallback
 import com.getcapacitor.annotation.CapacitorPlugin
-import java.time.Instant
-import java.time.ZoneOffset
-import kotlin.reflect.KClass
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,44 +33,32 @@ import kotlinx.coroutines.withContext
  *   einstellungen()                    → öffnet Health Connect
  * Art = Health-Connect-Datenart ohne "Record": HeartRate, HeartRateVariabilityRmssd, RestingHeartRate,
  * RespiratoryRate, OxygenSaturation, SkinTemperature, SleepSession, ExerciseSession.
+ *
+ * Das Lesen selbst steckt in [HealthConnectLeser] (gemeinsam mit dem Hintergrund-Abgleich in android/plugins/hintergrund).
  */
 @CapacitorPlugin(name = "HealthConnect")
 @OptIn(ExperimentalFeatureAvailabilityApi::class)
 class HealthConnectPlugin : Plugin() {
 
     private val bereich = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val anbieter = "com.google.android.apps.healthdata"
     private val vertrag = PermissionController.createRequestPermissionResultContract()
-
-    /** Recht für Daten älter als 30 Tage vor der ersten Freigabe (nicht in connect-client 1.1.0-alpha08 als Konstante). */
-    private val rechtVerlauf = "android.permission.health.READ_HEALTH_DATA_HISTORY"
-
-    private val arten: Map<String, KClass<out Record>> = mapOf(
-        "HeartRate" to HeartRateRecord::class,
-        "HeartRateVariabilityRmssd" to HeartRateVariabilityRmssdRecord::class,
-        "RestingHeartRate" to RestingHeartRateRecord::class,
-        "RespiratoryRate" to RespiratoryRateRecord::class,
-        "OxygenSaturation" to OxygenSaturationRecord::class,
-        "SkinTemperature" to SkinTemperatureRecord::class,
-        "SleepSession" to SleepSessionRecord::class,
-        "ExerciseSession" to ExerciseSessionRecord::class,
-    )
+    private val leser by lazy { HealthConnectLeser(context) }
+    private val rechtVerlauf = HealthConnectLeser.RECHT_VERLAUF
+    private val arten = HealthConnectLeser.ARTEN
 
     override fun handleOnDestroy() {
         bereich.cancel()
         super.handleOnDestroy()
     }
 
-    private fun sdkStatus(): Int = HealthConnectClient.getSdkStatus(context, anbieter)
+    private fun sdkStatus(): Int = leser.sdkStatus()
 
-    private fun client(): HealthConnectClient = HealthConnectClient.getOrCreate(context, anbieter)
+    private fun client(): HealthConnectClient = leser.client()
 
-    private fun funktion(merkmal: Int): Boolean =
-        client().features.getFeatureStatus(merkmal) == HealthConnectFeatures.FEATURE_STATUS_AVAILABLE
+    private fun funktion(merkmal: Int): Boolean = leser.funktion(merkmal)
 
     /** Lesbare Arten auf diesem Gerät (Hauttemperatur gibt es nicht überall). */
-    private fun nutzbar(art: String): Boolean =
-        arten.containsKey(art) && (art != "SkinTemperature" || funktion(HealthConnectFeatures.FEATURE_SKIN_TEMPERATURE))
+    private fun nutzbar(art: String): Boolean = leser.nutzbar(art)
 
     // ------------------------------------------------------------------------------------------------
 
@@ -123,7 +96,7 @@ class HealthConnectPlugin : Plugin() {
     }
 
     private fun rechteFuer(liste: List<String>): Set<String> {
-        val rechte = liste.mapNotNull { arten[it] }.map { HealthPermission.getReadPermission(it) }.toMutableSet()
+        val rechte = liste.mapNotNull { HealthConnectLeser.leseRecht(it) }.toMutableSet()
         if (funktion(HealthConnectFeatures.FEATURE_HEALTH_DATA_HISTORIC_READ)) rechte.add(rechtVerlauf)
         return rechte
     }
@@ -131,7 +104,7 @@ class HealthConnectPlugin : Plugin() {
     private fun erteilteArten(liste: List<String>, erteilt: Set<String>): JSObject {
         val r = JSObject()
         val ja = JSArray()
-        liste.filter { a -> arten[a]?.let { erteilt.contains(HealthPermission.getReadPermission(it)) } == true }
+        liste.filter { a -> HealthConnectLeser.leseRecht(a)?.let { erteilt.contains(it) } == true }
             .forEach { ja.put(it) }
         r.put("erteilt", ja)
         r.put("verlauf", erteilt.contains(rechtVerlauf))
@@ -205,10 +178,10 @@ class HealthConnectPlugin : Plugin() {
     @PluginMethod
     fun lesen(call: PluginCall) {
         val art = call.getString("art") ?: ""
-        val klasse = arten[art]
+        val bekannt = arten.containsKey(art)
         val vonMs = call.getLong("vonMs")
         val bisMs = call.getLong("bisMs")
-        if (klasse == null || vonMs == null || bisMs == null || bisMs <= vonMs) {
+        if (!bekannt || vonMs == null || bisMs == null || bisMs <= vonMs) {
             call.reject("Ungültige Anfrage: art, vonMs, bisMs angeben.", "ungueltig")
             return
         }
@@ -224,7 +197,7 @@ class HealthConnectPlugin : Plugin() {
             try {
                 val datensaetze = withContext(Dispatchers.IO) {
                     val aus = JSArray()
-                    alleLesen(klasse, Instant.ofEpochMilli(vonMs), Instant.ofEpochMilli(bisMs)).forEach { aus.put(alsJson(it)) }
+                    leser.lesen(art, vonMs, bisMs).forEach { aus.put(it) }
                     aus
                 }
                 val r = JSObject()
@@ -236,119 +209,5 @@ class HealthConnectPlugin : Plugin() {
                 call.reject(e.message ?: "Lesen fehlgeschlagen", "fehler", e)
             }
         }
-    }
-
-    /** Alle Seiten einer Abfrage lesen. */
-    private suspend fun <T : Record> alleLesen(klasse: KClass<T>, von: Instant, bis: Instant): List<T> {
-        val alle = mutableListOf<T>()
-        var seite: String? = null
-        do {
-            val antwort = client().readRecords(
-                ReadRecordsRequest(
-                    recordType = klasse,
-                    timeRangeFilter = TimeRangeFilter.between(von, bis),
-                    ascendingOrder = true,
-                    pageSize = 1000,
-                    pageToken = seite,
-                ),
-            )
-            alle.addAll(antwort.records)
-            seite = antwort.pageToken
-        } while (!seite.isNullOrEmpty())
-        return alle
-    }
-
-    // ------------------------------------------------------------------------------------------------
-    // Brückenformat: Feldnamen wie Health Connect, Zeiten als Unix-ms, Zeitzone als Sekunden-Versatz.
-
-    private fun meta(m: Metadata): JSObject {
-        val o = JSObject()
-        o.put("id", m.id)
-        o.put("dataOrigin", m.dataOrigin.packageName)
-        o.put("lastModifiedTime", m.lastModifiedTime.toEpochMilli())
-        return o
-    }
-
-    private fun basis(m: Metadata): JSObject {
-        val o = JSObject()
-        o.put("metadata", meta(m))
-        return o
-    }
-
-    private fun zeitpunkt(o: JSObject, t: Instant, zone: ZoneOffset?) {
-        o.put("time", t.toEpochMilli())
-        zone?.let { o.put("zoneOffsetSek", it.totalSeconds) }
-    }
-
-    private fun zeitraum(o: JSObject, von: Instant, vonZone: ZoneOffset?, bis: Instant, bisZone: ZoneOffset?) {
-        o.put("startTime", von.toEpochMilli())
-        o.put("endTime", bis.toEpochMilli())
-        vonZone?.let { o.put("startZoneOffsetSek", it.totalSeconds) }
-        bisZone?.let { o.put("endZoneOffsetSek", it.totalSeconds) }
-    }
-
-    private fun alsJson(r: Record): JSObject {
-        val o = basis(r.metadata)
-        when (r) {
-            is HeartRateRecord -> {
-                zeitraum(o, r.startTime, r.startZoneOffset, r.endTime, r.endZoneOffset)
-                val werte = JSArray()
-                r.samples.forEach { s ->
-                    val w = JSObject()
-                    w.put("time", s.time.toEpochMilli())
-                    w.put("beatsPerMinute", s.beatsPerMinute)
-                    werte.put(w)
-                }
-                o.put("samples", werte)
-            }
-            is HeartRateVariabilityRmssdRecord -> {
-                zeitpunkt(o, r.time, r.zoneOffset)
-                o.put("heartRateVariabilityMillis", r.heartRateVariabilityMillis)
-            }
-            is RestingHeartRateRecord -> {
-                zeitpunkt(o, r.time, r.zoneOffset)
-                o.put("beatsPerMinute", r.beatsPerMinute)
-            }
-            is RespiratoryRateRecord -> {
-                zeitpunkt(o, r.time, r.zoneOffset)
-                o.put("rate", r.rate)
-            }
-            is OxygenSaturationRecord -> {
-                zeitpunkt(o, r.time, r.zoneOffset)
-                o.put("percentage", r.percentage.value)
-            }
-            is SkinTemperatureRecord -> {
-                zeitraum(o, r.startTime, r.startZoneOffset, r.endTime, r.endZoneOffset)
-                r.baseline?.let { o.put("baselineCelsius", it.inCelsius) }
-                o.put("measurementLocation", r.measurementLocation)
-                val deltas = JSArray()
-                r.deltas.forEach { d ->
-                    val w = JSObject()
-                    w.put("time", d.time.toEpochMilli())
-                    w.put("deltaCelsius", d.delta.inCelsius)
-                    deltas.put(w)
-                }
-                o.put("deltas", deltas)
-            }
-            is SleepSessionRecord -> {
-                zeitraum(o, r.startTime, r.startZoneOffset, r.endTime, r.endZoneOffset)
-                r.title?.let { o.put("title", it) }
-                val stufen = JSArray()
-                r.stages.forEach { s ->
-                    val w = JSObject()
-                    w.put("startTime", s.startTime.toEpochMilli())
-                    w.put("endTime", s.endTime.toEpochMilli())
-                    w.put("stage", s.stage)
-                    stufen.put(w)
-                }
-                o.put("stages", stufen)
-            }
-            is ExerciseSessionRecord -> {
-                zeitraum(o, r.startTime, r.startZoneOffset, r.endTime, r.endZoneOffset)
-                o.put("exerciseType", r.exerciseType)
-                r.title?.let { o.put("title", it) }
-            }
-        }
-        return o
     }
 }

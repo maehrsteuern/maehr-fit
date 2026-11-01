@@ -1,0 +1,30 @@
+// Hintergrund-Abgleich, Mitteilungen und Widgets für MAEHR FIT (docs/technik/hintergrund.md).
+// Nutzt den Health-Connect-Leser aus :healthconnect, WorkManager für den stündlichen Lauf und eine unsichtbare WebView für
+// den Rechenkern (assets/kern.bundle.js, gebaut von bau.py). Mitteilungen und Widgets mit Bordmitteln (Notification.Builder,
+// RemoteViews) – ohne Compose/Glance und ohne @capacitor/local-notifications.
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+android {
+    namespace "de.maehrsteuern.fit.hintergrund"
+    compileSdk rootProject.ext.compileSdkVersion
+    defaultConfig {
+        minSdkVersion rootProject.ext.minSdkVersion
+        targetSdkVersion rootProject.ext.targetSdkVersion
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation project(':capacitor-android')
+    implementation project(':healthconnect')
+    implementation "androidx.health.connect:connect-client:$healthConnectVersion"
+    implementation "androidx.work:work-runtime-ktx:$workVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinxCoroutinesVersion"
+}

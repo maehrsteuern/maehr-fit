@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vorschau „Heute“ (bis Android 11): drei Spalten mit Zahl, darunter zwei Zeilen Satz. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="250dp"
+    android:height="120dp"
+    android:viewportWidth="250"
+    android:viewportHeight="120">
+    <path android:pathData="M20,0h210a20,20 0,0 1,20 20v80a20,20 0,0 1,-20 20h-210a20,20 0,0 1,-20 -20v-80a20,20 0,0 1,20 -20z" android:fillColor="@color/mf_hg_flaeche" />
+    <path android:pathData="M18,18h40v5h-40z" android:fillColor="@color/mf_hg_neben" />
+    <path android:pathData="M18,30h50v18h-50z" android:fillColor="@color/mf_hg_erholung_gruen" />
+    <path android:pathData="M100,18h40v5h-40z" android:fillColor="@color/mf_hg_neben" />
+    <path android:pathData="M100,30h40v18h-40z" android:fillColor="@color/mf_hg_tinte" />
+    <path android:pathData="M180,18h40v5h-40z" android:fillColor="@color/mf_hg_neben" />
+    <path android:pathData="M180,30h52v18h-52z" android:fillColor="@color/mf_hg_tinte" />
+    <path android:pathData="M18,70h214v5h-214z" android:fillColor="@color/mf_hg_tinte_2" />
+    <path android:pathData="M18,82h150v5h-150z" android:fillColor="@color/mf_hg_tinte_2" />
+    <path android:pathData="M18,100h50v4h-50z" android:fillColor="@color/mf_hg_neben" />
+</vector>

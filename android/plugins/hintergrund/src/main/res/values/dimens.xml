@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Ecken der Widgets: bis Android 11 fest, ab Android 12 wie das System (values-v31) -->
+    <dimen name="mf_widget_radius">20dp</dimen>
+    <dimen name="mf_widget_rand">14dp</dimen>
+</resources>

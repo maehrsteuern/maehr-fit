@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget „Schlaf“ 2 × 1: Mond und Dauer groß, rechts der Bedarf, darunter der Balken (Schlaf gegen Bedarf). Texte = Vorschau. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mf_w_wurzel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/mf_widget_hintergrund"
+    android:clipToOutline="true"
+    android:gravity="center_vertical"
+    android:orientation="vertical"
+    android:paddingStart="@dimen/mf_widget_rand"
+    android:paddingTop="8dp"
+    android:paddingEnd="@dimen/mf_widget_rand"
+    android:paddingBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="6dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/mf_mond" />
+
+        <TextView
+            android:id="@+id/mf_w_zahl"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-condensed"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:text="@string/mf_hg_beispiel_schlaf"
+            android:textColor="@color/mf_hg_tinte"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/mf_w_unter"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:gravity="end"
+            android:maxLines="1"
+            android:text="@string/mf_hg_vorschau_bedarf"
+            android:textColor="@color/mf_hg_neben"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/mf_w_balken"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginTop="6dp"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/mf_vorschau_balken" />
+</LinearLayout>

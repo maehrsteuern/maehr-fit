@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget „erholung“: 2 × 2 Felder. updatePeriodMillis 0 – neu gezeichnet wird nach jedem Lauf und beim Verlassen der App.
+     previewLayout/targetCell*/description ab Android 12, previewImage für ältere Fassungen. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/mf_hg_widget_erholung_text"
+    android:initialLayout="@layout/mf_widget_erholung"
+    android:minWidth="110dp"
+    android:minHeight="110dp"
+    android:minResizeWidth="90dp"
+    android:minResizeHeight="90dp"
+    android:previewImage="@drawable/mf_vorschau_erholung"
+    android:previewLayout="@layout/mf_widget_erholung"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

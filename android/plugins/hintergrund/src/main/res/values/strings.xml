@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Texte von Mitteilung und Widgets auf Android-Seite. Die Zahlen und der Satz kommen fertig aus der App (shell/i18n/i18n.js, hg_*);
+     diese Texte sind nur Rückfall und Namen für das System (Kanäle, Widget-Liste). -->
+<resources>
+    <string name="mf_hg_erholung">Erholung</string>
+    <string name="mf_hg_belastung">Belastung</string>
+    <string name="mf_hg_schlaf">Schlaf</string>
+    <string name="mf_hg_atem">Atemübung</string>
+    <string name="mf_hg_zuletzt">zuletzt {zeit}</string>
+    <string name="mf_hg_bedarf">Bedarf {wert}</string>
+    <string name="mf_hg_stufe_gruen">Grün</string>
+    <string name="mf_hg_kanal_morgen">MF Morgenbericht</string>
+    <string name="mf_hg_kanal_morgen_text">Einmal am Morgen: Erholung, Belastung und Schlaf. Ohne Ton.</string>
+    <string name="mf_hg_kanal_hinweis">MF Hinweise</string>
+    <string name="mf_hg_kanal_hinweis_text">Rote Erholung und Schlafenszeit, wenn du das in der App einschaltest. Ohne Ton.</string>
+    <string name="mf_hg_kanal_abgleich">MF Abgleich</string>
+    <string name="mf_hg_kanal_abgleich_text">Erscheint nur kurz, wenn ältere Android-Fassungen den Abgleich sofort ausführen.</string>
+    <string name="mf_hg_abgleich_laeuft">MAEHR FIT holt neue Werte …</string>
+    <string name="mf_hg_oeffentlich">Entsperren, um deine Werte zu sehen.</string>
+    <string name="mf_hg_schlafenszeit_titel">Bald Schlafenszeit</string>
+    <string name="mf_hg_widget_leer">Öffne MAEHR FIT, um deine Werte zu holen.</string>
+    <string name="mf_hg_widget_demo">Noch keine eigenen Werte – verbinde Health Connect in der App.</string>
+    <string name="mf_hg_widget_erholung_name">Erholung</string>
+    <string name="mf_hg_widget_erholung_text">Erholung von heute als Ring, mit Stufe</string>
+    <string name="mf_hg_widget_heute_name">Heute</string>
+    <string name="mf_hg_widget_heute_text">Erholung, Belastung und Schlaf mit dem Satz des Tages</string>
+    <string name="mf_hg_widget_schlaf_name">Schlaf</string>
+    <string name="mf_hg_widget_schlaf_text">Letzte Nacht gegen deinen Schlafbedarf</string>
+    <!-- Test-Mitteilung ohne eigene Werte: erfundene Beispielzahlen, klar als Beispiel benannt -->
+    <string name="mf_hg_beispiel_erholung" formatted="false">71 %</string>
+    <string name="mf_hg_beispiel_belastung">10,6</string>
+    <string name="mf_hg_beispiel_schlaf">7:42 h</string>
+    <string name="mf_hg_beispiel_bedarf">8:05 h</string>
+    <string name="mf_hg_beispiel_kern" formatted="false">Beispiel: So sieht dein Morgenbericht aus. Die Zahlen sind erfunden, bis die App eigene Werte hat.</string>
+    <string name="mf_hg_beispiel_zeile" formatted="false">Erholung 71 % · Belastung 10,6 · Schlaf 7:42 h</string>
+    <!-- Vorschau in der Widget-Liste (Beispielwerte) -->
+    <string name="mf_hg_vorschau_zuletzt">zuletzt 07:42</string>
+    <string name="mf_hg_vorschau_bedarf">Bedarf 8:05 h</string>
+    <string name="mf_hg_vorschau_satz">Du bist heute gut erholt. Die Nacht war kürzer als dein Bedarf, aber ruhig.</string>
+</resources>

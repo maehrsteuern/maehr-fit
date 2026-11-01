@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vorschau „Schlaf“ (bis Android 11): Zahl, Bedarf, Balken 92 %. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="56dp"
+    android:viewportWidth="120"
+    android:viewportHeight="56">
+    <path android:pathData="M16,0h88a16,16 0,0 1,16 16v24a16,16 0,0 1,-16 16h-88a16,16 0,0 1,-16 -16v-24a16,16 0,0 1,16 -16z" android:fillColor="@color/mf_hg_flaeche" />
+    <path android:pathData="M14,12h44v16h-44z" android:fillColor="@color/mf_hg_tinte" />
+    <path android:pathData="M70,18h36v5h-36z" android:fillColor="@color/mf_hg_neben" />
+    <path android:pathData="M14,38h92v6h-92z" android:fillColor="@color/mf_hg_spur" />
+    <path android:pathData="M14,38h85v6h-85z" android:fillColor="@color/mf_hg_akzent" />
+</vector>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Farben für Mitteilung, Widgets und gezeichnete Bilder. Werte aus shell/design/marke.css (Kleid „Nacht“), nicht neu erfunden:
+     nacht = m-nacht · flaeche = m-d-flaeche-1 · tinte = m-auf-nacht · neben = m-auf-nacht-neben · akzent = m-minze ·
+     erholung_* = m-d-erholung-* (ok, bernstein-punkt, fehler) · marke = m-h-gruen (MBS-Grün) · haarlinie ≈ m-d-haarlinie. -->
+<resources>
+    <color name="mf_hg_nacht">#0B110E</color>
+    <color name="mf_hg_flaeche">#131D19</color>
+    <color name="mf_hg_flaeche_2">#19251F</color>
+    <color name="mf_hg_tinte">#EAF1EC</color>
+    <color name="mf_hg_tinte_2">#D0D9D3</color>
+    <color name="mf_hg_neben">#A3B5AB</color>
+    <color name="mf_hg_akzent">#53C3A2</color>
+    <color name="mf_hg_erholung_gruen">#5CC98A</color>
+    <color name="mf_hg_erholung_gelb">#E6AB4F</color>
+    <color name="mf_hg_erholung_rot">#F08A83</color>
+    <color name="mf_hg_marke">#0A6551</color>
+    <!-- Spur des Rings und des Balkens: Tinte mit 12 % Deckkraft; Haarlinie mit 9 % -->
+    <color name="mf_hg_spur">#1FEAF1EC</color>
+    <color name="mf_hg_haarlinie">#17EAF1EC</color>
+    <!-- Text in Mitteilungen auf hellem System (m-h-ok, m-h-bernstein, m-h-fehler, m-h-tinte, m-h-leise); dunkel: values-night -->
+    <color name="mf_mt_erholung_gruen">#1D7A45</color>
+    <color name="mf_mt_erholung_gelb">#8F5A00</color>
+    <color name="mf_mt_erholung_rot">#B3261E</color>
+    <color name="mf_mt_text">#17201B</color>
+    <color name="mf_mt_neben">#5E6A63</color>
+</resources>

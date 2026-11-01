@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mf_hg_erholung">Recovery</string>
+    <string name="mf_hg_belastung">Strain</string>
+    <string name="mf_hg_schlaf">Sleep</string>
+    <string name="mf_hg_atem">Breathing</string>
+    <string name="mf_hg_zuletzt">updated {zeit}</string>
+    <string name="mf_hg_bedarf">Need {wert}</string>
+    <string name="mf_hg_stufe_gruen">Green</string>
+    <string name="mf_hg_kanal_morgen">MF morning report</string>
+    <string name="mf_hg_kanal_morgen_text">Once in the morning: recovery, strain and sleep. Without sound.</string>
+    <string name="mf_hg_kanal_hinweis">MF notes</string>
+    <string name="mf_hg_kanal_hinweis_text">Red recovery and bedtime, if you turn them on in the app. Without sound.</string>
+    <string name="mf_hg_kanal_abgleich">MF sync</string>
+    <string name="mf_hg_kanal_abgleich_text">Only appears briefly when older Android versions run the sync right away.</string>
+    <string name="mf_hg_abgleich_laeuft">MAEHR FIT is fetching new values …</string>
+    <string name="mf_hg_oeffentlich">Unlock to see your values.</string>
+    <string name="mf_hg_schlafenszeit_titel">Bedtime soon</string>
+    <string name="mf_hg_widget_leer">Open MAEHR FIT to fetch your values.</string>
+    <string name="mf_hg_widget_demo">No values of your own yet – connect Health Connect in the app.</string>
+    <string name="mf_hg_widget_erholung_name">Recovery</string>
+    <string name="mf_hg_widget_erholung_text">Today\'s recovery as a ring, with its level</string>
+    <string name="mf_hg_widget_heute_name">Today</string>
+    <string name="mf_hg_widget_heute_text">Recovery, strain and sleep with the sentence of the day</string>
+    <string name="mf_hg_widget_schlaf_name">Sleep</string>
+    <string name="mf_hg_widget_schlaf_text">Last night against your sleep need</string>
+    <string name="mf_hg_beispiel_erholung" formatted="false">71%</string>
+    <string name="mf_hg_beispiel_belastung">10.6</string>
+    <string name="mf_hg_beispiel_schlaf">7:42 h</string>
+    <string name="mf_hg_beispiel_bedarf">8:05 h</string>
+    <string name="mf_hg_beispiel_kern" formatted="false">Example: this is what your morning report looks like. The numbers are made up until the app has values of its own.</string>
+    <string name="mf_hg_beispiel_zeile" formatted="false">Recovery 71% · Strain 10.6 · Sleep 7:42 h</string>
+    <string name="mf_hg_vorschau_zuletzt">updated 07:42</string>
+    <string name="mf_hg_vorschau_bedarf">Need 8:05 h</string>
+    <string name="mf_hg_vorschau_satz">You are well recovered today. The night was shorter than you need, but calm.</string>
+</resources>

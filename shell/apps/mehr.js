@@ -4,12 +4,15 @@
  * Einstellungen, Sync (Handy ↔ Rechner) – und der Hinweis, dass MAEHR FIT Messwerte zeigt und keinen ärztlichen Rat gibt. Eine letzte Zeile nennt, wie viele
  * Formeln noch zu prüfen sind, und führt zu ihrer Liste (#/mehr/pruefen) mit Rechenweg und Fundstelle je Formel.
  *
- * Schnittstelle: ansicht(ctx) → HTML. Formeln: shell/kern.js pruefListe() → kern/formeln.js (kern/formeln/formeln.json).
+ * Schnittstelle: ansicht(ctx) → HTML, binde(wurzel, ctx) (nur für #/mehr/mitteilungen). Formeln: shell/kern.js pruefListe() → kern/formeln.js
+ * (kern/formeln/formeln.json). „Mitteilungen & Widgets“ liegt unter #/mehr/mitteilungen (shell/apps/mitteilungen.js), damit kein neuer
+ * Weg in shell/shell.js nötig ist.
  */
 import { t } from "../i18n/i18n.js";
 import { esc, zahl } from "../format.js";
 import { kernaussage, kopf, IKON, beleg, zahlKnopf, tHtml } from "../ui.js";
 import { pruefListe } from "../kern.js";
+import * as mitteilungen from "./mitteilungen.js";
 
 export const EINTRAEGE = [
   { id: "tagebuch", titel: "tagebuch_titel", text: "mehr_tagebuch_text" },
@@ -18,6 +21,7 @@ export const EINTRAEGE = [
   { id: "daten", titel: "daten_titel", text: "mehr_daten_text" },
   { id: "einstellungen", titel: "einstellungen_titel", text: "mehr_einstellungen_text" },
   { id: "sync", titel: "sync_titel", text: "mehr_sync_text" },
+  { id: "mehr/mitteilungen", titel: "mt_titel", text: "mehr_mitteilungen_text", ikon: "heute" },
 ];
 
 const zeile = (href, ikon, titel, text, rechts = "") => `<li><a class="mf-zeile" href="${esc(href)}"><span class="mf-pfeil-ikon" aria-hidden="true">${IKON[ikon] || IKON.mehr}</span><span class="mf-zeile-text"><strong>${esc(titel)}</strong><small>${esc(text)}</small></span>${rechts}<span class="mf-chevron">${IKON.rechts}</span></a></li>`;
@@ -49,6 +53,7 @@ function pruefen(ctx) {
 
 export function ansicht(ctx = {}) {
   if ((ctx.route?.teile || [])[1] === "pruefen") return pruefen(ctx);
+  if ((ctx.route?.teile || [])[1] === "mitteilungen") return mitteilungen.ansicht(ctx);
   const zeilen = EINTRAEGE.map((e) => zeile(`#/${e.id}`, e.ikon || e.id, t(e.titel), t(e.text))).join("");
   const n = pruefListe().length;
   const pruefZeile = zeile("#/mehr/pruefen", "pruefen", t("mehr_pruefen_titel"), t("mehr_pruefen_text"), `<span class="mf-zeile-rechts"><span class="zahl-text" data-pruefen-anzahl>${esc(zahl(n))}</span></span>`);
@@ -59,4 +64,10 @@ export function ansicht(ctx = {}) {
     <ul class="mf-liste">${pruefZeile}</ul>
     <p class="mf-hinweis" data-hinweis-medizin>${esc(t("hinweis_medizin"))}</p>
   </div>`;
+}
+
+/** Nur „Mitteilungen & Widgets“ braucht Knöpfe mit Wirkung; die Liste selbst sind reine Links. */
+export function binde(wurzel, ctx = {}) {
+  if ((ctx.route?.teile || [])[1] === "mitteilungen") return mitteilungen.binde(wurzel, ctx);
+  return () => {};
 }

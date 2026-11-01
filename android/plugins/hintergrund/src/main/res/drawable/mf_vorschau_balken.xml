@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Schlafbalken für Vorschau und ersten Aufbau: 92 % des Bedarfs. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle"><solid android:color="@color/mf_hg_spur" /><corners android:radius="3dp" /><size android:height="6dp" android:width="100dp" /></shape>
+    </item>
+    <item android:right="8dp">
+        <shape android:shape="rectangle"><solid android:color="@color/mf_hg_akzent" /><corners android:radius="3dp" /><size android:height="6dp" /></shape>
+    </item>
+</layer-list>

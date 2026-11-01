@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Text in Mitteilungen auf dunklem System: m-d-ok, m-d-bernstein, m-d-fehler, m-d-tinte, m-d-leise (shell/design/marke.css). -->
+<resources>
+    <color name="mf_mt_erholung_gruen">#5CC98A</color>
+    <color name="mf_mt_erholung_gelb">#E6AB4F</color>
+    <color name="mf_mt_erholung_rot">#F08A83</color>
+    <color name="mf_mt_text">#EEF2EF</color>
+    <color name="mf_mt_neben">#9AA79F</color>
+</resources>

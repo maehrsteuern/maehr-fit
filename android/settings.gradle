@@ -7,3 +7,7 @@ apply from: 'capacitor.settings.gradle'
 // MAEHR FIT: eigenes Health-Connect-Plugin (Kotlin), liegt im Repo, wird von "npx cap sync" nicht angefasst
 include ':healthconnect'
 project(':healthconnect').projectDir = new File('./plugins/healthconnect/')
+
+// MAEHR FIT: Hintergrund-Abgleich, Mitteilungen, Widgets (Kotlin), liegt im Repo, wird von "npx cap sync" nicht angefasst
+include ':hintergrund'
+project(':hintergrund').projectDir = new File('./plugins/hintergrund/')

@@ -6,8 +6,12 @@ eingesetzt, und alle ES-Module (Shell und Kern) werden – ausgehend von shell/s
 Reihenfolge zu einem einzigen Modul-Skript zusammengefügt. Jede Datei bleibt in ihrem eigenen Gültigkeitsbereich. Das Ergebnis ist
 deterministisch: zweimal bauen ergibt dieselben Bytes.
 
-Aufruf:  python3 bau.py            MF.html neu schreiben, Größe ausgeben
-         python3 bau.py --pruefen  nur vergleichen: Exit 1, wenn das eingecheckte MF.html veraltet ist
+Zweite Ausgabe (Android): android/app/src/main/assets/kern.bundle.js – derselbe Rechenkern als ein Skript ohne Module (eine sofort
+ausgeführte Funktion, setzt globalThis.MFKern), Einstieg android/kern_einstieg.js. Der Hintergrund-Abgleich der App rechnet damit
+die Tageszusammenfassung für Mitteilung und Widgets (docs/technik/hintergrund.md). MF.html bleibt davon unberührt.
+
+Aufruf:  python3 bau.py            MF.html und kern.bundle.js neu schreiben, Größe ausgeben
+         python3 bau.py --pruefen  nur vergleichen: Exit 1, wenn MF.html oder kern.bundle.js veraltet ist
 """
 from __future__ import annotations
 import json, pathlib, re, sys
@@ -15,6 +19,8 @@ import json, pathlib, re, sys
 WURZEL = pathlib.Path(__file__).resolve().parent
 ZIEL = WURZEL / "MF.html"
 EINSTIEG = "shell/shell.js"
+BUNDLE_EINSTIEG = "android/kern_einstieg.js"
+BUNDLE_ZIEL = WURZEL / "android/app/src/main/assets/kern.bundle.js"
 
 IMPORT_RE = re.compile(r'^[ \t]*import\s+(?:(?P<default>[A-Za-z_$][\w$]*)\s*,?\s*)?(?:\{(?P<namen>[^}]*)\}|\*\s+as\s+(?P<alle>[A-Za-z_$][\w$]*))?\s*(?:from\s+)?"(?P<pfad>[^"]+)"\s*(?:with\s*\{[^}]*\})?\s*;[ \t]*$', re.M)
 EXPORT_FROM_RE = re.compile(r'^[ \t]*export\s+\{(?P<namen>[^}]*)\}\s*from\s+"(?P<pfad>[^"]+)"\s*;[ \t]*$', re.M)
@@ -154,18 +160,33 @@ def baue() -> str:
     return html.replace('<script type="module" src="shell.js"></script>', '<script type="module">\n' + code + "</script>")
 
 
+def baue_bundle() -> str:
+    """kern.bundle.js: alle Module ab android/kern_einstieg.js in einer sofort ausgeführten Funktion (kein Modul-Skript)."""
+    kopf = "/* kern.bundle.js – erzeugt von bau.py aus android/kern_einstieg.js (Kern, Zuordnung, Texte) – nicht von Hand ändern */\n"
+    code = "\n".join(gekapselt(rel) for rel in reihenfolge(BUNDLE_EINSTIEG))
+    return kopf + "(function () {\n\"use strict\";\n" + code.replace("</script", "<\\/script") + "})();\n"
+
+
 def main(argv: list[str]) -> int:
     neu = baue()
+    bundle = baue_bundle()
     if "--pruefen" in argv:
         alt = ZIEL.read_text(encoding="utf-8") if ZIEL.exists() else ""
+        alt_bundle = BUNDLE_ZIEL.read_text(encoding="utf-8") if BUNDLE_ZIEL.exists() else ""
         if alt != neu:
             print("MF.html ist veraltet – python3 bau.py ausführen", file=sys.stderr)
             return 1
-        print("MF.html ist aktuell")
+        if alt_bundle != bundle:
+            print("kern.bundle.js ist veraltet – python3 bau.py ausführen", file=sys.stderr)
+            return 1
+        print("MF.html ist aktuell · kern.bundle.js ist aktuell")
         return 0
     ZIEL.write_text(neu, encoding="utf-8")
+    BUNDLE_ZIEL.parent.mkdir(parents=True, exist_ok=True)
+    BUNDLE_ZIEL.write_text(bundle, encoding="utf-8")
     module = reihenfolge(EINSTIEG)
     print(f"MF.html: {len(neu.encode('utf-8')) / 1000:.0f} KB · {len(module)} Module · Kern: {'kern/' if any(m.startswith('kern/') for m in module) else 'fehlt'}")
+    print(f"kern.bundle.js: {len(bundle.encode('utf-8')) / 1000:.0f} KB · {len(reihenfolge(BUNDLE_EINSTIEG))} Module (android/app/src/main/assets/)")
     return 0
 
 

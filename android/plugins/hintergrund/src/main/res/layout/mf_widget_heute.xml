@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Widget „Heute“ 4 × 2: drei Spalten Erholung · Belastung · Schlaf mit großen Zahlen, darunter der Satz aus „Heute“ und „zuletzt“.
+     Trennstriche als ImageView (RemoteViews erlauben kein reines View). Texte = Vorschau. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mf_w_wurzel"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/mf_widget_hintergrund"
+    android:clipToOutline="true"
+    android:orientation="vertical"
+    android:padding="@dimen/mf_widget_rand">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/mf_w_ring"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginEnd="8dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/mf_vorschau_ring" />
+
+        <LinearLayout
+            android:id="@+id/mf_w_erholung_spalte"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/mf_w_erholung_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:text="@string/mf_hg_erholung"
+                android:textAllCaps="true"
+                android:textColor="@color/mf_hg_neben"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/mf_w_erholung_wert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/mf_hg_beispiel_erholung"
+                android:textColor="@color/mf_hg_erholung_gruen"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="12dp"
+            android:background="@color/mf_hg_haarlinie"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:id="@+id/mf_w_belastung_spalte"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/mf_w_belastung_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:text="@string/mf_hg_belastung"
+                android:textAllCaps="true"
+                android:textColor="@color/mf_hg_neben"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/mf_w_belastung_wert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/mf_hg_beispiel_belastung"
+                android:textColor="@color/mf_hg_tinte"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="1dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="12dp"
+            android:background="@color/mf_hg_haarlinie"
+            android:importantForAccessibility="no" />
+
+        <LinearLayout
+            android:id="@+id/mf_w_schlaf_spalte"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/mf_w_schlaf_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.08"
+                android:maxLines="1"
+                android:text="@string/mf_hg_schlaf"
+                android:textAllCaps="true"
+                android:textColor="@color/mf_hg_neben"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/mf_w_schlaf_wert"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-condensed"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:text="@string/mf_hg_beispiel_schlaf"
+                android:textColor="@color/mf_hg_tinte"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/mf_w_satz"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="10dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lineSpacingMultiplier="1.15"
+        android:maxLines="2"
+        android:text="@string/mf_hg_vorschau_satz"
+        android:textColor="@color/mf_hg_tinte_2"
+        android:textSize="13sp" />
+
+    <TextView
+        android:id="@+id/mf_w_zuletzt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:maxLines="1"
+        android:text="@string/mf_hg_vorschau_zuletzt"
+        android:textColor="@color/mf_hg_neben"
+        android:textSize="10sp" />
+</LinearLayout>

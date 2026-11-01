@@ -131,3 +131,40 @@ Schritte:
 7. Wenn ein Handy per USB angeschlossen ist und "adb devices" es zeigt: frage, ob du die APK mit adb install -r installieren sollst.
 8. Erkläre mir zum Schluss in einfachen Worten: In der WHOOP-App unter Mehr → Integrationen → Health Connect die Freigabe einschalten, dann in MAEHR FIT unter "Daten" auf "Mit Health Connect verbinden" tippen und alle Leserechte erlauben.
 ```
+
+## Hintergrundzugriff in Health Connect erlauben (ab 01.11.2026)
+
+Damit MAEHR FIT auch bei geschlossener App neue Werte holt (Widgets, Morgenbericht – `docs/technik/hintergrund.md`):
+
+1. MAEHR FIT → **Mehr** → **Mitteilungen & Widgets** → **„Im Hintergrund erlauben“** → im Health-Connect-Dialog zulassen.
+   Alternativ: Health Connect → **App-Berechtigungen** → **MAEHR FIT** → **„Zugriff im Hintergrund“** einschalten.
+   Gibt es den Schalter nicht, kann das Gerät es noch nicht (Android 14 oder neueres Health Connect nötig) – dann kommen neue Werte
+   nur beim Öffnen der App.
+2. **Mitteilungen erlauben** (Android 13+): in derselben Ansicht „Mitteilungen erlauben“ → Zulassen.
+3. **Xiaomi / Redmi / POCO (MIUI, HyperOS):** Einstellungen → Apps → Apps verwalten → MAEHR FIT → **Autostart** einschalten und
+   **Akku-Sparmodus → „Keine Einschränkungen“**. Die Knöpfe „Autostart öffnen“ und „Akku-Einstellungen öffnen“ führen direkt hin.
+   Dasselbe am besten auch für die **WHOOP-App**, sonst schreibt sie nachts nichts nach Health Connect.
+4. Kontrolle: „Jetzt abgleichen“ → nach etwa einer Minute steht unter „Letzter Lauf“ die Uhrzeit und „… neue Messwerte“.
+
+## Widgets hinzufügen
+
+1. Startbildschirm an einer freien Stelle **lange gedrückt halten** → **„Widgets“** (MIUI: „Widgets“ unten im Bearbeiten-Modus).
+2. **MAEHR FIT** suchen und eines der drei Widgets auf den Bildschirm ziehen: **Erholung** (2 × 2, Ring), **Heute** (4 × 2,
+   Erholung · Belastung · Schlaf mit dem Satz des Tages) oder **Schlaf** (2 × 1, letzte Nacht gegen den Bedarf).
+3. Die Widgets zeigen genau die Zahlen der App; unten steht „zuletzt HH:MM“. Neu gezeichnet wird nach jedem Lauf, beim Verlassen der
+   App und mit „Widgets jetzt aktualisieren“. Tippen öffnet die App an der passenden Stelle.
+
+## Kotlin prüfen ohne Android Studio
+
+```bash
+npm run android:pruefen     # = bash android/pruefung/kotlin_pruefen.sh
+```
+
+Übersetzt alle Kotlin-Dateien (`android/plugins/*/src/main/java`) und `MainActivity.java` gegen android.jar 34 und die Bibliotheken
+der App, mit Stummeln für Capacitor und R (`android/pruefung/`). Prüft dabei auch die Ressourcen (gültiges XML, alle `@…`-Verweise,
+nur RemoteViews-taugliche Ansichten in Widgets/Mitteilungen, DE/EN vollständig). Lädt beim ersten Mal kotlinc und die Bibliotheken
+nach `~/.cache/mf-kotlin-pruefung` (rund 160 MB). Ersetzt den Gradle-Bau nicht.
+
+Neu in den Gradle-Dateien: Modul `:hintergrund` (`android/settings.gradle`, `android/app/build.gradle`), `workVersion = '2.9.1'`
+(`android/variables.gradle`). `npx cap sync` fasst diese Stellen nicht an. Neues Skript im Paket: `kern.bundle.js` in
+`android/app/src/main/assets/` (von `python3 bau.py`, eingecheckt).

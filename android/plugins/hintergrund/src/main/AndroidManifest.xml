@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hintergrund-Abgleich, Mitteilungen und Widgets (docs/technik/hintergrund.md). Wird beim Bauen in das App-Manifest eingemischt.
+     Der Lauf selbst braucht keinen Eintrag (WorkManager meldet sich über androidx.startup selbst an und bringt WAKE_LOCK,
+     RECEIVE_BOOT_COMPLETED und FOREGROUND_SERVICE mit). Kein Vordergrunddienst-Typ nötig: ab Android 12 laufen beschleunigte
+     Läufe über JobScheduler. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Android 13+: Mitteilungen anzeigen (Laufzeitrecht, gefragt aus „Mitteilungen & Widgets“) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Nach dem Neustart des Handys Läufe und Wecker wieder einplanen -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Health Connect auch lesen, wenn die App nicht offen ist (Android 14+ bzw. neues Health Connect; Freigabe in Health Connect) -->
+    <uses-permission android:name="android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND" />
+
+    <application>
+        <!-- Widget „Erholung“ 2 × 2 -->
+        <receiver
+            android:name="de.maehrsteuern.fit.hintergrund.ErholungWidget"
+            android:exported="true"
+            android:label="@string/mf_hg_widget_erholung_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/mf_widget_erholung_info" />
+        </receiver>
+        <!-- Widget „Heute“ 4 × 2 -->
+        <receiver
+            android:name="de.maehrsteuern.fit.hintergrund.HeuteWidget"
+            android:exported="true"
+            android:label="@string/mf_hg_widget_heute_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/mf_widget_heute_info" />
+        </receiver>
+        <!-- Widget „Schlaf“ 2 × 1 -->
+        <receiver
+            android:name="de.maehrsteuern.fit.hintergrund.SchlafWidget"
+            android:exported="true"
+            android:label="@string/mf_hg_widget_schlaf_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/mf_widget_schlaf_info" />
+        </receiver>
+
+        <!-- Wecker für Morgenbericht und Schlafenszeit (nur von der App selbst) -->
+        <receiver android:name="de.maehrsteuern.fit.hintergrund.WeckerEmpfaenger" android:exported="false" />
+
+        <!-- Neustart, App-Update, Zeitzone/Uhrzeit geändert: neu einplanen (geschützte System-Meldungen) -->
+        <receiver android:name="de.maehrsteuern.fit.hintergrund.StartEmpfaenger" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+            </intent-filter>
+        </receiver>
+    </application>
+</manifest>

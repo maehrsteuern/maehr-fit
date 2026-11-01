@@ -16,4 +16,6 @@ ext {
     // MAEHR FIT: Health Connect (letzte Fassung für compileSdk 34) und Kotlin-Coroutinen für das Plugin
     healthConnectVersion = '1.1.0-alpha08'
     kotlinxCoroutinesVersion = '1.7.3'
+    // MAEHR FIT: Hintergrund-Abgleich (WorkManager 2.9.x passt zu compileSdk 34 und Kotlin 1.9; neuere Fassungen nicht geprüft)
+    workVersion = '2.9.1'
 }
